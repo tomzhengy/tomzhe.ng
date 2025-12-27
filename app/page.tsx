@@ -1,7 +1,6 @@
 "use client"
 
-// import Image from "next/image"; /* Temporarily unused while image is hidden */
-import { Suspense, useState, ReactNode, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Script from "next/script";
 
 import ContentSections from "./components/sections/ContentSections";

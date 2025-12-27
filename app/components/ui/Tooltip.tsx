@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, ReactNode } from 'react';
 
 interface TooltipProps {
   children: ReactNode;
