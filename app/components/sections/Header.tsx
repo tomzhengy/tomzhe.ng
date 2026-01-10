@@ -18,42 +18,6 @@ export default function Header({ currentTime, ThemeToggleComponent }: HeaderProp
           {currentTime}
         </div>
         
-        {/* Arrow and text */}
-        {/* <div 
-          className="absolute -top-12 left-8 opacity-50"
-        >
-          <span 
-            className="text-xs italic text-foreground/50 whitespace-nowrap inline-block"
-            style={{ 
-              transform: 'rotate(-5deg)',
-              transition: 'color var(--transition-duration) var(--transition-timing)'
-            }}
-          >
-            local time!
-          </span>
-          
-          <svg 
-            width="50" 
-            height="30" 
-            viewBox="0 0 50 30" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-            className="absolute top-5 left-0"
-            style={{
-              transition: 'stroke var(--transition-duration) var(--transition-timing)'
-            }}
-          >
-            <path 
-              d="M 35 2 Q 20 12 8 24 L 10 21 M 8 24 L 11 23" 
-              stroke="currentColor" 
-              strokeWidth="1" 
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity="0.3"
-            />
-          </svg>
-        </div> */}
       </div>
       
       <div className="flex items-center gap-6">
