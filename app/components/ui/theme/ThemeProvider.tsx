@@ -16,7 +16,7 @@ function getThemeFromStorage(): Theme | null {
   if (typeof window === "undefined") return null;
   try {
     return localStorage.getItem("theme") as Theme | null;
-  } catch (_) {
+  } catch {
     return null;
   }
 }
@@ -26,7 +26,7 @@ function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   try {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  } catch (_) {
+  } catch {
     return "dark";
   }
 }
