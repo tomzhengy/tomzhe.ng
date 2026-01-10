@@ -15,7 +15,7 @@ const eslintConfig = [
     rules: {
       // Disable rules that might be causing problems
       "import/no-unresolved": "off",
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
       "react/jsx-no-undef": "off",
       "import/extensions": "off",
       "@next/next/no-html-link-for-pages": "off",
