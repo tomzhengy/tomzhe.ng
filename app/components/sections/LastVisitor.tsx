@@ -82,7 +82,7 @@ export default function LastVisitor() {
         } else if (data) {
           setLastVisitor(data);
         }
-      } catch (error) {
+      } catch {
         // Silently handle in development
       }
     };
@@ -166,6 +166,7 @@ export default function LastVisitor() {
         };
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastVisitor]);
 
   // Always show "last visit from" text
@@ -185,8 +186,6 @@ export default function LastVisitor() {
   if (!lastVisitor || !lastVisitor.city || !lastVisitor.country) {
     return null;
   }
-
-  const fullLocation = `${lastVisitor.city}, ${lastVisitor.country}`;
 
   return (
     <div className="text-sm text-foreground/50 mb-4">
