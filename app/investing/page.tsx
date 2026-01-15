@@ -1,4 +1,6 @@
 import Header from "../components/sections/Header";
+import SocialLinks from "../components/sections/SocialLinks";
+import LastVisitor from "../components/sections/LastVisitor";
 import ThemeToggle from "../components/ui/theme/ThemeToggle";
 import Tooltip from "../components/ui/Tooltip";
 
@@ -65,6 +67,11 @@ export default function InvestingPage() {
             </li>
           </ul>
         </section>
+
+        <div className="mt-6">
+          <SocialLinks />
+          <LastVisitor />
+        </div>
       </div>
     </main>
   );
