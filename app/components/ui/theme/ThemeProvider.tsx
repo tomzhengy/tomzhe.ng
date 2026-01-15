@@ -7,6 +7,7 @@ type Theme = "light" | "dark";
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
+  mounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -117,6 +118,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const contextValue = {
     theme,
     toggleTheme,
+    mounted,
   };
 
   // Using suppressHydrationWarning to prevent errors when server/client render differently

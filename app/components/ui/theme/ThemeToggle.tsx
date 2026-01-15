@@ -3,7 +3,12 @@
 import { useTheme } from "./ThemeProvider";
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted } = useTheme();
+
+  // don't render anything until mounted to prevent flash
+  if (!mounted) {
+    return <div className="w-6 h-6" />;
+  }
 
   return (
     <button
@@ -29,7 +34,6 @@ export default function ThemeToggle() {
           transitionDuration: "var(--animation-header)",
           transitionTimingFunction: "ease-in-out",
           pointerEvents: theme === "dark" ? "auto" : "none",
-          // Always keep both icons visible to avoid breaks
           visibility: "visible",
         }}
       >
@@ -62,7 +66,6 @@ export default function ThemeToggle() {
           transitionDuration: "var(--animation-header)",
           transitionTimingFunction: "ease-in-out",
           pointerEvents: theme === "light" ? "auto" : "none",
-          // Always keep both icons visible to avoid breaks
           visibility: "visible",
         }}
       >

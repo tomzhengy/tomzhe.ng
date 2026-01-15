@@ -1,6 +1,7 @@
 "use client";
 
 import { ComponentType } from "react";
+import Link from "next/link";
 import Tooltip from "../ui/Tooltip";
 
 interface HeaderProps {
@@ -16,22 +17,22 @@ export default function Header({
     <div className="flex items-center justify-between mb-8 h-8 w-full">
       {/* Navigation links */}
       <div className="flex gap-6 text-base opacity-85 hover:opacity-100 transition-all">
-        <a
+        <Link
           href="/"
           className={`transition-all ${currentPage === "home" ? "underline" : "hover:underline"}`}
         >
           Tom Zheng
-        </a>
-        <a
+        </Link>
+        <Link
           href="/investing"
           className={`transition-all ${currentPage === "investing" ? "underline" : "hover:underline"}`}
         >
           Investing
-        </a>
+        </Link>
         <Tooltip text="coming soon!">
-          <a href="#" className="hover:underline transition-all">
+          <span className="hover:underline transition-all cursor-not-allowed">
             Blog
-          </a>
+          </span>
         </Tooltip>
       </div>
 

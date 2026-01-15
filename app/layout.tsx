@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "./components/ui/theme/ThemeProvider";
+import { LastVisitorProvider } from "./components/sections/LastVisitorProvider";
 import { inter, crimsonText, redaction } from "./styles/fonts";
 
 export const metadata: Metadata = {
@@ -109,7 +110,9 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <LastVisitorProvider>{children}</LastVisitorProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
