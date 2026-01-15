@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import Script from "next/script";
 
-import ContentSections from "./components/sections/ContentSections";
 import SocialLinks from "./components/sections/SocialLinks";
 import Header from "./components/sections/Header";
 import LastVisitor from "./components/sections/LastVisitor";
@@ -128,9 +127,6 @@ export default function Home() {
             </div>
             <hr className="mt-4 border-t border-gray-400 opacity-55" />
           </section>
-
-          {/* Content sections */}
-          <ContentSections />
 
           {/* Bottom section */}
           <div className="mt-6">
