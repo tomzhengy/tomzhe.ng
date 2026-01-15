@@ -90,7 +90,6 @@ export default function Home() {
               </a>{" "}
               @ UCSD before joining YC X25.
             </div>
-            <hr className="mt-4 border-t border-gray-400 opacity-55" />
           </section>
 
           {/* Bottom section */}
