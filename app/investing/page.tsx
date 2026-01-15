@@ -22,7 +22,7 @@ export default function InvestingPage() {
                   href="https://humandelta.ai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline-animated"
+                  className="underline"
                 >
                   Human Delta
                 </a>
@@ -35,7 +35,7 @@ export default function InvestingPage() {
                   href="https://nozomio.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline-animated"
+                  className="underline"
                 >
                   Nozomio
                 </a>
@@ -48,7 +48,7 @@ export default function InvestingPage() {
                   href="https://shofo.ai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline-animated"
+                  className="underline"
                 >
                   Shofo
                 </a>
@@ -61,7 +61,7 @@ export default function InvestingPage() {
                   href="https://hillclimb.ing"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline-animated"
+                  className="underline"
                 >
                   Hillclimb
                 </a>

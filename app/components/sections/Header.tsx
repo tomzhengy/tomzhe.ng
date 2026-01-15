@@ -16,21 +16,21 @@ export default function Header({
   return (
     <div className="flex items-center justify-between mb-8 h-8 w-full">
       {/* Navigation links */}
-      <div className="flex gap-6 text-lg opacity-85 hover:opacity-100 transition-all">
+      <div className="flex gap-6 text-lg">
         <Link
           href="/"
-          className={`transition-all ${currentPage === "home" ? "underline" : "hover:underline"}`}
+          className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "home" ? "underline" : "hover:underline"}`}
         >
           Tom Zheng
         </Link>
         <Link
           href="/investing"
-          className={`transition-all ${currentPage === "investing" ? "underline" : "hover:underline"}`}
+          className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "investing" ? "underline" : "hover:underline"}`}
         >
           Investing
         </Link>
         <Tooltip text="coming soon!">
-          <span className="hover:underline transition-all cursor-not-allowed">
+          <span className="opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-not-allowed">
             Blog
           </span>
         </Tooltip>

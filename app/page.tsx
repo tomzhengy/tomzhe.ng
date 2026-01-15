@@ -72,7 +72,7 @@ export default function Home() {
                 href="https://clado.ai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline-animated"
+                className="underline"
               >
                 Clado
               </a>
@@ -85,7 +85,7 @@ export default function Home() {
                 href="https://sdxucsd.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline-animated"
+                className="underline"
               >
                 SDx
               </a>{" "}
