@@ -71,7 +71,7 @@ export default function InvestingPage() {
           </ul>
         </section>
 
-        <div className="mt-6">
+        <div className="mt-8">
           <SocialLinks />
           <LastVisitor />
         </div>

@@ -65,8 +65,8 @@ export default function Home() {
           {/* Header */}
           <Header ThemeToggleComponent={ThemeToggle} currentPage="home" />
 
-          <section aria-labelledby="introduction">
-            <div className="text-lg">
+          <section aria-labelledby="introduction" className="space-y-8">
+            <p className="text-lg">
               Hey, my name is Tom. I currently spend my time building{" "}
               <a
                 href="https://clado.ai"
@@ -78,8 +78,9 @@ export default function Home() {
               </a>
               , where we train, eval, and deploy task-specific small language
               models.
-              <br />
-              <br />I grew up in 🇨🇦 and spent a semester building{" "}
+            </p>
+            <p className="text-lg">
+              I grew up in 🇨🇦 and spent a semester building{" "}
               <a
                 href="https://sdxucsd.com/"
                 target="_blank"
@@ -89,11 +90,11 @@ export default function Home() {
                 SDx
               </a>{" "}
               @ UCSD before joining YC X25.
-            </div>
+            </p>
           </section>
 
           {/* Bottom section */}
-          <div className="mt-6">
+          <div className="mt-8">
             {/* Social links */}
             <SocialLinks />
 
