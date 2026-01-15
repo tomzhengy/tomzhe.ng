@@ -90,7 +90,8 @@ export default function Home() {
               >
                 Clado
               </a>
-              .
+              , where we train, evaluate, and host small language models for
+              specific tasks.
               <br />
               <br />I grew up in 🇨🇦 and spent a semester building{" "}
               <a
