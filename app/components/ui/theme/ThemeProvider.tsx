@@ -25,7 +25,9 @@ function getThemeFromStorage(): Theme | null {
 function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   try {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   } catch {
     return "dark";
   }
@@ -42,10 +44,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Effect to detect system theme preference - only runs client-side after hydration
   useEffect(() => {
     setMounted(true);
-    
+
     // Initialize theme
     const savedTheme = getThemeFromStorage();
-    
+
     if (savedTheme) {
       setTheme(savedTheme);
       setIsManuallySet(true);
@@ -54,7 +56,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTheme(getSystemTheme());
       setIsManuallySet(false);
     }
-    
+
     // Add listener for system preference changes
     try {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -64,7 +66,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           setTheme(e.matches ? "dark" : "light");
         }
       };
-      
+
       // Add event listener (use the right method based on browser support)
       if (mediaQuery.addEventListener) {
         mediaQuery.addEventListener("change", handleChange);
@@ -72,7 +74,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // For older browsers
         mediaQuery.addListener(handleChange);
       }
-      
+
       // Cleanup
       return () => {
         if (mediaQuery.removeEventListener) {
@@ -90,13 +92,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Effect to apply theme to document element
   useEffect(() => {
     if (!mounted) return;
-    
+
     try {
       // Update classes for dark/light mode
       const root = document.documentElement;
-      root.classList.remove('light', 'dark');
+      root.classList.remove("light", "dark");
       root.classList.add(theme);
-      
+
       // Only save to localStorage if manually set by user
       if (isManuallySet) {
         localStorage.setItem("theme", theme);
@@ -109,12 +111,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Function to toggle theme
   const toggleTheme = () => {
     setIsManuallySet(true); // Mark as manually set when user toggles
-    setTheme(prevTheme => (prevTheme === "dark" ? "light" : "dark"));
+    setTheme((prevTheme) => (prevTheme === "dark" ? "light" : "dark"));
   };
 
   const contextValue = {
     theme,
-    toggleTheme
+    toggleTheme,
   };
 
   // Using suppressHydrationWarning to prevent errors when server/client render differently
@@ -132,4 +134,4 @@ export function useTheme() {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
   return context;
-} 
+}

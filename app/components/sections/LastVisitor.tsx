@@ -19,7 +19,7 @@ export default function LastVisitor() {
   useEffect(() => {
     // Skip if Supabase is not configured
     if (!supabase) {
-      console.log('Supabase not configured - skipping visitor tracking');
+      console.log("Supabase not configured - skipping visitor tracking");
       setLoading(false);
       return;
     }
@@ -28,40 +28,47 @@ export default function LastVisitor() {
     const getLocationAndTrack = async () => {
       try {
         // Get location using ipapi.co (works from browser too)
-        const locationResponse = await fetch('https://ipapi.co/json/');
-        
+        const locationResponse = await fetch("https://ipapi.co/json/");
+
         if (!locationResponse.ok) {
-          console.log('Location API rate limited or unavailable');
+          console.log("Location API rate limited or unavailable");
           return;
         }
-        
+
         const locationData = await locationResponse.json();
-        
+
         // Check if we got an error response from ipapi
-        if (locationData.error || locationData.reason === 'RateLimited') {
-          console.log('Location API rate limited:', locationData.message || 'Too many requests');
+        if (locationData.error || locationData.reason === "RateLimited") {
+          console.log(
+            "Location API rate limited:",
+            locationData.message || "Too many requests",
+          );
           return;
         }
-        
+
         // Track this visit
-        const { error: trackError } = await supabase
-          .from('visitors')
-          .insert({
-            city: locationData.city || 'Unknown',
-            country: locationData.country_name || 'Unknown',
-            ip: locationData.ip || null,
-          });
-          
+        const { error: trackError } = await supabase.from("visitors").insert({
+          city: locationData.city || "Unknown",
+          country: locationData.country_name || "Unknown",
+          ip: locationData.ip || null,
+        });
+
         if (trackError) {
           // Only log if it's not a typical development error
-          if (trackError.message && !trackError.message.includes('Failed to fetch')) {
-            console.log('Visitor tracking disabled:', trackError.message);
+          if (
+            trackError.message &&
+            !trackError.message.includes("Failed to fetch")
+          ) {
+            console.log("Visitor tracking disabled:", trackError.message);
           }
         }
       } catch (error) {
         // Silently handle errors in development
-        if (error instanceof Error && !error.message.includes('Failed to fetch')) {
-          console.log('Visitor tracking unavailable');
+        if (
+          error instanceof Error &&
+          !error.message.includes("Failed to fetch")
+        ) {
+          console.log("Visitor tracking unavailable");
         }
       }
     };
@@ -70,15 +77,15 @@ export default function LastVisitor() {
     const fetchVisitorByIndex = async (index: number) => {
       try {
         const { data, error } = await supabase
-          .from('visitors')
-          .select('city, country, visited_at')
-          .order('visited_at', { ascending: false })
+          .from("visitors")
+          .select("city, country, visited_at")
+          .order("visited_at", { ascending: false })
           .range(index, index)
           .single();
-          
-        if (error && error.code !== 'PGRST116') {
+
+        if (error && error.code !== "PGRST116") {
           // Only log if it's not a "no rows" error
-          console.log('Could not fetch visitor');
+          console.log("Could not fetch visitor");
         } else if (data) {
           setLastVisitor(data);
         }
@@ -100,33 +107,33 @@ export default function LastVisitor() {
         fetchInitialVisitor();
       }, 1000);
     });
-
-
   }, []); // Empty dependency array ensures this only runs once on mount
 
   // Typewriter effect when location data is loaded
   useEffect(() => {
     if (lastVisitor && lastVisitor.city && lastVisitor.country) {
       const newLocation = `${lastVisitor.city}, ${lastVisitor.country}`;
-      
+
       // Only run typewriter if this is a new location
       if (currentLocationRef.current === newLocation) {
         return;
       }
-      
+
       setIsTyping(true);
-      
+
       // If there's existing text, do reverse typewriter first
       if (displayedLocation.length > 0) {
         let currentLength = displayedLocation.length;
-        
+
         const eraseInterval = setInterval(() => {
           if (currentLength > 0) {
-            setDisplayedLocation(prev => prev.substring(0, currentLength - 1));
+            setDisplayedLocation((prev) =>
+              prev.substring(0, currentLength - 1),
+            );
             currentLength--;
           } else {
             clearInterval(eraseInterval);
-            
+
             // Now type the new location
             let typeIndex = 0;
             const typeInterval = setInterval(() => {
@@ -141,7 +148,7 @@ export default function LastVisitor() {
             }, 40); // Normal typing speed
           }
         }, 20); // 50% faster for erasing (20ms instead of 40ms)
-        
+
         return () => {
           clearInterval(eraseInterval);
           setIsTyping(false);
@@ -159,14 +166,14 @@ export default function LastVisitor() {
             currentLocationRef.current = newLocation;
           }
         }, 40); // Normal typing speed
-        
+
         return () => {
           clearInterval(typeInterval);
           setIsTyping(false);
         };
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastVisitor]);
 
   // Always show "last visit from" text
@@ -178,7 +185,10 @@ export default function LastVisitor() {
   if (loading) {
     return (
       <div className="text-sm text-foreground/50 mb-4">
-        last visit from <span className="inline-block animate-[blink_0.5s_ease_infinite]">_</span>
+        last visit from{" "}
+        <span className="inline-block animate-[blink_0.5s_ease_infinite]">
+          _
+        </span>
       </div>
     );
   }
@@ -190,7 +200,11 @@ export default function LastVisitor() {
   return (
     <div className="text-sm text-foreground/50 mb-4">
       last visit from {displayedLocation}
-      <span className={`inline-block ${isTyping ? '' : 'animate-[blink_0.5s_ease_infinite]'}`}>_</span>
+      <span
+        className={`inline-block ${isTyping ? "" : "animate-[blink_0.5s_ease_infinite]"}`}
+      >
+        _
+      </span>
     </div>
   );
-} 
+}

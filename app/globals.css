@@ -4,28 +4,28 @@
 :root {
   /* Dark mode colors (default) */
   --background: #242222;
-  --foreground: #F7F7EF;
+  --foreground: #f7f7ef;
   --link-underline: #888888;
-  --link-hover: #FFFFFF;
-  
+  --link-hover: #ffffff;
+
   /* Font families */
   --font-body: var(--font-redaction), serif;
   --font-ui: var(--font-inter), system-ui, sans-serif;
-  
+
   /* Animation durations - organized by purpose */
-  
+
   /* Theme switching */
   --transition-duration: 0.3s;
   --transition-timing: ease;
-  
+
   /* Header animations */
   --animation-header: 0.7s;
   --animation-theme-toggle: 0.35s;
-  
+
   /* Content fade animations */
   --animation-fade-in: 0.6s;
   --animation-fade-out: 0.5s;
-  
+
   /* General animation timings */
   --animation-short: 0.3s;
 }
@@ -33,31 +33,37 @@
 /* Light mode overrides when .light class is present */
 .light {
   /* Light mode colors */
-  --background: #F7F7EF;
+  --background: #f7f7ef;
   --foreground: #242222;
-  --link-underline: #AAAAAA;
+  --link-underline: #aaaaaa;
   --link-hover: #000000;
 }
 
 /* Base styles with transitions */
-html, body {
+html,
+body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
-  transition: background-color var(--transition-duration) var(--transition-timing),
-              color var(--transition-duration) var(--transition-timing);
+  transition:
+    background-color var(--transition-duration) var(--transition-timing),
+    color var(--transition-duration) var(--transition-timing);
 }
 
 /* Add transitions to interactive elements and standalone SVGs */
-a, button, .underline {
-  transition: color var(--animation-theme-toggle) var(--transition-timing),
-              opacity var(--animation-theme-toggle) var(--transition-timing),
-              text-decoration-color var(--animation-theme-toggle) var(--transition-timing),
-              background-color var(--animation-theme-toggle) var(--transition-timing);
+a,
+button,
+.underline {
+  transition:
+    color var(--animation-theme-toggle) var(--transition-timing),
+    opacity var(--animation-theme-toggle) var(--transition-timing),
+    text-decoration-color var(--animation-theme-toggle) var(--transition-timing),
+    background-color var(--animation-theme-toggle) var(--transition-timing);
 }
 
 /* Prevent double transitions on nested SVGs by removing their transitions */
-a svg, button svg {
+a svg,
+button svg {
   transition: none;
 }
 
@@ -78,18 +84,19 @@ a svg, button svg {
 }
 
 .underline-animated::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 4px;
   left: 0;
   width: 100%;
   height: 1.2px;
   background-color: var(--link-underline);
-  transition: background-color var(--animation-theme-toggle) var(--transition-timing);
+  transition: background-color var(--animation-theme-toggle)
+    var(--transition-timing);
 }
 
 .underline-animated::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 4px;
   left: 0;
@@ -105,19 +112,35 @@ a svg, button svg {
 
 /* Fade animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes blink {
-  0%, 35% { opacity: 1; }
-  50%, 85% { opacity: 0; }
-  100% { opacity: 1; }
+  0%,
+  35% {
+    opacity: 1;
+  }
+  50%,
+  85% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .font-redaction {
@@ -126,7 +149,7 @@ a svg, button svg {
 
 @layer base {
   /* Hide preload link warnings */
-  link[rel=preload][as="style"] {
+  link[rel="preload"][as="style"] {
     /* This prevents warnings about unused preloaded resources */
     z-index: 1;
   }

@@ -4,7 +4,7 @@ import { useTheme } from "./ThemeProvider";
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
-  
+
   return (
     <button
       onClick={toggleTheme}
@@ -12,25 +12,25 @@ export default function ThemeToggle() {
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {/* Sun icon for dark mode */}
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        fill="none" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
-        strokeLinecap="round" 
+        strokeLinecap="round"
         strokeLinejoin="round"
         className="absolute top-0 left-0 will-change-opacity"
-        style={{ 
-          opacity: theme === 'dark' ? 1 : 0,
+        style={{
+          opacity: theme === "dark" ? 1 : 0,
           transitionProperty: "opacity",
           transitionDuration: "var(--animation-header)",
           transitionTimingFunction: "ease-in-out",
-          pointerEvents: theme === 'dark' ? 'auto' : 'none',
+          pointerEvents: theme === "dark" ? "auto" : "none",
           // Always keep both icons visible to avoid breaks
-          visibility: 'visible'
+          visibility: "visible",
         }}
       >
         <circle cx="12" cy="12" r="5"></circle>
@@ -43,31 +43,31 @@ export default function ThemeToggle() {
         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
       </svg>
-      
+
       {/* Moon icon for light mode */}
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        fill="none" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
-        strokeLinecap="round" 
+        strokeLinecap="round"
         strokeLinejoin="round"
         className="absolute top-0 left-0 will-change-opacity"
-        style={{ 
-          opacity: theme === 'light' ? 1 : 0,
+        style={{
+          opacity: theme === "light" ? 1 : 0,
           transitionProperty: "opacity",
           transitionDuration: "var(--animation-header)",
           transitionTimingFunction: "ease-in-out",
-          pointerEvents: theme === 'light' ? 'auto' : 'none',
+          pointerEvents: theme === "light" ? "auto" : "none",
           // Always keep both icons visible to avoid breaks
-          visibility: 'visible'
+          visibility: "visible",
         }}
       >
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
       </svg>
     </button>
   );
-} 
+}
