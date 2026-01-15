@@ -51,6 +51,8 @@ export function LastVisitorProvider({
     }
 
     const getLocationAndTrack = async () => {
+      if (!supabase) return;
+
       try {
         const locationResponse = await fetch("https://ipapi.co/json/");
 
@@ -94,6 +96,8 @@ export function LastVisitorProvider({
     };
 
     const fetchVisitorByIndex = async (index: number) => {
+      if (!supabase) return;
+
       try {
         const { data, error } = await supabase
           .from("visitors")
