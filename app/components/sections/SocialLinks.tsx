@@ -19,7 +19,7 @@ export default function SocialLinks() {
   };
 
   return (
-    <div className="flex space-x-6 mb-3">
+    <div className="flex items-center gap-4 mb-3">
       <Tooltip text={emailCopied ? "copied!" : "copy"}>
         <a href="#" onClick={handleEmailClick} aria-label="Copy Email">
           <svg
@@ -39,6 +39,7 @@ export default function SocialLinks() {
           </svg>
         </a>
       </Tooltip>
+      <span className="opacity-50">/</span>
       <a
         href="https://linkedin.com/in/tomzhengy"
         target="_blank"
@@ -62,6 +63,7 @@ export default function SocialLinks() {
           <circle cx="4" cy="4" r="2"></circle>
         </svg>
       </a>
+      <span className="opacity-50">/</span>
       <a
         href="https://x.com/tomzhengy"
         target="_blank"
@@ -83,6 +85,7 @@ export default function SocialLinks() {
           <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
         </svg>
       </a>
+      <span className="opacity-50">/</span>
       <a
         href="https://github.com/tomzhengy"
         target="_blank"
