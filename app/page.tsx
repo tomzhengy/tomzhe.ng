@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import Script from "next/script";
 
 import SocialLinks from "./components/sections/SocialLinks";
@@ -8,23 +8,9 @@ import Header from "./components/sections/Header";
 import LastVisitor from "./components/sections/LastVisitor";
 
 import ThemeToggle from "./components/ui/theme/ThemeToggle";
-import Tooltip from "./components/ui/Tooltip";
 
 export default function Home() {
   const mainRef = useRef<HTMLDivElement>(null);
-  const [emailCopied, setEmailCopied] = useState(false);
-
-  // Email copy handler
-  const handleEmailClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      await navigator.clipboard.writeText("tomzheng1012@gmail.com");
-      setEmailCopied(true);
-      setTimeout(() => setEmailCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy email:", err);
-    }
-  };
 
   return (
     <>
@@ -103,28 +89,6 @@ export default function Home() {
                 SDx
               </a>{" "}
               @ UCSD before joining YC X25.
-              <br />
-              <br />
-              Contact me:{" "}
-              <Tooltip text={emailCopied ? "copied!" : "copy"}>
-                <a
-                  href="#"
-                  onClick={handleEmailClick}
-                  className="underline-animated cursor-pointer"
-                >
-                  email
-                </a>
-              </Tooltip>{" "}
-              or{" "}
-              <a
-                href="https://x.com/tomzhengy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline-animated"
-              >
-                x/twitter
-              </a>
-              .
             </div>
             <hr className="mt-4 border-t border-gray-400 opacity-55" />
           </section>
