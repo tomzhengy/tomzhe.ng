@@ -76,8 +76,8 @@ export default function Home() {
               >
                 Clado
               </a>
-              , where we train, evaluate, and host small language models for
-              specific tasks.
+              , where we train, eval, and deploy task-specific small language
+              models.
               <br />
               <br />I grew up in 🇨🇦 and spent a semester building{" "}
               <a

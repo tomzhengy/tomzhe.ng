@@ -11,7 +11,10 @@ export default function InvestingPage() {
         <Header ThemeToggleComponent={ThemeToggle} currentPage="investing" />
 
         <section aria-labelledby="angel-investing" className="mt-6">
-          <div className="text-lg">I also angel invest.</div>
+          <div className="text-lg">
+            I angel invest in pre-seed and seed-stage people I deeply believe
+            in.
+          </div>
           <ul className="list-disc pl-5 space-y-1 mt-3">
             <li className="text-lg">
               <Tooltip text="enabling and benchmarking enterprise-AI adoption">
