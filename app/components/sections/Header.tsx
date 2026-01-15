@@ -25,9 +25,7 @@ export default function Header({ currentTime, ThemeToggleComponent }: HeaderProp
         <div 
           className="text-base opacity-85 hover:opacity-100 transition-all"
         >
-          <Tooltip text="the selfish gene">
-            <a href="#" className="hover:underline transition-all">readings</a>
-          </Tooltip>
+          <a href="/investing" className="hover:underline transition-all">investing</a>
           <span className="mx-2">•</span>
           <Tooltip text="coming soon!">
             <a href="#" className="hover:underline transition-all">writings</a>
