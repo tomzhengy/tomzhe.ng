@@ -5,8 +5,6 @@
   /* Dark mode colors (default) */
   --background: #242222;
   --foreground: #f7f7ef;
-  --link-underline: #888888;
-  --link-hover: #ffffff;
 
   /* Font families */
   --font-body: var(--font-redaction), serif;
@@ -35,8 +33,6 @@
   /* Light mode colors */
   --background: #f7f7ef;
   --foreground: #242222;
-  --link-underline: #aaaaaa;
-  --link-hover: #000000;
 }
 
 /* Base styles with transitions */
@@ -65,15 +61,6 @@ button,
 a svg,
 button svg {
   transition: none;
-}
-
-/* Override Tailwind classes for themes */
-.decoration-gray-300 {
-  text-decoration-color: var(--link-underline) !important;
-}
-
-.hover\:decoration-white:hover {
-  text-decoration-color: var(--link-hover) !important;
 }
 
 /* Fade animations */
