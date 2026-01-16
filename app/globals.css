@@ -71,15 +71,3 @@ button svg {
     opacity: 1;
   }
 }
-
-.font-redaction {
-  font-family: var(--font-redaction), serif;
-}
-
-@layer base {
-  /* Hide preload link warnings */
-  link[rel="preload"][as="style"] {
-    /* This prevents warnings about unused preloaded resources */
-    z-index: 1;
-  }
-}
