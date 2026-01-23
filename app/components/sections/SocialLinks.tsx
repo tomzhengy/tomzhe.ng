@@ -65,7 +65,7 @@ export default function SocialLinks() {
       </a>
       <span className="opacity-50">/</span>
       <a
-        href="https://x.com/tomzhengy"
+        href="https://x.com/tomzheng"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="X (Twitter) Profile"
