@@ -71,3 +71,116 @@ button svg {
     opacity: 1;
   }
 }
+
+/* Blog prose styles */
+.prose {
+  line-height: 1.7;
+}
+
+.prose p {
+  margin-bottom: 1.25em;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: normal;
+}
+
+.prose h1 {
+  font-size: 1.5rem;
+}
+
+.prose h2 {
+  font-size: 1.25rem;
+}
+
+.prose h3 {
+  font-size: 1.1rem;
+}
+
+.prose ul,
+.prose ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin: 0.25em 0;
+}
+
+.prose a {
+  text-decoration: underline;
+}
+
+.prose blockquote {
+  border-left: 2px solid var(--foreground);
+  padding-left: 1em;
+  margin: 1em 0;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--foreground);
+  opacity: 0.2;
+  margin: 2em 0;
+}
+
+.prose img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin: 1em 0;
+}
+
+/* Inline code */
+.prose code:not(.shiki-wrapper code) {
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-family: ui-monospace, monospace;
+}
+
+/* Code blocks - shiki theme switching */
+.shiki-wrapper {
+  display: block;
+  margin: 1em 0;
+}
+
+.shiki-wrapper .shiki {
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.875em;
+  line-height: 1.5;
+}
+
+.shiki-wrapper .shiki code {
+  background: transparent;
+  padding: 0;
+  font-family: ui-monospace, monospace;
+}
+
+/* dark mode (default): show dark theme, hide light */
+.shiki-dark {
+  display: block;
+}
+
+.shiki-light {
+  display: none;
+}
+
+/* light mode: show light theme, hide dark */
+.light .shiki-dark {
+  display: none;
+}
+
+.light .shiki-light {
+  display: block;
+}
