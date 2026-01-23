@@ -2,6 +2,7 @@
 
 import { ComponentType } from "react";
 import Link from "next/link";
+import Tooltip from "../ui/Tooltip";
 
 interface HeaderProps {
   ThemeToggleComponent: ComponentType;
@@ -28,12 +29,11 @@ export default function Header({
         >
           Investing
         </Link>
-        <Link
-          href="/blog"
-          className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "blog" ? "underline" : "hover:underline"}`}
-        >
-          Blog
-        </Link>
+        <Tooltip text="coming soon!">
+          <span className="opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-not-allowed">
+            Blog
+          </span>
+        </Tooltip>
       </div>
 
       {/* Theme toggle */}
