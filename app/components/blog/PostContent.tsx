@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { PostMeta } from "@/app/types/blog";
 
 interface PostContentProps {
@@ -24,19 +23,6 @@ export default function PostContent({ meta, children }: PostContentProps) {
           <span>{formatDate(meta.date)}</span>
           <span>{meta.readingTime}</span>
         </div>
-        {meta.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {meta.tags.map((tag) => (
-              <Link
-                key={tag}
-                href={`/blog/tag/${tag.toLowerCase()}`}
-                className="text-sm opacity-60 hover:opacity-100 hover:underline transition-opacity"
-              >
-                #{tag}
-              </Link>
-            ))}
-          </div>
-        )}
       </header>
       <div className="prose">{children}</div>
     </article>
