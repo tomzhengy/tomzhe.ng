@@ -97,6 +97,9 @@ export default function Home() {
               </a>
               .
             </p>
+            <p className="text-lg">
+              Other interests: photography, camping, swimming, and reading.
+            </p>
           </section>
 
           {/* Bottom section */}
