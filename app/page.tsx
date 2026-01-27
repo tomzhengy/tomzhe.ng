@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import Script from "next/script";
 
 import SocialLinks from "./components/sections/SocialLinks";
@@ -10,8 +9,6 @@ import LastVisitor from "./components/sections/LastVisitor";
 import ThemeToggle from "./components/ui/theme/ThemeToggle";
 
 export default function Home() {
-  const mainRef = useRef<HTMLDivElement>(null);
-
   return (
     <>
       <Script
@@ -60,7 +57,7 @@ export default function Home() {
         }}
       />
 
-      <main ref={mainRef} className="flex min-h-screen justify-center">
+      <main className="flex min-h-screen justify-center">
         <div className="text-left max-w-[500px] w-full px-4 pt-[8vh] sm:pt-[8vh] md:pt-[8vh] pb-16">
           {/* Header */}
           <Header ThemeToggleComponent={ThemeToggle} currentPage="home" />
