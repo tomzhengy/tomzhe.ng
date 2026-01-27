@@ -64,8 +64,7 @@ export default function Home() {
 
           <section aria-labelledby="introduction" className="space-y-8">
             <p className="text-lg">
-              Hey, my name is Tom. I currently spend my time building{" "}
-              <a
+              Hey, my name is Tom. I currently spend my time building <a
                 href="https://clado.ai"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -77,16 +76,14 @@ export default function Home() {
               models.
             </p>
             <p className="text-lg">
-              I grew up in 🇨🇦 and spent a semester building{" "}
-              <a
+              I grew up in 🇨🇦 and spent a semester building <a
                 href="https://sdxucsd.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"
               >
                 SDx
-              </a>{" "}
-              @ UCSD before joining YC X25.
+              </a> @ UCSD before joining YC X25.
             </p>
           </section>
 
