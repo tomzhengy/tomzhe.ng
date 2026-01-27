@@ -7,7 +7,7 @@ import Tooltip from "../components/ui/Tooltip";
 export default function InvestingPage() {
   return (
     <main className="flex min-h-screen justify-center">
-      <div className="text-left max-w-[500px] w-full px-4 pt-[8vh] pb-16">
+      <div className="text-left max-w-[540px] w-full px-4 pt-[8vh] pb-16">
         <Header ThemeToggleComponent={ThemeToggle} currentPage="investing" />
 
         <section aria-labelledby="angel-investing" className="mt-6">

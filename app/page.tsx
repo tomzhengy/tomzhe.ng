@@ -58,13 +58,13 @@ export default function Home() {
       />
 
       <main className="flex min-h-screen justify-center">
-        <div className="text-left max-w-[500px] w-full px-4 pt-[8vh] pb-16">
+        <div className="text-left max-w-[540px] w-full px-4 pt-[8vh] pb-16">
           {/* Header */}
           <Header ThemeToggleComponent={ThemeToggle} currentPage="home" />
 
           <section aria-labelledby="introduction" className="space-y-8">
             <p className="text-lg">
-              Hey, my name is Tom. I currently spend my time building{" "}
+              Hi! My name is Tom. I currently spend my time building{" "}
               <a
                 href="https://clado.ai"
                 target="_blank"
@@ -74,10 +74,10 @@ export default function Home() {
                 Clado
               </a>
               , where we train, eval, and deploy task-specific small language
-              models.
+              models for diverse enterprise use cases.
             </p>
             <p className="text-lg">
-              I grew up in 🇨🇦 and spent a semester building{" "}
+              Previously, I grew up in 🇨🇦 and spent a semester building{" "}
               <a
                 href="https://sdxucsd.com/"
                 target="_blank"
