@@ -26,8 +26,7 @@ export default function InvestingPage() {
                 >
                   Human Delta
                 </a>
-              </Tooltip>{" "}
-              (pre-seed)
+              </Tooltip> (pre-seed)
             </li>
             <li className="text-lg">
               <Tooltip text="context augmentation for AI coding agents">
@@ -39,8 +38,7 @@ export default function InvestingPage() {
                 >
                   Nozomio
                 </a>
-              </Tooltip>{" "}
-              (seed)
+              </Tooltip> (seed)
             </li>
             <li className="text-lg">
               <Tooltip text="social media search for behaviour prediction">
@@ -52,8 +50,7 @@ export default function InvestingPage() {
                 >
                   Shofo
                 </a>
-              </Tooltip>{" "}
-              (pre-seed)
+              </Tooltip> (pre-seed)
             </li>
             <li className="text-lg">
               <Tooltip text="mathematics-focused RL environments">
@@ -65,8 +62,7 @@ export default function InvestingPage() {
                 >
                   Hillclimb
                 </a>
-              </Tooltip>{" "}
-              (pre-seed)
+              </Tooltip> (pre-seed)
             </li>
           </ul>
         </section>
