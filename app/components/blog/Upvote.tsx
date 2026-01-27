@@ -118,7 +118,7 @@ export default function Upvote({ slug }: UpvoteProps) {
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-2">
       <button
         onClick={handleToggleUpvote}
         className="upvote-button"

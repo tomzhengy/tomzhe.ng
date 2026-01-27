@@ -49,9 +49,8 @@ export default async function PostPage({ params }: Props) {
 
         <section className="mt-6">
           <PostContent meta={post}>{content}</PostContent>
+          <Upvote slug={slug} />
         </section>
-
-        <Upvote slug={slug} />
 
         <div className="mt-8">
           <SocialLinks />

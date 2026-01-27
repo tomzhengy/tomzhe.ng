@@ -106,6 +106,10 @@ button svg {
   margin-bottom: 1.25em;
 }
 
+.prose > *:last-child {
+  margin-bottom: 0;
+}
+
 .prose h1,
 .prose h2,
 .prose h3,
