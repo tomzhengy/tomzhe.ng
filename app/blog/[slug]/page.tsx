@@ -6,6 +6,7 @@ import SocialLinks from "../../components/sections/SocialLinks";
 import LastVisitor from "../../components/sections/LastVisitor";
 import ThemeToggle from "../../components/ui/theme/ThemeToggle";
 import PostContent from "../../components/blog/PostContent";
+import Upvote from "../../components/blog/Upvote";
 import { getAllPosts, getPostBySlug } from "../../lib/blog";
 import { compileMdx } from "../../lib/mdx";
 
@@ -50,6 +51,8 @@ export default async function PostPage({ params }: Props) {
         <section className="mt-6">
           <PostContent meta={post}>{content}</PostContent>
         </section>
+
+        <Upvote slug={slug} />
 
         <div className="mt-8 pt-8 border-t border-current opacity-20" />
 
