@@ -31,10 +31,10 @@ export default function ThemeToggle() {
         style={{
           opacity: theme === "dark" ? 1 : 0,
           transitionProperty: "opacity",
-          transitionDuration: "var(--animation-header)",
+          transitionDuration: "150ms",
           transitionTimingFunction: "ease-in-out",
+          transitionDelay: theme === "dark" ? "150ms" : "0ms",
           pointerEvents: theme === "dark" ? "auto" : "none",
-          visibility: "visible",
         }}
       >
         <circle cx="12" cy="12" r="5"></circle>
@@ -63,10 +63,10 @@ export default function ThemeToggle() {
         style={{
           opacity: theme === "light" ? 1 : 0,
           transitionProperty: "opacity",
-          transitionDuration: "var(--animation-header)",
+          transitionDuration: "150ms",
           transitionTimingFunction: "ease-in-out",
+          transitionDelay: theme === "light" ? "150ms" : "0ms",
           pointerEvents: theme === "light" ? "auto" : "none",
-          visibility: "visible",
         }}
       >
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
