@@ -44,7 +44,8 @@ body {
 /* Add transitions to interactive elements and standalone SVGs */
 a,
 button,
-.underline {
+.underline,
+.nav-link {
   transition:
     color var(--animation-theme-toggle) var(--transition-timing),
     opacity var(--animation-theme-toggle) var(--transition-timing),
