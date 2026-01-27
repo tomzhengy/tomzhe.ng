@@ -10,10 +10,7 @@ export default function LastVisitor() {
   if (loading) {
     return (
       <div className="text-sm text-foreground/50 mb-4">
-        last visit from{" "}
-        <span className="inline-block animate-[blink_0.5s_ease_infinite]">
-          _
-        </span>
+        last visit from <span className="inline-block animate-[blink_0.5s_ease_infinite]">_</span>
       </div>
     );
   }
