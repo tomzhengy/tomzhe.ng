@@ -44,7 +44,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <main className="flex min-h-screen justify-center">
-      <div className="text-left max-w-[500px] w-full px-4 pt-[8vh] sm:pt-[8vh] md:pt-[8vh] pb-16">
+      <div className="text-left max-w-[500px] w-full px-4 pt-[8vh] pb-16">
         <Header ThemeToggleComponent={ThemeToggle} currentPage="blog" />
 
         <section className="mt-6">
