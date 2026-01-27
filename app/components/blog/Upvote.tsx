@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/app/lib/supabase-client";
+import { useLastVisitor } from "@/app/components/sections/LastVisitorProvider";
 
 interface UpvoteProps {
   slug: string;
@@ -21,27 +22,43 @@ function hashString(str: string): string {
 export default function Upvote({ slug }: UpvoteProps) {
   const [count, setCount] = useState(0);
   const [hasUpvoted, setHasUpvoted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const hashRef = useRef<string | null>(null);
+  const { visitorIp, loading: visitorLoading } = useLastVisitor();
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    loadUpvoteData();
-  }, [slug]);
+    if (hasInitialized.current) return;
 
-  const loadUpvoteData = async () => {
-    if (!supabase) {
-      setIsLoading(false);
-      return;
+    // always use localStorage for consistency across page loads
+    // store IP when available, or generate a random ID
+    let identifier = localStorage.getItem("visitor_id");
+
+    if (!identifier) {
+      if (visitorIp) {
+        // first time with IP available - store it
+        identifier = visitorIp;
+        localStorage.setItem("visitor_id", identifier);
+      } else if (!visitorLoading) {
+        // no IP and done loading - generate random ID
+        identifier =
+          Math.random().toString(36).substring(2) + Date.now().toString(36);
+        localStorage.setItem("visitor_id", identifier);
+      }
     }
 
+    if (identifier) {
+      hasInitialized.current = true;
+      loadUpvoteData(identifier);
+    }
+  }, [visitorIp, visitorLoading, slug]);
+
+  const loadUpvoteData = async (identifier: string) => {
+    if (!supabase) return;
+
     try {
-      // get user's IP and create a yearly hash
-      const ipResponse = await fetch("https://ipapi.co/json/");
-      if (ipResponse.ok) {
-        const ipData = await ipResponse.json();
-        const year = new Date().getFullYear();
-        hashRef.current = hashString(`${ipData.ip}-${year}-${slug}`);
-      }
+      // create hash from identifier
+      const year = new Date().getFullYear();
+      hashRef.current = hashString(`${identifier}-${year}-${slug}`);
 
       // get count and check if user voted in parallel
       const [countResult, voteCheck] = await Promise.all([
@@ -49,22 +66,18 @@ export default function Upvote({ slug }: UpvoteProps) {
           .from("upvotes")
           .select("id", { count: "exact", head: true })
           .eq("slug", slug),
-        hashRef.current
-          ? supabase
-              .from("upvotes")
-              .select("id")
-              .eq("slug", slug)
-              .eq("hash_id", hashRef.current)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
+        supabase
+          .from("upvotes")
+          .select("id")
+          .eq("slug", slug)
+          .eq("hash_id", hashRef.current)
+          .maybeSingle(),
       ]);
 
       setCount(countResult.count || 0);
       setHasUpvoted(!!voteCheck.data);
     } catch (error) {
       console.log("Error loading upvote data:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -104,12 +117,8 @@ export default function Upvote({ slug }: UpvoteProps) {
     }
   };
 
-  if (isLoading) {
-    return null;
-  }
-
   return (
-    <div className="mt-8">
+    <div className="mt-4">
       <button
         onClick={handleToggleUpvote}
         className="upvote-button"

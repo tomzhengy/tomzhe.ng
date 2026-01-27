@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Header from "../../components/sections/Header";
 import SocialLinks from "../../components/sections/SocialLinks";
 import LastVisitor from "../../components/sections/LastVisitor";
@@ -53,17 +52,6 @@ export default async function PostPage({ params }: Props) {
         </section>
 
         <Upvote slug={slug} />
-
-        <div className="mt-8 pt-8 border-t border-current opacity-20" />
-
-        <div className="mt-4">
-          <Link
-            href="/blog"
-            className="opacity-60 hover:opacity-100 hover:underline transition-opacity"
-          >
-            &larr; Back to blog
-          </Link>
-        </div>
 
         <div className="mt-8">
           <SocialLinks />

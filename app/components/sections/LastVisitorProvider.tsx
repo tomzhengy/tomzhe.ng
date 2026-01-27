@@ -20,6 +20,7 @@ interface LastVisitorContextType {
   loading: boolean;
   displayedLocation: string;
   isTyping: boolean;
+  visitorIp: string | null;
 }
 
 const LastVisitorContext = createContext<LastVisitorContextType | undefined>(
@@ -35,6 +36,7 @@ export function LastVisitorProvider({
   const [loading, setLoading] = useState(true);
   const [displayedLocation, setDisplayedLocation] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [visitorIp, setVisitorIp] = useState<string | null>(null);
   const hasFetched = useRef(false);
   const hasStartedTyping = useRef(false);
 
@@ -69,6 +71,11 @@ export function LastVisitorProvider({
             locationData.message || "Too many requests",
           );
           return;
+        }
+
+        // store the IP for other components to use
+        if (locationData.ip) {
+          setVisitorIp(locationData.ip);
         }
 
         const { error: trackError } = await supabase.from("visitors").insert({
@@ -161,6 +168,7 @@ export function LastVisitorProvider({
         loading,
         displayedLocation,
         isTyping,
+        visitorIp,
       }}
     >
       {children}
