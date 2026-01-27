@@ -16,7 +16,7 @@ export default function Header({
   return (
     <div className="flex items-center justify-between mb-8 h-8 w-full">
       {/* Navigation links */}
-      <div className="flex gap-6 text-lg">
+      <div className="header-nav flex gap-6 text-lg">
         <Link
           href="/"
           className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "home" ? "underline" : "hover:underline"}`}

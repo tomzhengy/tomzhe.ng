@@ -68,7 +68,7 @@ export default function Home() {
                 href="https://clado.ai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline"
+                className="body-link"
               >
                 Clado
               </a>
@@ -80,10 +80,19 @@ export default function Home() {
                 href="https://sdxucsd.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline"
+                className="body-link"
               >
                 SDx
-              </a> @ UCSD before joining YC X25.
+              </a> @ UCSD before joining{" "}
+              <a
+                href="https://www.ycombinator.com/companies/clado"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="body-link"
+              >
+                YC X25
+              </a>
+              .
             </p>
           </section>
 

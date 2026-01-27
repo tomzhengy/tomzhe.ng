@@ -4,7 +4,8 @@
 :root {
   /* Dark mode colors (default) */
   --background: #242222;
-  --foreground: #f7f7ef;
+  --foreground: #fff;
+  --link-color: #d97757;
 
   /* Font families */
   --font-body: var(--font-redaction), serif;
@@ -26,7 +27,7 @@
 /* Light mode overrides when .light class is present */
 .light {
   /* Light mode colors */
-  --background: #f7f7ef;
+  --background: #fff;
   --foreground: #242222;
 }
 
@@ -43,14 +44,37 @@ body {
 
 /* Add transitions to interactive elements and standalone SVGs */
 a,
-button,
 .underline,
 .nav-link {
+  color: var(--link-color);
   transition:
     color var(--animation-theme-toggle) var(--transition-timing),
     opacity var(--animation-theme-toggle) var(--transition-timing),
     text-decoration-color var(--animation-theme-toggle) var(--transition-timing),
     background-color var(--animation-theme-toggle) var(--transition-timing);
+}
+
+.header-nav a {
+  color: var(--foreground);
+}
+
+.social-links a {
+  color: var(--foreground);
+}
+
+.body-link,
+.prose a {
+  transition:
+    color var(--animation-theme-toggle) var(--transition-timing),
+    opacity var(--animation-theme-toggle) var(--transition-timing);
+  text-decoration: none;
+}
+
+.body-link:hover,
+.body-link:focus-visible,
+.prose a:hover,
+.prose a:focus-visible {
+  opacity: 0.8;
 }
 
 /* Prevent double transitions on nested SVGs by removing their transitions */
@@ -113,9 +137,6 @@ button svg {
   margin: 0.25em 0;
 }
 
-.prose a {
-  text-decoration: underline;
-}
 
 .prose blockquote {
   border-left: 2px solid var(--foreground);
