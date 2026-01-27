@@ -30,9 +30,12 @@ export default function Header({
           Investing
         </Link>
         <Tooltip text="coming soon!">
-          <span className="nav-link opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-not-allowed">
+          <Link
+            href="/blog"
+            className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "blog" ? "underline" : "hover:underline"}`}
+          >
             Blog
-          </span>
+          </Link>
         </Tooltip>
       </div>
 
