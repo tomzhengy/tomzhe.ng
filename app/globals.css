@@ -3,8 +3,8 @@
 /* Default styles (dark mode) */
 :root {
   /* Dark mode colors (default) */
-  --background: #242222;
-  --foreground: #fff;
+  --background: #1f1e1d;
+  --foreground: #f0eee6;
   --link-color: #d97757;
 
   /* Font families */
@@ -27,8 +27,8 @@
 /* Light mode overrides when .light class is present */
 .light {
   /* Light mode colors */
-  --background: #fff;
-  --foreground: #242222;
+  --background: #f0eee6;
+  --foreground: #1f1e1d;
 }
 
 /* Base styles with transitions */
