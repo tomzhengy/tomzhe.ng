@@ -47,8 +47,8 @@ export const metadata: Metadata = {
     images: ["/notion-face-transparent.webp"],
   },
   icons: {
-    icon: [{ url: "/notion-face-transparent.webp" }],
-    apple: [{ url: "/notion-face-transparent.webp" }],
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/favicon.svg" }],
   },
   alternates: {
     canonical: "https://tyzheng.com",

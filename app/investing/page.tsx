@@ -12,8 +12,8 @@ export default function InvestingPage() {
 
         <section aria-labelledby="angel-investing" className="mt-6">
           <div className="text-lg">
-            I angel invest in pre-seed and seed-stage people I deeply believe
-            in.
+            I angel invest in pre-seed and seed-stage founders I deeply believe
+            in. The idea is mutable, the person is constant.
           </div>
           <ul className="list-disc pl-5 space-y-1 mt-3">
             <li className="text-lg">
