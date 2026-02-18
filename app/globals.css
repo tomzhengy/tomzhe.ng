@@ -162,8 +162,8 @@ button svg {
   margin: 1em 0;
 }
 
-/* Inline code */
-.prose code:not(.shiki-wrapper code) {
+/* inline code */
+.prose code {
   background: var(--foreground);
   color: var(--background);
   padding: 0.15em 0.4em;
@@ -172,40 +172,15 @@ button svg {
   font-family: ui-monospace, monospace;
 }
 
-/* Code blocks - shiki theme switching */
-.shiki-wrapper {
-  display: block;
-  margin: 1em 0;
+/* carbon code embed */
+.carbon-embed {
+  margin: 1.5em 0;
+  width: 100%;
 }
 
-.shiki-wrapper .shiki {
-  padding: 1em;
+.carbon-embed iframe {
+  width: 100%;
+  border: none;
   border-radius: 6px;
-  overflow-x: auto;
-  font-size: 0.875em;
-  line-height: 1.5;
-}
-
-.shiki-wrapper .shiki code {
-  background: transparent;
-  padding: 0;
-  font-family: ui-monospace, monospace;
-}
-
-/* dark mode (default): show dark theme, hide light */
-.shiki-dark {
-  display: block;
-}
-
-.shiki-light {
-  display: none;
-}
-
-/* light mode: show light theme, hide dark */
-.light .shiki-dark {
-  display: none;
-}
-
-.light .shiki-light {
   display: block;
 }
