@@ -1,36 +1,26 @@
 import { compileMDX } from "next-mdx-remote/rsc";
-import { createHighlighter } from "shiki";
 
-let highlighter: Awaited<ReturnType<typeof createHighlighter>> | null = null;
+function buildCarbonUrl(code: string, lang: string): string {
+  const params = new URLSearchParams({
+    code,
+    l: lang,
+    t: "one-dark",
+    fm: "Fira Code",
+    bg: "rgba(0,0,0,0)",
+    wt: "none",
+    wc: "true",
+    ds: "false",
+    ln: "false",
+  });
+  return `https://carbon.now.sh/embed?${params.toString()}`;
+}
 
-async function getHighlighter() {
-  if (!highlighter) {
-    highlighter = await createHighlighter({
-      themes: ["github-dark", "github-light"],
-      langs: [
-        "javascript",
-        "typescript",
-        "python",
-        "bash",
-        "json",
-        "css",
-        "html",
-        "jsx",
-        "tsx",
-        "markdown",
-        "yaml",
-        "go",
-        "rust",
-        "sql",
-      ],
-    });
-  }
-  return highlighter;
+function calcHeight(code: string): number {
+  const lines = code.split("\n").length;
+  return Math.max(150, lines * 19 + 120);
 }
 
 export async function compileMdx(source: string) {
-  const hl = await getHighlighter();
-
   const { content, frontmatter } = await compileMDX({
     source,
     options: {
@@ -38,34 +28,36 @@ export async function compileMdx(source: string) {
     },
     components: {
       pre: ({ children, ...props }) => {
+        // extract language and code from the child <code> element
+        const child = children as React.ReactElement<{
+          className?: string;
+          children?: React.ReactNode;
+        }>;
+        const className = child?.props?.className;
+        const langMatch = className?.match(/language-(\w+)/);
+
+        if (langMatch) {
+          const lang = langMatch[1];
+          const code = String(child?.props?.children ?? "").trim();
+          const src = buildCarbonUrl(code, lang);
+          const height = calcHeight(code);
+
+          return (
+            <div className="carbon-embed">
+              <iframe
+                src={src}
+                style={{ height: `${height}px` }}
+                sandbox="allow-scripts allow-same-origin"
+                loading="lazy"
+              />
+            </div>
+          );
+        }
+
         return <pre {...props}>{children}</pre>;
       },
-      code: async ({ children, className }) => {
-        const lang = className?.replace("language-", "") || "text";
-        const code = String(children).trim();
-
-        // generate html for both themes
-        const darkHtml = hl.codeToHtml(code, {
-          lang,
-          theme: "github-dark",
-        });
-        const lightHtml = hl.codeToHtml(code, {
-          lang,
-          theme: "github-light",
-        });
-
-        return (
-          <span className="shiki-wrapper">
-            <span
-              className="shiki-dark"
-              dangerouslySetInnerHTML={{ __html: darkHtml }}
-            />
-            <span
-              className="shiki-light"
-              dangerouslySetInnerHTML={{ __html: lightHtml }}
-            />
-          </span>
-        );
+      code: ({ className, children }) => {
+        return <code className={className}>{children}</code>;
       },
     },
   });
