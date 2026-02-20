@@ -17,7 +17,7 @@ export default function InvestingPage() {
           </div>
           <ul className="list-disc pl-5 space-y-1 mt-3">
             <li className="text-lg">
-              <Tooltip text="enabling and benchmarking enterprise-AI adoption">
+              <Tooltip text="enterprise data transformation for post-training">
                 <a
                   href="https://humandelta.ai"
                   target="_blank"
