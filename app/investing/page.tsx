@@ -12,8 +12,7 @@ export default function InvestingPage() {
 
         <section aria-labelledby="angel-investing" className="mt-6">
           <div className="text-lg">
-            I angel invest in pre-seed and seed-stage founders I deeply believe
-            in. The idea is mutable, the person is constant.
+            I angel invest in pre-seed and seed-stage founders I deeply believe in and help them avoid the mistakes I made. I tend to be most helpful on AI infrastructure, GTM + enterprise, and early product decisions. I believe that the strongest signal is the founder's conviction in themselves and their team. The idea is mutable, the people are constant.
           </div>
           <ul className="list-disc pl-5 space-y-1 mt-3">
             <li className="text-lg">
