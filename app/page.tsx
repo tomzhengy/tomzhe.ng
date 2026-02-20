@@ -77,7 +77,7 @@ export default function Home() {
               models for diverse enterprise use cases.
             </p>
             <p className="text-lg">
-              Previously, I grew up in 🇨🇦 and spent a semester building{" "}
+              Previously, I grew up in Toronto 🇨🇦 and spent a semester building{" "}
               <a
                 href="https://sdxucsd.com/"
                 target="_blank"
