@@ -37,5 +37,5 @@ export const redaction = localFont({
     },
   ],
   variable: "--font-redaction",
-  display: "swap",
+  display: "block",
 });
