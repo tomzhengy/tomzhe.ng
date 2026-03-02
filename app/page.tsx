@@ -58,7 +58,7 @@ export default function Home() {
 
           <section aria-labelledby="introduction" className="space-y-8">
             <p className="text-lg">
-              Hi! I spend my time building{" "}
+              I spend my time building{" "}
               <a
                 href="https://freesolo.co"
                 target="_blank"
