@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://tyzheng.com/sitemap.xml 
+Sitemap: https://tomzhe.ng/sitemap.xml 

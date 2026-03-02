@@ -6,24 +6,20 @@ import { inter, crimsonText, redaction } from "./styles/fonts";
 
 export const metadata: Metadata = {
   title: "Tom Zheng",
-  description: "hey, i'm Tom.",
-  metadataBase: new URL("https://tyzheng.com"),
+  description:
+    "Tom Zheng is a founder and engineer based in San Francisco. Currently building Freesolo. Previously cofounded Clado (YC X25), a people search platform. UCSD alum.",
+  metadataBase: new URL("https://tomzhe.ng"),
   keywords: [
     "Tom Zheng",
-    "clado",
+    "Freesolo",
+    "Clado",
     "San Francisco",
     "founder",
     "engineer",
-    "O1 visa",
+    "Y Combinator",
+    "YC X25",
     "SDX",
     "UCSD",
-    "Y Combinator",
-    "Y Combinator X25",
-    "YC X25",
-    "clado ai",
-    "clado.ai",
-    "Tom",
-    "Tom Zheng",
   ],
   authors: [{ name: "Tom Zheng" }],
   creator: "Tom Zheng",
@@ -32,10 +28,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://tyzheng.com",
+    url: "https://tomzhe.ng",
     title: "Tom Zheng",
     description:
-      "Tom Zheng. I'm currently building Clado (YC X25). Clado is an agentic people-search platform. Think deep research, but for humans. We’re building the most powerful people search engine on the planet to power sales, recruiting and research for every company. I previously studied Data Science and Aerospace Engineering at UC San Diego. I'm grew up in Toronto, Canada and am now located in San Francisco learning and building the American Dream.",
+      "Tom Zheng is a founder and engineer based in San Francisco. Currently building Freesolo. Previously cofounded Clado (YC X25), a people search platform. UCSD alum, grew up in Toronto.",
     siteName: "Tom Zheng",
     images: ["/notion-face-transparent.webp"],
   },
@@ -43,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Tom Zheng",
     description:
-      "Tom Zheng. I'm currently building Clado (YC X25). Clado is an agentic people-search platform. Think deep research, but for humans. We’re building the most powerful people search engine on the planet to power sales, recruiting and research for every company. I previously studied Data Science and Aerospace Engineering at UC San Diego. I'm grew up in Toronto, Canada and am now located in San Francisco learning and building the American Dream.",
+      "Tom Zheng is a founder and engineer based in San Francisco. Currently building Freesolo. Previously cofounded Clado (YC X25), a people search platform. UCSD alum, grew up in Toronto.",
     images: ["/notion-face-transparent.webp"],
   },
   icons: {
@@ -51,7 +47,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/favicon.svg" }],
   },
   alternates: {
-    canonical: "https://tyzheng.com",
+    canonical: "https://tomzhe.ng",
   },
   other: {
     "msapplication-TileImage": "/notion-face-transparent.webp",
@@ -72,8 +68,8 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {/* Preconnect to origin */}
-        <link rel="preconnect" href="https://tyzheng.com" />
-        <link rel="dns-prefetch" href="https://tyzheng.com" />
+        <link rel="preconnect" href="https://tomzhe.ng" />
+        <link rel="dns-prefetch" href="https://tomzhe.ng" />
 
         {/* Preload critical image for LCP optimization */}
         <link

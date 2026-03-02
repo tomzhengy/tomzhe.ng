@@ -19,34 +19,28 @@ export default function Home() {
             "@context": "https://schema.org",
             "@type": "Person",
             name: "Tom Zheng",
-            url: "https://tyzheng.com",
+            url: "https://tomzhe.ng",
             jobTitle: "Founder",
             worksFor: {
               "@type": "Organization",
-              name: "clado",
-              url: "https://clado.ai",
+              name: "Freesolo",
+              url: "https://freesolo.co",
             },
             knowsAbout: [
               "Programming",
               "Entrepreneurship",
               "Community Building",
               "Y Combinator",
-              "`O1 Visa`",
+              "O1 Visa",
               "SDX",
               "UCSD",
               "San Francisco",
-              "Founder",
-              "Engineer",
+              "Freesolo",
               "Clado",
-              "Clado AI",
-              "clado.ai",
-              "Tom Zheng",
-              "Tom",
-              "Founder",
-              "Engineer",
             ],
             sameAs: [
               "https://www.sdx.community/chapters/ucsd",
+              "https://freesolo.co",
               "https://clado.ai",
               "https://tyzheng.com",
               "https://tomzhe.ng",
@@ -64,7 +58,17 @@ export default function Home() {
 
           <section aria-labelledby="introduction" className="space-y-8">
             <p className="text-lg">
-              Hi! My name is Tom. I currently spend my time building{" "}
+              Hi! I spend my time building{" "}
+              <a
+                href="https://freesolo.co"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="body-link"
+              >
+                Freesolo
+              </a>
+              , where we train, eval, and deploy product native models for
+              enterprise. Before this, I cofounded{" "}
               <a
                 href="https://clado.ai"
                 target="_blank"
@@ -72,12 +76,11 @@ export default function Home() {
                 className="body-link"
               >
                 Clado
-              </a>
-              , where we train, eval, and deploy task-specific small language
-              models for diverse enterprise use cases.
+              </a>{" "}
+              and built state of the art people search.
             </p>
             <p className="text-lg">
-              Previously, I grew up in Toronto 🇨🇦 and spent a semester building{" "}
+              I grew up in Toronto 🇨🇦 and spent a semester building{" "}
               <a
                 href="https://sdxucsd.com/"
                 target="_blank"
@@ -86,7 +89,7 @@ export default function Home() {
               >
                 SDx
               </a>{" "}
-              @ UCSD before joining{" "}
+              before joining{" "}
               <a
                 href="https://www.ycombinator.com/companies/clado"
                 target="_blank"
