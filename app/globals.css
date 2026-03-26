@@ -42,6 +42,19 @@ body {
     color var(--transition-duration) var(--transition-timing);
 }
 
+/* swap selection colors to match the current theme */
+::selection {
+  background: var(--foreground);
+  color: var(--background);
+  text-shadow: none;
+}
+
+::-moz-selection {
+  background: var(--foreground);
+  color: var(--background);
+  text-shadow: none;
+}
+
 /* Add transitions to interactive elements and standalone SVGs */
 a,
 .underline,
