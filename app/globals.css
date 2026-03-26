@@ -6,6 +6,7 @@
   --background: #1f1e1d;
   --foreground: #f0eee6;
   --link-color: #d97757;
+  --link-selection-color: #2688a8;
 
   /* Font families */
   --font-body: var(--font-redaction), serif;
@@ -53,6 +54,24 @@ body {
   background: var(--foreground);
   color: var(--background);
   text-shadow: none;
+}
+
+a::selection {
+  color: var(--link-selection-color);
+}
+
+a::-moz-selection {
+  color: var(--link-selection-color);
+}
+
+.header-nav a::selection,
+.social-links a::selection {
+  color: var(--background);
+}
+
+.header-nav a::-moz-selection,
+.social-links a::-moz-selection {
+  color: var(--background);
 }
 
 /* Add transitions to interactive elements and standalone SVGs */
