@@ -88,6 +88,29 @@ export default function SocialLinks() {
         </svg>
       </a>
       <span className="opacity-50">/</span>
+      <a
+        href="https://curius.app/tom-zheng"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Curius Profile"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          fill="none"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="opacity-70 hover:opacity-100 transition-opacity"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      </a>
+      <span className="opacity-50">/</span>
       <Tooltip text={emailCopied ? "copied!" : "copy"}>
         <a href="#" onClick={handleEmailClick} aria-label="Copy Email">
           <svg
