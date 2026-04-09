@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Script from "next/script";
 
 import SocialLinks from "./components/sections/SocialLinks";
@@ -101,7 +102,8 @@ export default function Home() {
               .
             </p>
             <p className="text-lg">
-              Other interests: photography, camping, swimming, and reading.
+              Other interests: <Link href="/photos">photography</Link>, camping,
+              swimming, and reading.
             </p>
           </section>
 
