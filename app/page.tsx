@@ -78,7 +78,7 @@ export default function Home() {
               >
                 Clado
               </a>{" "}
-              and built state of the art people search.
+              and built frontier people search.
             </p>
             <p className="text-lg">
               I grew up in Toronto 🇨🇦 and spent a semester building{" "}
