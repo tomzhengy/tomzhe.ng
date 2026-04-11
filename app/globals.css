@@ -115,6 +115,15 @@ button svg {
   transition: none;
 }
 
+@keyframes expand-width {
+  from {
+    max-width: 540px;
+  }
+  to {
+    max-width: 1080px;
+  }
+}
+
 @keyframes blink {
   0%,
   35% {
