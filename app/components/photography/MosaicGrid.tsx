@@ -11,6 +11,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
       "Late afternoon light cutting through the fog in the Outer Sunset.",
     color: "#8B7355",
     type: "still",
+    aspect: "4/3",
   },
   {
     id: "2",
@@ -18,6 +19,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "Karl the Fog rolling over Twin Peaks at sunrise.",
     color: "#7B8FA1",
     type: "still",
+    aspect: "3/4",
   },
   {
     id: "3",
@@ -25,6 +27,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "A walk through Chinatown on a rainy evening.",
     color: "#6B8E7B",
     type: "motion",
+    aspect: "16/9",
   },
   {
     id: "4",
@@ -32,6 +35,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "Joshua Tree at dusk, the last light on the rocks.",
     color: "#9B7E6B",
     type: "still",
+    aspect: "1/1",
   },
   {
     id: "5",
@@ -39,6 +43,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "Waves breaking at Ocean Beach during a winter storm.",
     color: "#6E7B8B",
     type: "still",
+    aspect: "3/2",
   },
   {
     id: "6",
@@ -46,6 +51,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "Market Street foot traffic on a Saturday morning.",
     color: "#A08B7A",
     type: "motion",
+    aspect: "4/3",
   },
   {
     id: "7",
@@ -53,6 +59,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "Hiking the Dipsea Trail through redwoods in Marin.",
     color: "#7A8B6E",
     type: "still",
+    aspect: "2/3",
   },
   {
     id: "8",
@@ -60,6 +67,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "Driving down Highway 1, golden hour on the coast.",
     color: "#8C7B6B",
     type: "motion",
+    aspect: "16/9",
   },
   {
     id: "9",
@@ -67,6 +75,7 @@ const MOSAIC_ITEMS: MosaicItem[] = [
     description: "Morning coffee and light on a kitchen counter.",
     color: "#9B8B7B",
     type: "still",
+    aspect: "1/1",
   },
 ];
 
@@ -93,13 +102,13 @@ export default function MosaicGrid() {
         </div>
       </div>
 
-      {/* right: photo grid */}
-      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* right: photo masonry */}
+      <div className="flex-1 columns-1 sm:columns-2 lg:columns-3 gap-3">
         {MOSAIC_ITEMS.map((item) => (
           <div
             key={item.id}
-            className="relative overflow-hidden aspect-[4/3] w-full rounded-sm transition-opacity duration-300 hover:opacity-80 cursor-pointer"
-            style={{ backgroundColor: item.color }}
+            className="relative overflow-hidden w-full rounded-sm transition-opacity duration-300 hover:opacity-80 cursor-pointer mb-3 break-inside-avoid"
+            style={{ backgroundColor: item.color, aspectRatio: item.aspect }}
             onMouseEnter={() => setHoveredItem(item)}
             onMouseLeave={() => setHoveredItem(null)}
           >

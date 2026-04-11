@@ -4,4 +4,5 @@ export interface MosaicItem {
   description: string;
   color: string;
   type: "still" | "motion";
+  aspect: string;
 }
