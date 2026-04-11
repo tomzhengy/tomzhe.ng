@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function PhotographyPage() {
   return (
     <main className="flex min-h-screen justify-center">
-      <div className="text-left max-w-[1080px] w-full px-4 pt-[8vh] pb-16">
+      <div className="text-left w-full px-4 pt-[8vh] pb-16">
         <Header ThemeToggleComponent={ThemeToggle} currentPage="photography" />
 
         <section aria-labelledby="photography" className="mt-6">
