@@ -4,6 +4,7 @@ import SocialLinks from "../components/sections/SocialLinks";
 import LastVisitor from "../components/sections/LastVisitor";
 import ThemeToggle from "../components/ui/theme/ThemeToggle";
 import MosaicGrid from "../components/photography/MosaicGrid";
+import { getPhotos } from "../lib/photos";
 
 export const metadata: Metadata = {
   title: "Photography - Tom Zheng",
@@ -11,6 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function PhotographyPage() {
+  const photos = getPhotos();
+  const isDevMode = process.env.NODE_ENV === "development";
+
   return (
     <main className="min-h-screen w-full px-4 pt-[8vh] pb-16">
       <MosaicGrid
@@ -26,6 +30,8 @@ export default function PhotographyPage() {
             <LastVisitor />
           </div>
         }
+        items={photos}
+        isDevMode={isDevMode}
       />
     </main>
   );

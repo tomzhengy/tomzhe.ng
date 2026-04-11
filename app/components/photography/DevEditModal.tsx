@@ -24,7 +24,7 @@ export default function DevEditModal({
     setSaving(true);
     setError("");
     try {
-      const res = await fetch(`/api/photos/${photo.id}`, {
+      const res = await fetch(`/api/photos?id=${photo.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, description, type }),

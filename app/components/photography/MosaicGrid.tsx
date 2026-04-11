@@ -2,94 +2,31 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { MosaicItem } from "../../types/photography";
+import DevToolbar from "./DevToolbar";
+import DevPhotoOverlay from "./DevPhotoOverlay";
 
-const MOSAIC_ITEMS: MosaicItem[] = [
-  {
-    id: "1",
-    title: "Golden Hour",
-    description:
-      "Late afternoon light cutting through the fog in the Outer Sunset.",
-    color: "#8B7355",
-    type: "still",
-    aspect: "4/3",
-  },
-  {
-    id: "2",
-    title: "Morning Fog",
-    description: "Karl the Fog rolling over Twin Peaks at sunrise.",
-    color: "#7B8FA1",
-    type: "still",
-    aspect: "3/4",
-  },
-  {
-    id: "3",
-    title: "City Walk",
-    description: "A walk through Chinatown on a rainy evening.",
-    color: "#6B8E7B",
-    type: "motion",
-    aspect: "16/9",
-  },
-  {
-    id: "4",
-    title: "Desert Light",
-    description: "Joshua Tree at dusk, the last light on the rocks.",
-    color: "#9B7E6B",
-    type: "still",
-    aspect: "1/1",
-  },
-  {
-    id: "5",
-    title: "Ocean Breeze",
-    description: "Waves breaking at Ocean Beach during a winter storm.",
-    color: "#6E7B8B",
-    type: "still",
-    aspect: "3/2",
-  },
-  {
-    id: "6",
-    title: "Street Scene",
-    description: "Market Street foot traffic on a Saturday morning.",
-    color: "#A08B7A",
-    type: "motion",
-    aspect: "4/3",
-  },
-  {
-    id: "7",
-    title: "Mountain Trail",
-    description: "Hiking the Dipsea Trail through redwoods in Marin.",
-    color: "#7A8B6E",
-    type: "still",
-    aspect: "2/3",
-  },
-  {
-    id: "8",
-    title: "Sunset Drive",
-    description: "Driving down Highway 1, golden hour on the coast.",
-    color: "#8C7B6B",
-    type: "motion",
-    aspect: "16/9",
-  },
-  {
-    id: "9",
-    title: "Still Life",
-    description: "Morning coffee and light on a kitchen counter.",
-    color: "#9B8B7B",
-    type: "still",
-    aspect: "1/1",
-  },
-];
+const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
 
 interface MosaicGridProps {
   header: React.ReactNode;
   footer: React.ReactNode;
+  items: MosaicItem[];
+  isDevMode: boolean;
 }
 
-export default function MosaicGrid({ header, footer }: MosaicGridProps) {
+export default function MosaicGrid({
+  header,
+  footer,
+  items,
+  isDevMode,
+}: MosaicGridProps) {
+  const [photos, setPhotos] = useState<MosaicItem[]>(items);
   const [hoveredItem, setHoveredItem] = useState<MosaicItem | null>(null);
   const [lastHoveredItem, setLastHoveredItem] = useState<MosaicItem | null>(
     null,
   );
   const [selectedItem, setSelectedItem] = useState<MosaicItem | null>(null);
+  const [editMode, setEditMode] = useState(false);
 
   const closeSelected = useCallback(() => setSelectedItem(null), []);
 
@@ -102,7 +39,19 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedItem, closeSelected]);
 
+  const refreshPhotos = useCallback(async () => {
+    if (!isDevMode) return;
+    const res = await fetch("/api/photos");
+    const data = await res.json();
+    setPhotos(data.photos);
+  }, [isDevMode]);
+
   const displayedItem = selectedItem || hoveredItem || lastHoveredItem;
+
+  const getImageUrl = (item: MosaicItem) => {
+    if (!item.r2Key || !R2_URL) return null;
+    return `${R2_URL}/${item.r2Key}`;
+  };
 
   return (
     <div className="flex gap-8">
@@ -130,8 +79,17 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
           {header}
         </div>
 
+        {/* dev toolbar */}
+        {isDevMode && (
+          <DevToolbar
+            editMode={editMode}
+            onToggleEditMode={() => setEditMode((v) => !v)}
+            onRefresh={refreshPhotos}
+          />
+        )}
+
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 mt-6">
-          {MOSAIC_ITEMS.map((item) => (
+          {photos.map((item, index) => (
             <div
               key={item.id}
               className="relative overflow-hidden w-full transition-opacity duration-300 hover:opacity-80 cursor-pointer mb-3 break-inside-avoid"
@@ -150,9 +108,32 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
                 }
               }}
               onMouseLeave={() => setHoveredItem(null)}
-              onClick={() => setSelectedItem(item)}
+              onClick={() => !editMode && setSelectedItem(item)}
             >
-              {item.type === "motion" && (
+              {getImageUrl(item) &&
+                (item.type === "still" ? (
+                  <img
+                    src={getImageUrl(item)!}
+                    alt={item.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <video
+                    src={getImageUrl(item)!}
+                    muted
+                    loop
+                    playsInline
+                    onMouseEnter={(e) => e.currentTarget.play()}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.pause();
+                      e.currentTarget.currentTime = 0;
+                    }}
+                    className="w-full h-full object-cover"
+                  />
+                ))}
+
+              {!getImageUrl(item) && item.type === "motion" && (
                 <div className="absolute top-3 right-3">
                   <svg
                     width="16"
@@ -164,6 +145,16 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
                     <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
                   </svg>
                 </div>
+              )}
+
+              {/* dev edit overlay */}
+              {isDevMode && editMode && (
+                <DevPhotoOverlay
+                  photo={item}
+                  index={index}
+                  total={photos.length}
+                  onRefresh={refreshPhotos}
+                />
               )}
             </div>
           ))}
@@ -181,7 +172,25 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
               className="w-full h-full"
               style={{ backgroundColor: selectedItem.color }}
             >
-              {selectedItem.type === "motion" && (
+              {getImageUrl(selectedItem) &&
+                (selectedItem.type === "still" ? (
+                  <img
+                    src={getImageUrl(selectedItem)!}
+                    alt={selectedItem.title}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <video
+                    src={getImageUrl(selectedItem)!}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-full object-contain"
+                  />
+                ))}
+
+              {!getImageUrl(selectedItem) && selectedItem.type === "motion" && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <svg
                     width="48"
