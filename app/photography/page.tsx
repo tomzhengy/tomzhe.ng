@@ -12,16 +12,14 @@ export const metadata: Metadata = {
 
 export default function PhotographyPage() {
   return (
-    <main className="min-h-screen">
-      <div className="max-w-[540px] mx-auto px-4 pt-[8vh]">
-        <Header ThemeToggleComponent={ThemeToggle} currentPage="photography" />
-      </div>
+    <main className="min-h-screen w-full px-4 pt-[8vh] pb-16">
+      <Header ThemeToggleComponent={ThemeToggle} currentPage="photography" />
 
-      <section aria-labelledby="photography" className="mt-6 px-4">
+      <section aria-labelledby="photography" className="mt-6">
         <MosaicGrid />
       </section>
 
-      <div className="max-w-[540px] mx-auto px-4 mt-8 pb-16">
+      <div className="mt-8">
         <SocialLinks />
         <LastVisitor />
       </div>
