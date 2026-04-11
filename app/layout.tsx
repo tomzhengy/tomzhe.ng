@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "./components/ui/theme/ThemeProvider";
 import { LastVisitorProvider } from "./components/sections/LastVisitorProvider";
+import NoiseTexture from "./components/ui/NoiseTexture";
 import { inter, crimsonText, redaction } from "./styles/fonts";
 
 export const metadata: Metadata = {
@@ -106,6 +107,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <NoiseTexture />
         <ThemeProvider>
           <LastVisitorProvider>{children}</LastVisitorProvider>
         </ThemeProvider>
