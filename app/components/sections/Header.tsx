@@ -7,35 +7,24 @@ import Tooltip from "../ui/Tooltip";
 interface HeaderProps {
   ThemeToggleComponent: ComponentType;
   currentPage?: "home" | "investing" | "blog" | "photography";
-  onNavigate?: (href: string) => void;
 }
 
 export default function Header({
   ThemeToggleComponent,
   currentPage,
-  onNavigate,
 }: HeaderProps) {
-  const handleClick = (e: React.MouseEvent, href: string) => {
-    if (onNavigate) {
-      e.preventDefault();
-      onNavigate(href);
-    }
-  };
-
   return (
     <div className="flex items-center justify-between mb-8 h-8 w-full">
       {/* Navigation links */}
       <div className="header-nav flex gap-6 text-lg">
         <Link
           href="/"
-          onClick={(e) => handleClick(e, "/")}
           className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "home" ? "underline" : "hover:underline"}`}
         >
           Tom Zheng
         </Link>
         <Link
           href="/investing"
-          onClick={(e) => handleClick(e, "/investing")}
           className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "investing" ? "underline" : "hover:underline"}`}
         >
           Investing
