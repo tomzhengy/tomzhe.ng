@@ -88,30 +88,30 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
   const [hoveredItem, setHoveredItem] = useState<MosaicItem | null>(null);
 
   return (
-    <div className="flex gap-8">
-      {/* left: text panel */}
-      <div className="hidden md:block w-[240px] shrink-0 sticky top-[8vh] self-start">
-        <div
-          className="transition-opacity duration-300"
-          style={{ opacity: hoveredItem ? 1 : 0 }}
-        >
-          {hoveredItem && (
-            <>
-              <p className="text-lg">{hoveredItem.title}</p>
-              <p className="text-sm opacity-60 mt-1">{hoveredItem.type}</p>
-              <p className="text-sm opacity-80 mt-3">
-                {hoveredItem.description}
-              </p>
-            </>
-          )}
+    <div>
+      {header}
+
+      <div className="flex gap-8 mt-6">
+        {/* left: text panel */}
+        <div className="hidden md:block w-[240px] shrink-0 sticky top-[8vh] self-start h-fit">
+          <div
+            className="transition-opacity duration-300"
+            style={{ opacity: hoveredItem ? 1 : 0 }}
+          >
+            {hoveredItem && (
+              <>
+                <p className="text-lg">{hoveredItem.title}</p>
+                <p className="text-sm opacity-60 mt-1">{hoveredItem.type}</p>
+                <p className="text-sm opacity-80 mt-3">
+                  {hoveredItem.description}
+                </p>
+              </>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* right: header + photos + footer */}
-      <div className="flex-1">
-        {header}
-
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 mt-6">
+        {/* right: photos */}
+        <div className="flex-1 columns-1 sm:columns-2 lg:columns-3 gap-3">
           {MOSAIC_ITEMS.map((item) => (
             <div
               key={item.id}
@@ -136,9 +136,9 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
             </div>
           ))}
         </div>
-
-        {footer}
       </div>
+
+      {footer}
     </div>
   );
 }
