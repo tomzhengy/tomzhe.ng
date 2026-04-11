@@ -102,8 +102,8 @@ export default function Home() {
               .
             </p>
             <p className="text-lg">
-              Other interests: <Link href="/photos">photography</Link>, camping,
-              swimming, and reading.
+              Other interests: <Link href="/photography">photography</Link>,
+              camping, swimming, and reading.
             </p>
           </section>
 

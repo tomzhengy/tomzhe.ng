@@ -6,7 +6,7 @@ import Tooltip from "../ui/Tooltip";
 
 interface HeaderProps {
   ThemeToggleComponent: ComponentType;
-  currentPage?: "home" | "investing" | "blog";
+  currentPage?: "home" | "investing" | "blog" | "photography";
 }
 
 export default function Header({
