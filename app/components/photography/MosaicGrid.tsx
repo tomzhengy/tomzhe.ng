@@ -89,8 +89,10 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
 
   return (
     <div>
-      {header}
+      {/* header - aligned with photo columns only */}
+      <div className="md:ml-[calc(240px+2rem)]">{header}</div>
 
+      {/* text panel + photos side by side */}
       <div className="flex gap-8 mt-6">
         {/* left: text panel */}
         <div className="hidden md:block w-[240px] shrink-0 sticky top-[8vh] self-start h-fit">
@@ -138,7 +140,8 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
         </div>
       </div>
 
-      {footer}
+      {/* footer - aligned with photo columns only */}
+      <div className="md:ml-[calc(240px+2rem)]">{footer}</div>
     </div>
   );
 }
