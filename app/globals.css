@@ -126,9 +126,11 @@ button svg {
 
 @keyframes reveal-content {
   from {
+    max-height: 0;
     opacity: 0;
   }
   to {
+    max-height: 2000px;
     opacity: 1;
   }
 }

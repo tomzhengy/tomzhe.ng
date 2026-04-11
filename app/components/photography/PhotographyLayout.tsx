@@ -44,7 +44,7 @@ export default function PhotographyLayout() {
         className={`mt-6 ${
           exiting
             ? "animate-[collapse-content_0.3s_ease_forwards]"
-            : "animate-[reveal-content_0.4s_ease_0.5s_backwards]"
+            : "overflow-hidden animate-[reveal-content_0.4s_ease_0.5s_backwards]"
         }`}
       >
         <MosaicGrid />
