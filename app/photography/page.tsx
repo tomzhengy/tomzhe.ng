@@ -16,7 +16,10 @@ export default function PhotographyPage() {
       <div className="text-left max-w-[1080px] w-full px-4 pt-[8vh] pb-16 animate-[expand-width_0.5s_ease]">
         <Header ThemeToggleComponent={ThemeToggle} currentPage="photography" />
 
-        <section aria-labelledby="photography" className="mt-6">
+        <section
+          aria-labelledby="photography"
+          className="mt-6 overflow-hidden animate-[reveal-content_0.4s_ease_0.5s_backwards]"
+        >
           <MosaicGrid />
         </section>
 
