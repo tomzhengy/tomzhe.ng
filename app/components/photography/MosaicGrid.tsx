@@ -86,6 +86,9 @@ interface MosaicGridProps {
 
 export default function MosaicGrid({ header, footer }: MosaicGridProps) {
   const [hoveredItem, setHoveredItem] = useState<MosaicItem | null>(null);
+  const [lastHoveredItem, setLastHoveredItem] = useState<MosaicItem | null>(
+    null,
+  );
   const [selectedItem, setSelectedItem] = useState<MosaicItem | null>(null);
 
   const closeSelected = useCallback(() => setSelectedItem(null), []);
@@ -99,7 +102,7 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedItem, closeSelected]);
 
-  const displayedItem = selectedItem || hoveredItem;
+  const displayedItem = selectedItem || hoveredItem || lastHoveredItem;
 
   return (
     <div className="flex gap-8">
@@ -136,7 +139,10 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
                 backgroundColor: item.color,
                 aspectRatio: item.aspect,
               }}
-              onMouseEnter={() => setHoveredItem(item)}
+              onMouseEnter={() => {
+                setHoveredItem(item);
+                setLastHoveredItem(item);
+              }}
               onMouseLeave={() => setHoveredItem(null)}
               onClick={() => setSelectedItem(item)}
             >
