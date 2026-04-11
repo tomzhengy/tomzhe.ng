@@ -41,7 +41,7 @@ export default function PhotographyLayout() {
 
       <section
         aria-labelledby="photography"
-        className={`mt-6 overflow-hidden ${
+        className={`mt-6 ${
           exiting
             ? "animate-[collapse-content_0.3s_ease_forwards]"
             : "animate-[reveal-content_0.4s_ease_0.5s_backwards]"
