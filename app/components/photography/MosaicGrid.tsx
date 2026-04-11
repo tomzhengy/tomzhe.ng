@@ -143,6 +143,12 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
                 setHoveredItem(item);
                 setLastHoveredItem(item);
               }}
+              onMouseMove={() => {
+                if (hoveredItem?.id !== item.id) {
+                  setHoveredItem(item);
+                  setLastHoveredItem(item);
+                }
+              }}
               onMouseLeave={() => setHoveredItem(null)}
               onClick={() => setSelectedItem(item)}
             >
