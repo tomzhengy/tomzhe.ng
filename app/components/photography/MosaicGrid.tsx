@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MosaicItem } from "../../types/photography";
 
 const MOSAIC_ITEMS: MosaicItem[] = [
@@ -87,6 +87,17 @@ interface MosaicGridProps {
 export default function MosaicGrid({ header, footer }: MosaicGridProps) {
   const [hoveredItem, setHoveredItem] = useState<MosaicItem | null>(null);
   const [selectedItem, setSelectedItem] = useState<MosaicItem | null>(null);
+
+  const closeSelected = useCallback(() => setSelectedItem(null), []);
+
+  useEffect(() => {
+    if (!selectedItem) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeSelected();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedItem, closeSelected]);
 
   const displayedItem = selectedItem || hoveredItem;
 
