@@ -79,7 +79,12 @@ const MOSAIC_ITEMS: MosaicItem[] = [
   },
 ];
 
-export default function MosaicGrid() {
+interface MosaicGridProps {
+  header: React.ReactNode;
+  footer: React.ReactNode;
+}
+
+export default function MosaicGrid({ header, footer }: MosaicGridProps) {
   const [hoveredItem, setHoveredItem] = useState<MosaicItem | null>(null);
 
   return (
@@ -102,31 +107,37 @@ export default function MosaicGrid() {
         </div>
       </div>
 
-      {/* right: photo masonry */}
-      <div className="flex-1 columns-1 sm:columns-2 lg:columns-3 gap-3">
-        {MOSAIC_ITEMS.map((item) => (
-          <div
-            key={item.id}
-            className="relative overflow-hidden w-full rounded-sm transition-opacity duration-300 hover:opacity-80 cursor-pointer mb-3 break-inside-avoid"
-            style={{ backgroundColor: item.color, aspectRatio: item.aspect }}
-            onMouseEnter={() => setHoveredItem(item)}
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            {item.type === "motion" && (
-              <div className="absolute top-3 right-3">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-white/60"
-                >
-                  <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
-                </svg>
-              </div>
-            )}
-          </div>
-        ))}
+      {/* right: header + photos + footer */}
+      <div className="flex-1">
+        {header}
+
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 mt-6">
+          {MOSAIC_ITEMS.map((item) => (
+            <div
+              key={item.id}
+              className="relative overflow-hidden w-full transition-opacity duration-300 hover:opacity-80 cursor-pointer mb-3 break-inside-avoid"
+              style={{ backgroundColor: item.color, aspectRatio: item.aspect }}
+              onMouseEnter={() => setHoveredItem(item)}
+              onMouseLeave={() => setHoveredItem(null)}
+            >
+              {item.type === "motion" && (
+                <div className="absolute top-3 right-3">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="text-white/60"
+                  >
+                    <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {footer}
       </div>
     </div>
   );
