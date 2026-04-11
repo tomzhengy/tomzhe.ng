@@ -18,8 +18,8 @@ export default function PhotographyLayout() {
     setExitHref(href);
   };
 
-  const handleContainerAnimationEnd = () => {
-    if (exiting) {
+  const handleContainerAnimationEnd = (e: React.AnimationEvent) => {
+    if (exiting && e.target === e.currentTarget) {
       router.push(exitHref);
     }
   };
