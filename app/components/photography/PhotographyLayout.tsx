@@ -8,10 +8,20 @@ import LastVisitor from "../sections/LastVisitor";
 import ThemeToggle from "../ui/theme/ThemeToggle";
 import MosaicGrid from "./MosaicGrid";
 
+function wasPageReloaded() {
+  if (typeof window === "undefined") return false;
+  const entries = performance.getEntriesByType("navigation");
+  if (entries.length > 0) {
+    return (entries[0] as PerformanceNavigationTiming).type === "reload";
+  }
+  return false;
+}
+
 export default function PhotographyLayout() {
   const router = useRouter();
   const [exiting, setExiting] = useState(false);
   const [exitHref, setExitHref] = useState("");
+  const [skipEnterAnimation] = useState(wasPageReloaded);
 
   const handleNavigate = (href: string) => {
     setExiting(true);
@@ -29,7 +39,9 @@ export default function PhotographyLayout() {
       className={`text-left max-w-[1080px] w-full px-4 pt-[8vh] pb-16 ${
         exiting
           ? "animate-[shrink-width_0.4s_ease_0.3s_forwards]"
-          : "animate-[expand-width_0.5s_ease]"
+          : skipEnterAnimation
+            ? ""
+            : "animate-[expand-width_0.5s_ease]"
       }`}
       onAnimationEnd={handleContainerAnimationEnd}
     >
@@ -41,10 +53,12 @@ export default function PhotographyLayout() {
 
       <section
         aria-labelledby="photography"
-        className={`mt-6 ${
+        className={`mt-6 overflow-hidden ${
           exiting
             ? "animate-[collapse-content_0.3s_ease_forwards]"
-            : "overflow-hidden animate-[reveal-content_0.4s_ease_0.5s_backwards]"
+            : skipEnterAnimation
+              ? ""
+              : "animate-[reveal-content_0.4s_ease_0.5s_backwards]"
         }`}
       >
         <MosaicGrid />
