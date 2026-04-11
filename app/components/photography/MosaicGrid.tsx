@@ -96,10 +96,7 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
       <div className="flex gap-8 mt-6">
         {/* left: text panel */}
         <div className="hidden md:block w-[240px] shrink-0 sticky top-[8vh] self-start h-fit">
-          <div
-            className="transition-opacity duration-300"
-            style={{ opacity: hoveredItem ? 1 : 0 }}
-          >
+          <div>
             {hoveredItem && (
               <>
                 <p className="text-lg">{hoveredItem.title}</p>
