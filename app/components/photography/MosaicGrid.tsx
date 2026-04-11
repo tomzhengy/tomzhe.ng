@@ -86,6 +86,9 @@ interface MosaicGridProps {
 
 export default function MosaicGrid({ header, footer }: MosaicGridProps) {
   const [hoveredItem, setHoveredItem] = useState<MosaicItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MosaicItem | null>(null);
+
+  const displayedItem = selectedItem || hoveredItem;
 
   return (
     <div>
@@ -97,12 +100,12 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
         {/* left: text panel */}
         <div className="hidden md:block w-[240px] shrink-0 sticky top-[8vh] self-start h-fit">
           <div>
-            {hoveredItem && (
+            {displayedItem && (
               <>
-                <p className="text-lg">{hoveredItem.title}</p>
-                <p className="text-sm opacity-60 mt-1">{hoveredItem.type}</p>
+                <p className="text-lg">{displayedItem.title}</p>
+                <p className="text-sm opacity-60 mt-1">{displayedItem.type}</p>
                 <p className="text-sm opacity-80 mt-3">
-                  {hoveredItem.description}
+                  {displayedItem.description}
                 </p>
               </>
             )}
@@ -110,30 +113,66 @@ export default function MosaicGrid({ header, footer }: MosaicGridProps) {
         </div>
 
         {/* right: photos */}
-        <div className="flex-1 columns-1 sm:columns-2 lg:columns-3 gap-3">
-          {MOSAIC_ITEMS.map((item) => (
+        <div className="flex-1 relative">
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-3">
+            {MOSAIC_ITEMS.map((item) => (
+              <div
+                key={item.id}
+                className="relative overflow-hidden w-full transition-opacity duration-300 hover:opacity-80 cursor-pointer mb-3 break-inside-avoid"
+                style={{
+                  backgroundColor: item.color,
+                  aspectRatio: item.aspect,
+                }}
+                onMouseEnter={() => setHoveredItem(item)}
+                onMouseLeave={() => setHoveredItem(null)}
+                onClick={() => setSelectedItem(item)}
+              >
+                {item.type === "motion" && (
+                  <div className="absolute top-3 right-3">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="text-white/60"
+                    >
+                      <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* expanded photo overlay - covers mosaic area only */}
+          {selectedItem && (
             <div
-              key={item.id}
-              className="relative overflow-hidden w-full transition-opacity duration-300 hover:opacity-80 cursor-pointer mb-3 break-inside-avoid"
-              style={{ backgroundColor: item.color, aspectRatio: item.aspect }}
-              onMouseEnter={() => setHoveredItem(item)}
-              onMouseLeave={() => setHoveredItem(null)}
+              className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--background)]/90 cursor-pointer"
+              onClick={() => setSelectedItem(null)}
             >
-              {item.type === "motion" && (
-                <div className="absolute top-3 right-3">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="text-white/60"
-                  >
-                    <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
-                  </svg>
-                </div>
-              )}
+              <div
+                className="w-full max-w-[90%]"
+                style={{
+                  backgroundColor: selectedItem.color,
+                  aspectRatio: selectedItem.aspect,
+                }}
+              >
+                {selectedItem.type === "motion" && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="text-white/60"
+                    >
+                      <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
+                    </svg>
+                  </div>
+                )}
+              </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
