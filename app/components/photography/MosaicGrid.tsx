@@ -22,6 +22,7 @@ interface PhotoCellProps {
   onRefresh: () => void;
   style: React.CSSProperties;
   className: string;
+  contain?: boolean;
 }
 
 function PhotoCell({
@@ -39,11 +40,13 @@ function PhotoCell({
   onRefresh,
   style,
   className,
+  contain,
 }: PhotoCellProps) {
+  const objectFit = contain ? "object-contain" : "object-cover";
   return (
     <div
-      className={`relative overflow-hidden w-full transition-opacity duration-300 hover:opacity-80 cursor-pointer ${className}`}
-      style={{ backgroundColor: item.color, ...style }}
+      className={`relative overflow-hidden transition-opacity duration-300 hover:opacity-80 cursor-pointer ${contain ? "" : "w-full"} ${className}`}
+      style={{ ...(!contain && { backgroundColor: item.color }), ...style }}
       onMouseEnter={() => {
         setHoveredItem(item);
         setLastHoveredItem(item);
@@ -63,7 +66,7 @@ function PhotoCell({
             src={getThumbUrl(item)!}
             alt={item.title}
             loading="lazy"
-            className="w-full h-full object-cover opacity-0 transition-opacity duration-500"
+            className={`w-full h-full ${objectFit} opacity-0 transition-opacity duration-500`}
             onLoad={(e) =>
               e.currentTarget.classList.replace("opacity-0", "opacity-100")
             }
@@ -80,7 +83,7 @@ function PhotoCell({
               e.currentTarget.pause();
               e.currentTarget.currentTime = 0;
             }}
-            className="w-full h-full object-cover"
+            className={`w-full h-full ${objectFit}`}
           />
         ))}
 
@@ -132,18 +135,6 @@ export default function MosaicGrid({
   const [closing, setClosing] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [layoutMode, setLayoutMode] = useState<"masonry" | "heap">("masonry");
-  const gridRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  useEffect(() => {
-    const el = gridRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      setContainerWidth(entry.contentRect.width);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   const closeSelected = useCallback(() => {
     setClosing(true);
@@ -200,39 +191,6 @@ export default function MosaicGrid({
     if (item.r2Key) return `${R2_URL}/${item.r2Key}`;
     return null;
   };
-
-  // compute justified rows for heap layout
-  const TARGET_ROW_HEIGHT = 220;
-  const GAP = 6;
-  const justifiedRows = (() => {
-    if (layoutMode !== "heap" || !containerWidth || photos.length === 0)
-      return [];
-    const rows: { items: MosaicItem[]; height: number }[] = [];
-    let currentRow: MosaicItem[] = [];
-    let rowWidth = 0;
-
-    for (const item of photos) {
-      const parts = item.aspect.split("/");
-      const ratio =
-        parts.length === 2 ? parseInt(parts[0]) / parseInt(parts[1]) : 1;
-      const itemWidth = TARGET_ROW_HEIGHT * ratio;
-      currentRow.push(item);
-      rowWidth += itemWidth + (currentRow.length > 1 ? GAP : 0);
-
-      if (rowWidth >= containerWidth) {
-        const totalGap = (currentRow.length - 1) * GAP;
-        const scale = (containerWidth - totalGap) / (rowWidth - totalGap);
-        rows.push({ items: currentRow, height: TARGET_ROW_HEIGHT * scale });
-        currentRow = [];
-        rowWidth = 0;
-      }
-    }
-    // last incomplete row
-    if (currentRow.length > 0) {
-      rows.push({ items: currentRow, height: TARGET_ROW_HEIGHT });
-    }
-    return rows;
-  })();
 
   // preload full-res originals in the background
   useEffect(() => {
@@ -402,63 +360,46 @@ export default function MosaicGrid({
         </div>
 
         <div
-          ref={gridRef}
           className={
             layoutMode === "masonry"
               ? "columns-1 sm:columns-2 lg:columns-3 gap-3 mt-2"
-              : "mt-2"
+              : "flex flex-wrap items-center justify-center mt-2"
           }
         >
-          {layoutMode === "masonry"
-            ? photos.map((item, index) => (
-                <PhotoCell
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  total={photos.length}
-                  getThumbUrl={getThumbUrl}
-                  getImageUrl={getImageUrl}
-                  hoveredItem={hoveredItem}
-                  setHoveredItem={setHoveredItem}
-                  setLastHoveredItem={setLastHoveredItem}
-                  setSelectedItem={setSelectedItem}
-                  editMode={editMode}
-                  isDevMode={isDevMode}
-                  onRefresh={refreshPhotos}
-                  style={{ aspectRatio: item.aspect }}
-                  className="mb-3 break-inside-avoid"
-                />
-              ))
-            : justifiedRows.map((row, ri) => (
-                <div
-                  key={ri}
-                  className="flex mb-[6px]"
-                  style={{ height: row.height, gap: GAP }}
-                >
-                  {row.items.map((item) => {
-                    const index = photos.findIndex((p) => p.id === item.id);
-                    return (
-                      <PhotoCell
-                        key={item.id}
-                        item={item}
-                        index={index}
-                        total={photos.length}
-                        getThumbUrl={getThumbUrl}
-                        getImageUrl={getImageUrl}
-                        hoveredItem={hoveredItem}
-                        setHoveredItem={setHoveredItem}
-                        setLastHoveredItem={setLastHoveredItem}
-                        setSelectedItem={setSelectedItem}
-                        editMode={editMode}
-                        isDevMode={isDevMode}
-                        onRefresh={refreshPhotos}
-                        style={{ height: row.height, aspectRatio: item.aspect }}
-                        className=""
-                      />
-                    );
-                  })}
-                </div>
-              ))}
+          {photos.map((item, index) => (
+            <PhotoCell
+              key={item.id}
+              item={item}
+              index={index}
+              total={photos.length}
+              getThumbUrl={getThumbUrl}
+              getImageUrl={getImageUrl}
+              hoveredItem={hoveredItem}
+              setHoveredItem={setHoveredItem}
+              setLastHoveredItem={setLastHoveredItem}
+              setSelectedItem={setSelectedItem}
+              editMode={editMode}
+              isDevMode={isDevMode}
+              onRefresh={refreshPhotos}
+              style={
+                layoutMode === "masonry"
+                  ? { aspectRatio: item.aspect }
+                  : {
+                      height: 140 + ((index * 37) % 80),
+                      width: "auto",
+                      aspectRatio: item.aspect,
+                      marginTop: ((index * 53) % 30) - 15,
+                      marginLeft: 8 + ((index * 41) % 20),
+                      marginRight: 8 + ((index * 29) % 20),
+                      marginBottom: 12 + ((index * 47) % 16),
+                    }
+              }
+              className={
+                layoutMode === "masonry" ? "mb-3 break-inside-avoid" : ""
+              }
+              contain={layoutMode === "heap"}
+            />
+          ))}
         </div>
 
         {footer}
