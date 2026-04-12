@@ -471,39 +471,64 @@ export default function MosaicGrid({
             </button>{" "}
             the heap.
           </p>
+        </div>
 
-          {/* contact prompt */}
-          {showContactPrompt && (
-            <div className="mt-3 border border-[var(--foreground)]/30 p-3">
+        {/* contact prompt modal */}
+        {showContactPrompt && (
+          <>
+            <div
+              className="fixed inset-0 z-50 bg-black/50"
+              onClick={() => setShowContactPrompt(false)}
+            />
+            <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--background)] border border-[var(--foreground)] p-6 w-[90vw] max-w-md">
               <p className="text-sm">
-                if you'd like to continue the conversation, drop your email or
-                social below. totally optional!
+                want to leave your contact so we can chat about this? totally
+                optional!
               </p>
-              <div className="flex gap-2 mt-2 items-center">
-                <input
-                  className="text-sm flex-1 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
-                  placeholder="email, twitter, etc. (optional)"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      fetch("/api/suggestions", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          message: suggestion.trim(),
-                          contact: contact.trim() || null,
-                        }),
-                      });
-                      setSuggestion("");
-                      setContact("");
-                      setShowContactPrompt(false);
-                      setSuggestionSent(true);
-                    }
-                  }}
-                />
+              <input
+                className="text-sm w-full bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-2 mt-3"
+                placeholder="email, twitter, etc."
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    fetch("/api/suggestions", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        message: suggestion.trim(),
+                        contact: contact.trim() || null,
+                      }),
+                    });
+                    setSuggestion("");
+                    setContact("");
+                    setShowContactPrompt(false);
+                    setSuggestionSent(true);
+                  }
+                }}
+              />
+              <div className="flex gap-2 mt-4 justify-end">
                 <button
-                  className="text-sm px-2 py-1 border border-[var(--foreground)] cursor-pointer"
+                  className="text-sm px-3 py-1.5 border border-[var(--foreground)]/30 cursor-pointer"
+                  onClick={() => {
+                    fetch("/api/suggestions", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        message: suggestion.trim(),
+                        contact: null,
+                      }),
+                    });
+                    setSuggestion("");
+                    setContact("");
+                    setShowContactPrompt(false);
+                    setSuggestionSent(true);
+                  }}
+                >
+                  skip
+                </button>
+                <button
+                  className="text-sm px-3 py-1.5 border border-[var(--foreground)] cursor-pointer"
                   onClick={() => {
                     fetch("/api/suggestions", {
                       method: "POST",
@@ -523,8 +548,8 @@ export default function MosaicGrid({
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
 
         {layoutMode === "masonry" ? (
           <div className="flex gap-3 mt-2">
