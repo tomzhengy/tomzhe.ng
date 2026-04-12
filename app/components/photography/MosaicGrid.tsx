@@ -81,7 +81,7 @@ export default function MosaicGrid({
   return (
     <div className="flex gap-8">
       {/* left: text panel */}
-      <div className="hidden md:block w-[240px] shrink-0 self-start sticky top-[8vh]">
+      <div className="hidden md:block w-[240px] shrink-0 self-start sticky top-[8vh] h-[calc(100vh-8vh)]">
         {/* spacer to align with photos below header */}
         <div className="h-8 mb-8" />
         <div className="mt-6">
@@ -172,6 +172,24 @@ export default function MosaicGrid({
             </>
           )}
         </div>
+
+        {/* scroll to top button */}
+        <button
+          className="absolute bottom-4 right-0 w-8 h-8 flex items-center justify-center border border-[var(--foreground)]/20 hover:border-[var(--foreground)]/50 opacity-60 hover:opacity-100 cursor-pointer transition-opacity"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="scroll to top"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </button>
       </div>
 
       {/* right: header + photos + footer */}
