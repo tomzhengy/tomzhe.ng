@@ -34,6 +34,8 @@ export async function POST(request: NextRequest) {
     const ext = file.name.split(".").pop() || "jpg";
     const r2Key = `photos/${id}.${ext}`;
 
+    const cacheControl = "public, max-age=31536000, immutable";
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const r2 = getR2Client();
     await r2.send(
@@ -42,6 +44,7 @@ export async function POST(request: NextRequest) {
         Key: r2Key,
         Body: buffer,
         ContentType: file.type,
+        CacheControl: cacheControl,
       }),
     );
 
@@ -56,6 +59,7 @@ export async function POST(request: NextRequest) {
           Key: r2ThumbKey,
           Body: thumbBuffer,
           ContentType: "image/webp",
+          CacheControl: cacheControl,
         }),
       );
     }
