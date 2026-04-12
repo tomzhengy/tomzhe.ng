@@ -63,7 +63,6 @@ interface PhotoCellProps {
   onRefresh: () => void;
   style: React.CSSProperties;
   className: string;
-  contain?: boolean;
 }
 
 function PhotoCell({
@@ -81,12 +80,11 @@ function PhotoCell({
   onRefresh,
   style,
   className,
-  contain,
 }: PhotoCellProps) {
-  const objectFit = contain ? "object-contain" : "object-cover";
+  const objectFit = "object-contain";
   return (
     <div
-      className={`relative overflow-hidden transition-opacity duration-300 hover:opacity-80 cursor-pointer ${contain ? "" : "w-full"} ${className}`}
+      className={`relative overflow-hidden transition-opacity duration-300 hover:opacity-80 cursor-pointer w-full ${className}`}
       style={{ backgroundColor: item.color, ...style }}
       onMouseEnter={() => {
         setHoveredItem(item);
@@ -182,7 +180,8 @@ export default function MosaicGrid({
   isDevMode,
 }: MosaicGridProps) {
   const parseDescriptionDate = (desc: string): number => {
-    const d = new Date(desc);
+    const firstLine = desc.split("\n")[0].trim();
+    const d = new Date(firstLine);
     if (!isNaN(d.getTime())) return d.getTime();
     return 0;
   };
@@ -602,7 +601,6 @@ export default function MosaicGrid({
                   marginBottom: 12 + ((index * 47) % 16),
                 }}
                 className=""
-                contain
               />
             ))}
           </div>
