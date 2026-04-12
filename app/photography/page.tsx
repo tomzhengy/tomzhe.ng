@@ -16,7 +16,7 @@ export default function PhotographyPage() {
   const isDevMode = process.env.NODE_ENV === "development";
 
   return (
-    <main className="min-h-screen w-full pt-[8vh] pb-16">
+    <main className="min-h-screen w-full px-4 pt-[8vh] pb-16">
       <MosaicGrid
         header={
           <Header
