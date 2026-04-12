@@ -435,21 +435,10 @@ export default function MosaicGrid({
 
         {/* outlined box */}
         <div className="w-full border border-[var(--foreground)] mt-4 mb-4 p-4">
-          <p className="text-sm">
-            I have a wide selection of photos that I don't yet have a home for.
-            I'm unsure as to how I will organize these as my collection grows.
-            Click for full image.
-          </p>
-          <div className="text-sm mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="shrink-0">
-              Images are shown in reverse chronological order, but you can{" "}
-              <button
-                className="underline cursor-pointer"
-                onClick={shufflePhotos}
-              >
-                shuffle
-              </button>{" "}
-              the heap. Please inspire me!
+              I have a wide selection of photos that I'm unsure on organizing as
+              my collection grows. Please inspire me!
             </span>
             <input
               className="text-sm w-full sm:flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
@@ -471,6 +460,17 @@ export default function MosaicGrid({
               {suggestionSent ? "sent!" : "send"}
             </button>
           </div>
+          <p className="text-sm mt-2">
+            Click for full image & details. Images are shown in reverse
+            chronological order, but you can{" "}
+            <button
+              className="underline cursor-pointer"
+              onClick={shufflePhotos}
+            >
+              shuffle
+            </button>{" "}
+            the heap.
+          </p>
 
           {/* contact prompt */}
           {showContactPrompt && (
