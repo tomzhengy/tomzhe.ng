@@ -115,9 +115,12 @@ function PhotoCell({
             loading="lazy"
             className={`w-full h-full ${objectFit} transition-opacity duration-500`}
             style={{ opacity: 0 }}
+            onLoad={(e) => {
+              e.currentTarget.style.opacity = "1";
+            }}
             ref={(el) => {
               if (!el) return;
-              if (el.complete) {
+              if (el.complete && el.naturalWidth > 0) {
                 el.style.opacity = "1";
               } else {
                 el.onload = () => {
