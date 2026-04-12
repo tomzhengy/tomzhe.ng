@@ -253,7 +253,7 @@ export default function MosaicGrid({
         {/* expanded photo - fullscreen */}
         {selectedItem && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--background)] cursor-pointer animate-[photo-expand_0.3s_ease]"
+            className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-sm cursor-pointer animate-[photo-expand_0.3s_ease]"
             onClick={() => setSelectedItem(null)}
           >
             {getImageUrl(selectedItem) &&
