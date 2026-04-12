@@ -365,6 +365,19 @@ export default function MosaicGrid({
           >
             heap
           </button>
+          <button
+            className="text-xs px-2 py-1 cursor-pointer border border-[var(--foreground)]/30 opacity-60 hover:opacity-100"
+            onClick={() => {
+              const shuffled = [...photos];
+              for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+              }
+              setPhotos(shuffled);
+            }}
+          >
+            shuffle
+          </button>
         </div>
 
         <div
