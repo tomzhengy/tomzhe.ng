@@ -466,7 +466,7 @@ export default function MosaicGrid({
             >
               {/* left: text panel */}
               <div
-                className="hidden md:flex w-[200px] min-w-0 shrink-0 flex-col justify-center pt-12 pl-4 break-words overflow-hidden"
+                className="hidden md:flex w-[200px] min-w-0 shrink-0 flex-col justify-center pt-12 px-4 break-words overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 {isDevMode ? (
