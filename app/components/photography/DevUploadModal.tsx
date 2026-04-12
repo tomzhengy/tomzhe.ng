@@ -29,10 +29,26 @@ export default function DevUploadModal({
     setError("");
 
     try {
+      const skipped: string[] = [];
       for (const file of files) {
-        const info = await analyzeImage(file);
+        let info;
+        try {
+          info = await analyzeImage(file);
+        } catch {
+          // unsupported format (e.g. HEIC) -- skip analysis, use defaults
+          skipped.push(file.name);
+          info = { width: 0, height: 0, aspect: "1/1", color: "#888888" };
+        }
+
         const isImage = !file.type.startsWith("video/");
-        const thumb = isImage ? await createThumbnail(file) : null;
+        let thumb: File | null = null;
+        if (isImage && info.width > 0) {
+          try {
+            thumb = await createThumbnail(file);
+          } catch {
+            // thumbnail generation failed, upload without
+          }
+        }
 
         const formData = new FormData();
         formData.append("file", file);
@@ -52,8 +68,11 @@ export default function DevUploadModal({
 
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.error || "upload failed");
+          throw new Error(data.error || `upload failed for ${file.name}`);
         }
+      }
+      if (skipped.length > 0) {
+        console.warn("skipped analysis for unsupported formats:", skipped);
       }
       onUploaded();
       onClose();
