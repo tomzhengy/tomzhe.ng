@@ -547,15 +547,19 @@ export default function MosaicGrid({
                 )}
               </div>
               {/* right: image */}
-              <div className="flex-1 flex items-center justify-center p-8">
+              <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
                 {currentSelected.type === "still" ? (
-                  <div className="relative max-w-full max-h-full flex items-center justify-center">
+                  <div
+                    className="relative flex items-center justify-center max-w-full"
+                    style={{ maxHeight: "calc(100vh - 4rem)" }}
+                  >
                     {/* thumbnail shown instantly as blurred placeholder */}
                     {getThumbUrl(currentSelected) && (
                       <img
                         src={getThumbUrl(currentSelected)!}
                         alt={currentSelected.title}
-                        className="max-w-full max-h-full object-contain blur-sm"
+                        className="max-w-full object-contain blur-sm"
+                        style={{ maxHeight: "calc(100vh - 4rem)" }}
                       />
                     )}
                     {/* full-res loads on top, same size as thumbnail */}
