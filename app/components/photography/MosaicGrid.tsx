@@ -390,21 +390,23 @@ export default function MosaicGrid({
           />
         )}
 
-        {/* layout toggle */}
-        <div className="flex gap-2 mt-4 mb-2">
-          <button
-            className={`text-xs px-2 py-1 cursor-pointer border ${layoutMode === "masonry" ? "border-[var(--foreground)] opacity-100" : "border-[var(--foreground)]/30 opacity-60"}`}
-            onClick={() => setLayoutMode("masonry")}
-          >
-            masonry
-          </button>
-          <button
-            className={`text-xs px-2 py-1 cursor-pointer border ${layoutMode === "heap" ? "border-[var(--foreground)] opacity-100" : "border-[var(--foreground)]/30 opacity-60"}`}
-            onClick={() => setLayoutMode("heap")}
-          >
-            heap
-          </button>
-        </div>
+        {/* layout toggle - dev only */}
+        {isDevMode && (
+          <div className="flex gap-2 mt-4 mb-2">
+            <button
+              className={`text-xs px-2 py-1 cursor-pointer border ${layoutMode === "masonry" ? "border-[var(--foreground)] opacity-100" : "border-[var(--foreground)]/30 opacity-60"}`}
+              onClick={() => setLayoutMode("masonry")}
+            >
+              masonry
+            </button>
+            <button
+              className={`text-xs px-2 py-1 cursor-pointer border ${layoutMode === "heap" ? "border-[var(--foreground)] opacity-100" : "border-[var(--foreground)]/30 opacity-60"}`}
+              onClick={() => setLayoutMode("heap")}
+            >
+              heap
+            </button>
+          </div>
+        )}
 
         <div
           className={
@@ -556,8 +558,22 @@ export default function MosaicGrid({
                   </>
                 )}
               </div>
-              {/* right: image */}
-              <div className="absolute inset-0 md:left-[216px] flex items-center justify-center py-8 px-12 overflow-hidden">
+              {/* mobile: text above image */}
+              <div className="md:hidden px-4 pt-6">
+                <p className="text-xl text-white">{currentSelected.title}</p>
+                {currentSelected.subtitle && (
+                  <p className="text-sm text-white/60 mt-0.5">
+                    {currentSelected.subtitle}
+                  </p>
+                )}
+                {currentSelected.description && (
+                  <p className="text-sm text-white/80 mt-2">
+                    {currentSelected.description}
+                  </p>
+                )}
+              </div>
+              {/* image */}
+              <div className="absolute inset-0 md:left-[216px] flex items-center justify-center py-8 px-12 overflow-hidden max-md:top-[auto] max-md:bottom-0 max-md:h-[70vh]">
                 {currentSelected.type === "still" ? (
                   <div
                     className="relative flex items-center justify-center max-w-full"
