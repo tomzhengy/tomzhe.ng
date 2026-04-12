@@ -257,7 +257,17 @@ export default function MosaicGrid({
                   className="text-sm opacity-80 mt-3 bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
                   value={displayedItem.description}
                   placeholder="add description..."
-                  rows={3}
+                  rows={1}
+                  onInput={(e) => {
+                    const el = e.currentTarget;
+                    el.style.height = "auto";
+                    el.style.height = el.scrollHeight + "px";
+                  }}
+                  ref={(el) => {
+                    if (!el) return;
+                    el.style.height = "auto";
+                    el.style.height = el.scrollHeight + "px";
+                  }}
                   onChange={(e) => {
                     const updated = photos.map((p) =>
                       p.id === displayedItem.id
@@ -471,7 +481,17 @@ export default function MosaicGrid({
                       className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
                       value={currentSelected.description}
                       placeholder="add description..."
-                      rows={3}
+                      rows={1}
+                      onInput={(e) => {
+                        const el = e.currentTarget;
+                        el.style.height = "auto";
+                        el.style.height = el.scrollHeight + "px";
+                      }}
+                      ref={(el) => {
+                        if (!el) return;
+                        el.style.height = "auto";
+                        el.style.height = el.scrollHeight + "px";
+                      }}
                       onChange={(e) => {
                         const updated = photos.map((p) =>
                           p.id === currentSelected.id
