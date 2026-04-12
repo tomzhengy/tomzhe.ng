@@ -211,11 +211,11 @@ export default function MosaicGrid({
                     );
                     setPhotos(updated);
                   }}
-                  onBlur={() => {
+                  onBlur={(e) => {
                     fetch(`/api/photos?id=${displayedItem.id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ title: displayedItem.title }),
+                      body: JSON.stringify({ title: e.target.value }),
                     });
                   }}
                 />
@@ -235,12 +235,12 @@ export default function MosaicGrid({
                     );
                     setPhotos(updated);
                   }}
-                  onBlur={() => {
+                  onBlur={(e) => {
                     fetch(`/api/photos?id=${displayedItem.id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        subtitle: displayedItem.subtitle,
+                        subtitle: e.target.value,
                       }),
                     });
                   }}
@@ -276,12 +276,12 @@ export default function MosaicGrid({
                     );
                     setPhotos(updated);
                   }}
-                  onBlur={() => {
+                  onBlur={(e) => {
                     fetch(`/api/photos?id=${displayedItem.id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        description: displayedItem.description,
+                        description: e.target.value,
                       }),
                     });
                   }}
@@ -445,12 +445,12 @@ export default function MosaicGrid({
                         );
                         setPhotos(updated);
                       }}
-                      onBlur={() => {
+                      onBlur={(e) => {
                         fetch(`/api/photos?id=${currentSelected.id}`, {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            title: currentSelected.title,
+                            title: e.target.value,
                           }),
                         });
                       }}
@@ -467,12 +467,12 @@ export default function MosaicGrid({
                         );
                         setPhotos(updated);
                       }}
-                      onBlur={() => {
+                      onBlur={(e) => {
                         fetch(`/api/photos?id=${currentSelected.id}`, {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            subtitle: currentSelected.subtitle,
+                            subtitle: e.target.value,
                           }),
                         });
                       }}
@@ -500,12 +500,12 @@ export default function MosaicGrid({
                         );
                         setPhotos(updated);
                       }}
-                      onBlur={() => {
+                      onBlur={(e) => {
                         fetch(`/api/photos?id=${currentSelected.id}`, {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            description: currentSelected.description,
+                            description: e.target.value,
                           }),
                         });
                       }}
