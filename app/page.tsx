@@ -106,7 +106,7 @@ export default function Home() {
               <Link href="/photography" className="body-link">
                 photography
               </Link>
-              . It brings me ginosko with our world.
+              . It brings me <em>ginosko</em> with our world.
             </p>
           </section>
 
