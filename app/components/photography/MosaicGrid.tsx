@@ -547,9 +547,9 @@ export default function MosaicGrid({
                 )}
               </div>
               {/* right: image */}
-              <div className="flex-1 flex items-center justify-center p-8 relative">
+              <div className="flex-1 flex items-center justify-center p-8">
                 {currentSelected.type === "still" ? (
-                  <>
+                  <div className="relative max-w-full max-h-full flex items-center justify-center">
                     {/* thumbnail shown instantly as blurred placeholder */}
                     {getThumbUrl(currentSelected) && (
                       <img
@@ -558,18 +558,18 @@ export default function MosaicGrid({
                         className="max-w-full max-h-full object-contain blur-sm"
                       />
                     )}
-                    {/* full-res loads on top, replaces thumbnail */}
+                    {/* full-res loads on top, same size as thumbnail */}
                     {getImageUrl(currentSelected) && (
                       <img
                         src={getImageUrl(currentSelected)!}
                         alt={currentSelected.title}
-                        className="max-w-full max-h-full object-contain absolute inset-8 m-auto opacity-0 transition-opacity duration-300"
+                        className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300"
                         onLoad={(e) => {
                           e.currentTarget.style.opacity = "1";
                         }}
                       />
                     )}
-                  </>
+                  </div>
                 ) : (
                   getImageUrl(currentSelected) && (
                     <video
