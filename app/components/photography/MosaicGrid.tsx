@@ -497,7 +497,7 @@ export default function MosaicGrid({
                       }}
                     />
                     <input
-                      className="text-sm text-white/60 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                      className="text-sm text-white/60 -mt-1 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
                       value={currentSelected.subtitle || ""}
                       placeholder="add subtitle..."
                       onChange={(e) => {
@@ -544,7 +544,7 @@ export default function MosaicGrid({
                       {currentSelected.title}
                     </p>
                     {currentSelected.subtitle && (
-                      <p className="text-sm text-white/60 -mt-2">
+                      <p className="text-sm text-white/60 -mt-1">
                         {currentSelected.subtitle}
                       </p>
                     )}
