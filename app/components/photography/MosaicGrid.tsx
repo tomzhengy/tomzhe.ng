@@ -549,15 +549,31 @@ export default function MosaicGrid({
                 )}
               </div>
               {/* right: image */}
-              <div className="flex-1 flex items-center justify-center p-8">
-                {getImageUrl(currentSelected) &&
-                  (currentSelected.type === "still" ? (
-                    <img
-                      src={getImageUrl(currentSelected)!}
-                      alt={currentSelected.title}
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  ) : (
+              <div className="flex-1 flex items-center justify-center p-8 relative">
+                {currentSelected.type === "still" ? (
+                  <>
+                    {/* thumbnail shown instantly as blurred placeholder */}
+                    {getThumbUrl(currentSelected) && (
+                      <img
+                        src={getThumbUrl(currentSelected)!}
+                        alt={currentSelected.title}
+                        className="max-w-full max-h-full object-contain blur-sm"
+                      />
+                    )}
+                    {/* full-res loads on top, replaces thumbnail */}
+                    {getImageUrl(currentSelected) && (
+                      <img
+                        src={getImageUrl(currentSelected)!}
+                        alt={currentSelected.title}
+                        className="max-w-full max-h-full object-contain absolute inset-0 m-auto opacity-0 transition-opacity duration-300"
+                        onLoad={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  getImageUrl(currentSelected) && (
                     <video
                       src={getImageUrl(currentSelected)!}
                       autoPlay
@@ -566,7 +582,8 @@ export default function MosaicGrid({
                       playsInline
                       className="max-w-full max-h-full object-contain"
                     />
-                  ))}
+                  )
+                )}
               </div>
             </div>
           </>
