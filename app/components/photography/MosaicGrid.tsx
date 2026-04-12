@@ -440,7 +440,7 @@ export default function MosaicGrid({
             I'm unsure as to how I will organize these as my collection grows.
             Click for full image.
           </p>
-          <div className="text-sm mt-2 flex items-center gap-2">
+          <div className="text-sm mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="shrink-0">
               Sorted by most recent. You can{" "}
               <button
@@ -452,7 +452,7 @@ export default function MosaicGrid({
               the heap. Please inspire me with ideas!
             </span>
             <input
-              className="text-sm flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
+              className="text-sm w-full sm:flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
               placeholder="your idea here..."
               value={suggestion}
               onChange={(e) => setSuggestion(e.target.value)}
