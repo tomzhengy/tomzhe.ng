@@ -1,11 +1,114 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MosaicItem } from "../../types/photography";
 import DevToolbar from "./DevToolbar";
 import DevPhotoOverlay from "./DevPhotoOverlay";
 
 const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
+
+interface PhotoCellProps {
+  item: MosaicItem;
+  index: number;
+  total: number;
+  getThumbUrl: (item: MosaicItem) => string | null;
+  getImageUrl: (item: MosaicItem) => string | null;
+  hoveredItem: MosaicItem | null;
+  setHoveredItem: (item: MosaicItem | null) => void;
+  setLastHoveredItem: (item: MosaicItem) => void;
+  setSelectedItem: (item: MosaicItem) => void;
+  editMode: boolean;
+  isDevMode: boolean;
+  onRefresh: () => void;
+  style: React.CSSProperties;
+  className: string;
+}
+
+function PhotoCell({
+  item,
+  index,
+  total,
+  getThumbUrl,
+  getImageUrl,
+  hoveredItem,
+  setHoveredItem,
+  setLastHoveredItem,
+  setSelectedItem,
+  editMode,
+  isDevMode,
+  onRefresh,
+  style,
+  className,
+}: PhotoCellProps) {
+  return (
+    <div
+      className={`relative overflow-hidden w-full transition-opacity duration-300 hover:opacity-80 cursor-pointer ${className}`}
+      style={{ backgroundColor: item.color, ...style }}
+      onMouseEnter={() => {
+        setHoveredItem(item);
+        setLastHoveredItem(item);
+      }}
+      onMouseMove={() => {
+        if (hoveredItem?.id !== item.id) {
+          setHoveredItem(item);
+          setLastHoveredItem(item);
+        }
+      }}
+      onMouseLeave={() => setHoveredItem(null)}
+      onClick={() => !editMode && setSelectedItem(item)}
+    >
+      {getThumbUrl(item) &&
+        (item.type === "still" ? (
+          <img
+            src={getThumbUrl(item)!}
+            alt={item.title}
+            loading="lazy"
+            className="w-full h-full object-cover opacity-0 transition-opacity duration-500"
+            onLoad={(e) =>
+              e.currentTarget.classList.replace("opacity-0", "opacity-100")
+            }
+          />
+        ) : (
+          <video
+            src={getImageUrl(item)!}
+            muted
+            loop
+            playsInline
+            preload="none"
+            onMouseEnter={(e) => e.currentTarget.play()}
+            onMouseLeave={(e) => {
+              e.currentTarget.pause();
+              e.currentTarget.currentTime = 0;
+            }}
+            className="w-full h-full object-cover"
+          />
+        ))}
+
+      {!getThumbUrl(item) && item.type === "motion" && (
+        <div className="absolute top-3 right-3">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-white/60"
+          >
+            <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
+          </svg>
+        </div>
+      )}
+
+      {isDevMode && editMode && (
+        <DevPhotoOverlay
+          photo={item}
+          index={index}
+          total={total}
+          onRefresh={onRefresh}
+        />
+      )}
+    </div>
+  );
+}
 
 interface MosaicGridProps {
   header: React.ReactNode;
@@ -28,6 +131,19 @@ export default function MosaicGrid({
   const [selectedItem, setSelectedItem] = useState<MosaicItem | null>(null);
   const [closing, setClosing] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<"masonry" | "heap">("masonry");
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setContainerWidth(entry.contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const closeSelected = useCallback(() => {
     setClosing(true);
@@ -84,6 +200,39 @@ export default function MosaicGrid({
     if (item.r2Key) return `${R2_URL}/${item.r2Key}`;
     return null;
   };
+
+  // compute justified rows for heap layout
+  const TARGET_ROW_HEIGHT = 220;
+  const GAP = 6;
+  const justifiedRows = (() => {
+    if (layoutMode !== "heap" || !containerWidth || photos.length === 0)
+      return [];
+    const rows: { items: MosaicItem[]; height: number }[] = [];
+    let currentRow: MosaicItem[] = [];
+    let rowWidth = 0;
+
+    for (const item of photos) {
+      const parts = item.aspect.split("/");
+      const ratio =
+        parts.length === 2 ? parseInt(parts[0]) / parseInt(parts[1]) : 1;
+      const itemWidth = TARGET_ROW_HEIGHT * ratio;
+      currentRow.push(item);
+      rowWidth += itemWidth + (currentRow.length > 1 ? GAP : 0);
+
+      if (rowWidth >= containerWidth) {
+        const totalGap = (currentRow.length - 1) * GAP;
+        const scale = (containerWidth - totalGap) / (rowWidth - totalGap);
+        rows.push({ items: currentRow, height: TARGET_ROW_HEIGHT * scale });
+        currentRow = [];
+        rowWidth = 0;
+      }
+    }
+    // last incomplete row
+    if (currentRow.length > 0) {
+      rows.push({ items: currentRow, height: TARGET_ROW_HEIGHT });
+    }
+    return rows;
+  })();
 
   // preload full-res originals in the background
   useEffect(() => {
@@ -236,83 +385,80 @@ export default function MosaicGrid({
           />
         )}
 
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 mt-6">
-          {photos.map((item, index) => (
-            <div
-              key={item.id}
-              className="relative overflow-hidden w-full transition-opacity duration-300 hover:opacity-80 cursor-pointer mb-3 break-inside-avoid"
-              style={{
-                backgroundColor: item.color,
-                aspectRatio: item.aspect,
-              }}
-              onMouseEnter={() => {
-                setHoveredItem(item);
-                setLastHoveredItem(item);
-              }}
-              onMouseMove={() => {
-                if (hoveredItem?.id !== item.id) {
-                  setHoveredItem(item);
-                  setLastHoveredItem(item);
-                }
-              }}
-              onMouseLeave={() => setHoveredItem(null)}
-              onClick={() => !editMode && setSelectedItem(item)}
-            >
-              {getThumbUrl(item) &&
-                (item.type === "still" ? (
-                  <img
-                    src={getThumbUrl(item)!}
-                    alt={item.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover opacity-0 transition-opacity duration-500"
-                    onLoad={(e) =>
-                      e.currentTarget.classList.replace(
-                        "opacity-0",
-                        "opacity-100",
-                      )
-                    }
-                  />
-                ) : (
-                  <video
-                    src={getImageUrl(item)!}
-                    muted
-                    loop
-                    playsInline
-                    preload="none"
-                    onMouseEnter={(e) => e.currentTarget.play()}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.pause();
-                      e.currentTarget.currentTime = 0;
-                    }}
-                    className="w-full h-full object-cover"
-                  />
-                ))}
+        {/* layout toggle */}
+        <div className="flex gap-2 mt-4 mb-2">
+          <button
+            className={`text-xs px-2 py-1 cursor-pointer border ${layoutMode === "masonry" ? "border-[var(--foreground)] opacity-100" : "border-[var(--foreground)]/30 opacity-60"}`}
+            onClick={() => setLayoutMode("masonry")}
+          >
+            masonry
+          </button>
+          <button
+            className={`text-xs px-2 py-1 cursor-pointer border ${layoutMode === "heap" ? "border-[var(--foreground)] opacity-100" : "border-[var(--foreground)]/30 opacity-60"}`}
+            onClick={() => setLayoutMode("heap")}
+          >
+            heap
+          </button>
+        </div>
 
-              {!getThumbUrl(item) && item.type === "motion" && (
-                <div className="absolute top-3 right-3">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="text-white/60"
-                  >
-                    <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
-                  </svg>
-                </div>
-              )}
-
-              {/* dev edit overlay */}
-              {isDevMode && editMode && (
-                <DevPhotoOverlay
-                  photo={item}
+        <div
+          ref={gridRef}
+          className={
+            layoutMode === "masonry"
+              ? "columns-1 sm:columns-2 lg:columns-3 gap-3 mt-2"
+              : "mt-2"
+          }
+        >
+          {layoutMode === "masonry"
+            ? photos.map((item, index) => (
+                <PhotoCell
+                  key={item.id}
+                  item={item}
                   index={index}
                   total={photos.length}
+                  getThumbUrl={getThumbUrl}
+                  getImageUrl={getImageUrl}
+                  hoveredItem={hoveredItem}
+                  setHoveredItem={setHoveredItem}
+                  setLastHoveredItem={setLastHoveredItem}
+                  setSelectedItem={setSelectedItem}
+                  editMode={editMode}
+                  isDevMode={isDevMode}
                   onRefresh={refreshPhotos}
+                  style={{ aspectRatio: item.aspect }}
+                  className="mb-3 break-inside-avoid"
                 />
-              )}
-            </div>
-          ))}
+              ))
+            : justifiedRows.map((row, ri) => (
+                <div
+                  key={ri}
+                  className="flex mb-[6px]"
+                  style={{ height: row.height, gap: GAP }}
+                >
+                  {row.items.map((item) => {
+                    const index = photos.findIndex((p) => p.id === item.id);
+                    return (
+                      <PhotoCell
+                        key={item.id}
+                        item={item}
+                        index={index}
+                        total={photos.length}
+                        getThumbUrl={getThumbUrl}
+                        getImageUrl={getImageUrl}
+                        hoveredItem={hoveredItem}
+                        setHoveredItem={setHoveredItem}
+                        setLastHoveredItem={setLastHoveredItem}
+                        setSelectedItem={setSelectedItem}
+                        editMode={editMode}
+                        isDevMode={isDevMode}
+                        onRefresh={refreshPhotos}
+                        style={{ height: row.height, aspectRatio: item.aspect }}
+                        className=""
+                      />
+                    );
+                  })}
+                </div>
+              ))}
         </div>
 
         {footer}
