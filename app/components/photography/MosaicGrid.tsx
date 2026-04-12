@@ -78,6 +78,24 @@ export default function MosaicGrid({
     return `${R2_URL}/${item.r2Key}`;
   };
 
+  const getThumbUrl = (item: MosaicItem) => {
+    if (!R2_URL) return null;
+    if (item.r2ThumbKey) return `${R2_URL}/${item.r2ThumbKey}`;
+    if (item.r2Key) return `${R2_URL}/${item.r2Key}`;
+    return null;
+  };
+
+  // preload full-res originals in the background
+  useEffect(() => {
+    photos.forEach((item) => {
+      const url = getImageUrl(item);
+      if (url && item.type === "still") {
+        const img = new Image();
+        img.src = url;
+      }
+    });
+  }, [photos]);
+
   return (
     <div className="flex gap-8">
       {/* left: text panel */}
@@ -240,10 +258,10 @@ export default function MosaicGrid({
               onMouseLeave={() => setHoveredItem(null)}
               onClick={() => !editMode && setSelectedItem(item)}
             >
-              {getImageUrl(item) &&
+              {getThumbUrl(item) &&
                 (item.type === "still" ? (
                   <img
-                    src={getImageUrl(item)!}
+                    src={getThumbUrl(item)!}
                     alt={item.title}
                     loading="lazy"
                     className="w-full h-full object-cover opacity-0 transition-opacity duration-500"
@@ -270,7 +288,7 @@ export default function MosaicGrid({
                   />
                 ))}
 
-              {!getImageUrl(item) && item.type === "motion" && (
+              {!getThumbUrl(item) && item.type === "motion" && (
                 <div className="absolute top-3 right-3">
                   <svg
                     width="16"

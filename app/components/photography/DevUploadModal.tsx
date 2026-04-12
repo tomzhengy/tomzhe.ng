@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { analyzeImage } from "./utils";
+import { analyzeImage, createThumbnail } from "./utils";
 
 interface DevUploadModalProps {
   onClose: () => void;
@@ -31,14 +31,15 @@ export default function DevUploadModal({
     try {
       for (const file of files) {
         const info = await analyzeImage(file);
+        const isImage = !file.type.startsWith("video/");
+        const thumb = isImage ? await createThumbnail(file) : null;
+
         const formData = new FormData();
         formData.append("file", file);
+        if (thumb) formData.append("thumb", thumb);
         formData.append("title", file.name.replace(/\.[^.]+$/, ""));
         formData.append("description", "");
-        formData.append(
-          "type",
-          file.type.startsWith("video/") ? "motion" : "still",
-        );
+        formData.append("type", isImage ? "still" : "motion");
         formData.append("width", String(info.width));
         formData.append("height", String(info.height));
         formData.append("color", info.color);

@@ -89,3 +89,55 @@ export function analyzeImage(file: File): Promise<ImageInfo> {
     }
   });
 }
+
+const THUMB_MAX = 1200;
+
+export function createThumbnail(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      let w = img.naturalWidth;
+      let h = img.naturalHeight;
+      if (w > THUMB_MAX || h > THUMB_MAX) {
+        if (w > h) {
+          h = Math.round(h * (THUMB_MAX / w));
+          w = THUMB_MAX;
+        } else {
+          w = Math.round(w * (THUMB_MAX / h));
+          h = THUMB_MAX;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error("canvas context failed"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(url);
+          if (!blob) {
+            reject(new Error("thumbnail blob failed"));
+            return;
+          }
+          const thumbFile = new File([blob], "thumb.webp", {
+            type: "image/webp",
+          });
+          resolve(thumbFile);
+        },
+        "image/webp",
+        0.85,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("failed to load image for thumbnail"));
+    };
+  });
+}

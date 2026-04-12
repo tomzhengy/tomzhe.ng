@@ -7,6 +7,7 @@ export interface MosaicItem {
   type: "still" | "motion";
   aspect: string;
   r2Key: string;
+  r2ThumbKey: string;
   width: number;
   height: number;
   mimeType: string;

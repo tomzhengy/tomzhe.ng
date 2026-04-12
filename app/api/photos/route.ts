@@ -45,6 +45,21 @@ export async function POST(request: NextRequest) {
       }),
     );
 
+    // upload thumbnail if provided
+    const thumb = formData.get("thumb") as File | null;
+    const r2ThumbKey = `photos/${id}-thumb.webp`;
+    if (thumb) {
+      const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
+      await r2.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: r2ThumbKey,
+          Body: thumbBuffer,
+          ContentType: "image/webp",
+        }),
+      );
+    }
+
     const now = new Date().toISOString();
     const photo: MosaicItem = {
       id,
@@ -55,6 +70,7 @@ export async function POST(request: NextRequest) {
       type,
       aspect,
       r2Key,
+      r2ThumbKey: thumb ? r2ThumbKey : "",
       width,
       height,
       mimeType: file.type,
