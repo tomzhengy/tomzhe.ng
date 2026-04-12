@@ -37,14 +37,28 @@ export default function MosaicGrid({
     }, 200);
   }, []);
 
+  const goToPrev = useCallback(() => {
+    if (!selectedItem) return;
+    const i = photos.findIndex((p) => p.id === selectedItem.id);
+    if (i > 0) setSelectedItem(photos[i - 1]);
+  }, [selectedItem, photos]);
+
+  const goToNext = useCallback(() => {
+    if (!selectedItem) return;
+    const i = photos.findIndex((p) => p.id === selectedItem.id);
+    if (i < photos.length - 1) setSelectedItem(photos[i + 1]);
+  }, [selectedItem, photos]);
+
   useEffect(() => {
     if (!selectedItem) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeSelected();
+      if (e.key === "ArrowLeft") goToPrev();
+      if (e.key === "ArrowRight") goToNext();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedItem, closeSelected]);
+  }, [selectedItem, closeSelected, goToPrev, goToNext]);
 
   const refreshPhotos = useCallback(async () => {
     if (!isDevMode) return;
@@ -282,8 +296,19 @@ export default function MosaicGrid({
                   </p>
                 )}
               </div>
-              {/* right: image */}
-              <div className="flex-1 flex items-center justify-center p-8">
+              {/* right: image with nav arrows */}
+              <div className="flex-1 flex items-center justify-center p-8 relative">
+                {photos.findIndex((p) => p.id === selectedItem.id) > 0 && (
+                  <button
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-2xl cursor-pointer z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToPrev();
+                    }}
+                  >
+                    ←
+                  </button>
+                )}
                 {getImageUrl(selectedItem) &&
                   (selectedItem.type === "still" ? (
                     <img
@@ -301,6 +326,18 @@ export default function MosaicGrid({
                       className="max-w-full max-h-full object-contain"
                     />
                   ))}
+                {photos.findIndex((p) => p.id === selectedItem.id) <
+                  photos.length - 1 && (
+                  <button
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-2xl cursor-pointer z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToNext();
+                    }}
+                  >
+                    →
+                  </button>
+                )}
               </div>
             </div>
           </>
