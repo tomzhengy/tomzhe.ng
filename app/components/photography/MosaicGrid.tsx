@@ -242,9 +242,20 @@ export default function MosaicGrid({
           {displayedItem && (
             <>
               {isDevMode ? (
-                <input
-                  className="text-lg bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full"
+                <textarea
+                  className="text-lg bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
                   value={displayedItem.title}
+                  rows={1}
+                  onInput={(e) => {
+                    const el = e.currentTarget;
+                    el.style.height = "auto";
+                    el.style.height = el.scrollHeight + "px";
+                  }}
+                  ref={(el) => {
+                    if (!el) return;
+                    el.style.height = "auto";
+                    el.style.height = el.scrollHeight + "px";
+                  }}
                   onChange={(e) => {
                     const val = e.target.value;
                     const updated = photos.map((p) =>
@@ -453,9 +464,20 @@ export default function MosaicGrid({
               >
                 {isDevMode ? (
                   <>
-                    <input
-                      className="text-lg bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full"
+                    <textarea
+                      className="text-lg bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
                       value={currentSelected.title}
+                      rows={1}
+                      onInput={(e) => {
+                        const el = e.currentTarget;
+                        el.style.height = "auto";
+                        el.style.height = el.scrollHeight + "px";
+                      }}
+                      ref={(el) => {
+                        if (!el) return;
+                        el.style.height = "auto";
+                        el.style.height = el.scrollHeight + "px";
+                      }}
                       onChange={(e) => {
                         const val = e.target.value;
                         const updated = photos.map((p) =>
