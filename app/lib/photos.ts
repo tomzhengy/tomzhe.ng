@@ -38,10 +38,7 @@ export async function writePhotos(photos: MosaicItem[]): Promise<void> {
   );
 
   // write local cache
-  const dir = path.dirname(localPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  fs.mkdirSync(path.dirname(localPath), { recursive: true });
   fs.writeFileSync(localPath, json, "utf-8");
 }
 
@@ -57,10 +54,7 @@ export async function fetchPhotosFromR2(): Promise<void> {
     );
     const body = await res.Body?.transformToString();
     if (body) {
-      const dir = path.dirname(localPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
+      fs.mkdirSync(path.dirname(localPath), { recursive: true });
       fs.writeFileSync(localPath, body, "utf-8");
       const data: PhotosData = JSON.parse(body);
       console.log(`fetched ${data.photos.length} photos from R2`);
@@ -68,10 +62,7 @@ export async function fetchPhotosFromR2(): Promise<void> {
   } catch (err) {
     if (err instanceof NoSuchKey) {
       console.log("no photos.json in R2 yet, starting fresh");
-      const dir = path.dirname(localPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
+      fs.mkdirSync(path.dirname(localPath), { recursive: true });
       fs.writeFileSync(localPath, '{ "photos": [] }\n', "utf-8");
     } else {
       throw err;

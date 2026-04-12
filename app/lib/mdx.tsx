@@ -56,9 +56,6 @@ export async function compileMdx(source: string) {
 
         return <pre {...props}>{children}</pre>;
       },
-      code: ({ className, children }) => {
-        return <code className={className}>{children}</code>;
-      },
     },
   });
 

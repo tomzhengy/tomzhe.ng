@@ -115,9 +115,6 @@ function PhotoCell({
             loading="lazy"
             className={`w-full h-full ${objectFit} transition-opacity duration-500`}
             style={{ opacity: 0 }}
-            onLoad={(e) => {
-              e.currentTarget.style.opacity = "1";
-            }}
             ref={(el) => {
               if (!el) return;
               if (el.complete && el.naturalWidth > 0) {
@@ -230,6 +227,21 @@ export default function MosaicGrid({
   const [suggestionSent, setSuggestionSent] = useState(false);
   const [showContactPrompt, setShowContactPrompt] = useState(false);
   const [contact, setContact] = useState("");
+
+  const submitSuggestion = (contactValue: string | null) => {
+    fetch("/api/suggestions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: suggestion.trim(),
+        contact: contactValue,
+      }),
+    });
+    setSuggestion("");
+    setContact("");
+    setShowContactPrompt(false);
+    setSuggestionSent(true);
+  };
 
   const closeSelected = useCallback(() => {
     flushAllSaves();
@@ -495,57 +507,20 @@ export default function MosaicGrid({
                 onChange={(e) => setContact(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    fetch("/api/suggestions", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        message: suggestion.trim(),
-                        contact: contact.trim() || null,
-                      }),
-                    });
-                    setSuggestion("");
-                    setContact("");
-                    setShowContactPrompt(false);
-                    setSuggestionSent(true);
+                    submitSuggestion(contact.trim() || null);
                   }
                 }}
               />
               <div className="flex gap-2 mt-4 justify-end">
                 <button
                   className="text-sm px-3 py-1.5 border border-[var(--foreground)]/30 cursor-pointer"
-                  onClick={() => {
-                    fetch("/api/suggestions", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        message: suggestion.trim(),
-                        contact: null,
-                      }),
-                    });
-                    setSuggestion("");
-                    setContact("");
-                    setShowContactPrompt(false);
-                    setSuggestionSent(true);
-                  }}
+                  onClick={() => submitSuggestion(null)}
                 >
                   skip
                 </button>
                 <button
                   className="text-sm px-3 py-1.5 border border-[var(--foreground)] cursor-pointer"
-                  onClick={() => {
-                    fetch("/api/suggestions", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        message: suggestion.trim(),
-                        contact: contact.trim() || null,
-                      }),
-                    });
-                    setSuggestion("");
-                    setContact("");
-                    setShowContactPrompt(false);
-                    setSuggestionSent(true);
-                  }}
+                  onClick={() => submitSuggestion(contact.trim() || null)}
                 >
                   send
                 </button>

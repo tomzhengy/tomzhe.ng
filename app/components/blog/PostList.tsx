@@ -1,17 +1,9 @@
 import Link from "next/link";
 import { PostMeta } from "@/app/types/blog";
+import { formatDate } from "@/app/lib/format";
 
 interface PostListProps {
   posts: PostMeta[];
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 export default function PostList({ posts }: PostListProps) {

@@ -18,7 +18,6 @@
   --transition-timing: ease;
 
   /* Header animations */
-  --animation-header: 0.7s;
   --animation-theme-toggle: 0.35s;
 
   /* General animation timings */
@@ -50,27 +49,12 @@ body {
   text-shadow: none;
 }
 
-::-moz-selection {
-  background: var(--foreground);
-  color: var(--background);
-  text-shadow: none;
-}
-
 a::selection {
-  color: var(--link-selection-color);
-}
-
-a::-moz-selection {
   color: var(--link-selection-color);
 }
 
 .header-nav a::selection,
 .social-links a::selection {
-  color: var(--background);
-}
-
-.header-nav a::-moz-selection,
-.social-links a::-moz-selection {
   color: var(--background);
 }
 

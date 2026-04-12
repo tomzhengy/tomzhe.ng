@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "./components/ui/theme/ThemeProvider";
 import { LastVisitorProvider } from "./components/sections/LastVisitorProvider";
 import NoiseTexture from "./components/ui/NoiseTexture";
-import { inter, crimsonText, redaction } from "./styles/fonts";
+import { inter, redaction } from "./styles/fonts";
 
 export const metadata: Metadata = {
   title: "Tom Zheng",
@@ -64,7 +64,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${crimsonText.variable} ${redaction.variable}`}
+      className={`${inter.variable} ${redaction.variable}`}
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
