@@ -7,6 +7,47 @@ import DevPhotoOverlay from "./DevPhotoOverlay";
 
 const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
 
+const pendingSaves = new Map<
+  string,
+  {
+    timer: ReturnType<typeof setTimeout>;
+    photoId: string;
+    field: string;
+    value: string;
+  }
+>();
+
+function debouncedSave(photoId: string, field: string, value: string) {
+  const key = `${photoId}:${field}`;
+  const existing = pendingSaves.get(key);
+  if (existing) clearTimeout(existing.timer);
+  pendingSaves.set(key, {
+    photoId,
+    field,
+    value,
+    timer: setTimeout(() => {
+      fetch(`/api/photos?id=${photoId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+      pendingSaves.delete(key);
+    }, 500),
+  });
+}
+
+function flushAllSaves() {
+  pendingSaves.forEach(({ timer, photoId, field, value }, key) => {
+    clearTimeout(timer);
+    fetch(`/api/photos?id=${photoId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: value }),
+    });
+    pendingSaves.delete(key);
+  });
+}
+
 interface PhotoCellProps {
   item: MosaicItem;
   index: number;
@@ -145,6 +186,7 @@ export default function MosaicGrid({
   const [layoutMode, setLayoutMode] = useState<"masonry" | "heap">("masonry");
 
   const closeSelected = useCallback(() => {
+    flushAllSaves();
     setClosing(true);
     setTimeout(() => {
       setSelectedItem(null);
@@ -204,19 +246,12 @@ export default function MosaicGrid({
                   className="text-lg bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full"
                   value={displayedItem.title}
                   onChange={(e) => {
+                    const val = e.target.value;
                     const updated = photos.map((p) =>
-                      p.id === displayedItem.id
-                        ? { ...p, title: e.target.value }
-                        : p,
+                      p.id === displayedItem.id ? { ...p, title: val } : p,
                     );
                     setPhotos(updated);
-                  }}
-                  onBlur={(e) => {
-                    fetch(`/api/photos?id=${displayedItem.id}`, {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ title: e.target.value }),
-                    });
+                    debouncedSave(displayedItem.id, "title", val);
                   }}
                 />
               ) : (
@@ -228,21 +263,12 @@ export default function MosaicGrid({
                   value={displayedItem.subtitle || ""}
                   placeholder="add subtitle..."
                   onChange={(e) => {
+                    const val = e.target.value;
                     const updated = photos.map((p) =>
-                      p.id === displayedItem.id
-                        ? { ...p, subtitle: e.target.value }
-                        : p,
+                      p.id === displayedItem.id ? { ...p, subtitle: val } : p,
                     );
                     setPhotos(updated);
-                  }}
-                  onBlur={(e) => {
-                    fetch(`/api/photos?id=${displayedItem.id}`, {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        subtitle: e.target.value,
-                      }),
-                    });
+                    debouncedSave(displayedItem.id, "subtitle", val);
                   }}
                 />
               ) : (
@@ -269,21 +295,14 @@ export default function MosaicGrid({
                     el.style.height = el.scrollHeight + "px";
                   }}
                   onChange={(e) => {
+                    const val = e.target.value;
                     const updated = photos.map((p) =>
                       p.id === displayedItem.id
-                        ? { ...p, description: e.target.value }
+                        ? { ...p, description: val }
                         : p,
                     );
                     setPhotos(updated);
-                  }}
-                  onBlur={(e) => {
-                    fetch(`/api/photos?id=${displayedItem.id}`, {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        description: e.target.value,
-                      }),
-                    });
+                    debouncedSave(displayedItem.id, "description", val);
                   }}
                 />
               ) : (
@@ -438,21 +457,14 @@ export default function MosaicGrid({
                       className="text-lg bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full"
                       value={currentSelected.title}
                       onChange={(e) => {
+                        const val = e.target.value;
                         const updated = photos.map((p) =>
                           p.id === currentSelected.id
-                            ? { ...p, title: e.target.value }
+                            ? { ...p, title: val }
                             : p,
                         );
                         setPhotos(updated);
-                      }}
-                      onBlur={(e) => {
-                        fetch(`/api/photos?id=${currentSelected.id}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            title: e.target.value,
-                          }),
-                        });
+                        debouncedSave(currentSelected.id, "title", val);
                       }}
                     />
                     <input
@@ -460,21 +472,14 @@ export default function MosaicGrid({
                       value={currentSelected.subtitle || ""}
                       placeholder="add subtitle..."
                       onChange={(e) => {
+                        const val = e.target.value;
                         const updated = photos.map((p) =>
                           p.id === currentSelected.id
-                            ? { ...p, subtitle: e.target.value }
+                            ? { ...p, subtitle: val }
                             : p,
                         );
                         setPhotos(updated);
-                      }}
-                      onBlur={(e) => {
-                        fetch(`/api/photos?id=${currentSelected.id}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            subtitle: e.target.value,
-                          }),
-                        });
+                        debouncedSave(currentSelected.id, "subtitle", val);
                       }}
                     />
                     <textarea
@@ -493,21 +498,14 @@ export default function MosaicGrid({
                         el.style.height = el.scrollHeight + "px";
                       }}
                       onChange={(e) => {
+                        const val = e.target.value;
                         const updated = photos.map((p) =>
                           p.id === currentSelected.id
-                            ? { ...p, description: e.target.value }
+                            ? { ...p, description: val }
                             : p,
                         );
                         setPhotos(updated);
-                      }}
-                      onBlur={(e) => {
-                        fetch(`/api/photos?id=${currentSelected.id}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            description: e.target.value,
-                          }),
-                        });
+                        debouncedSave(currentSelected.id, "description", val);
                       }}
                     />
                   </>
