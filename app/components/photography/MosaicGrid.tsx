@@ -426,7 +426,7 @@ export default function MosaicGrid({
               onClick={closeSelected}
             >
               {/* left: text panel */}
-              <div className="hidden md:flex w-[200px] min-w-0 shrink flex-col justify-center pl-4 break-words overflow-hidden">
+              <div className="hidden md:flex w-[200px] min-w-0 shrink flex-col justify-center break-words overflow-hidden">
                 <div className="flex items-center gap-3 mb-2">
                   <button
                     className="text-sm text-white/50 hover:text-white cursor-pointer"
