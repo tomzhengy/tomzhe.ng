@@ -200,16 +200,22 @@ export default function MosaicGrid({
     return null;
   };
 
-  // preload full-res originals in the background
+  // preload neighbors of the selected image so arrow navigation is instant
   useEffect(() => {
-    photos.forEach((item) => {
+    if (!selectedItem) return;
+    const i = photos.findIndex((p) => p.id === selectedItem.id);
+    const neighbors = [
+      photos[(i - 1 + photos.length) % photos.length],
+      photos[(i + 1) % photos.length],
+    ];
+    neighbors.forEach((item) => {
       const url = getImageUrl(item);
       if (url && item.type === "still") {
         const img = new Image();
         img.src = url;
       }
     });
-  }, [photos]);
+  }, [selectedItem, photos]);
 
   return (
     <div className="flex gap-8">
