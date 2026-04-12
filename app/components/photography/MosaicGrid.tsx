@@ -278,11 +278,13 @@ export default function MosaicGrid({
                   }}
                 />
               ) : (
-                <p className="text-2xl">{displayedItem.title}</p>
+                <p className="text-2xl leading-tight mb-0">
+                  {displayedItem.title}
+                </p>
               )}
               {isDevMode ? (
                 <input
-                  className="text-sm opacity-60 bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full"
+                  className="text-sm opacity-60 -mt-1 bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full"
                   value={displayedItem.subtitle || ""}
                   placeholder="add subtitle..."
                   onChange={(e) => {
@@ -296,7 +298,9 @@ export default function MosaicGrid({
                 />
               ) : (
                 displayedItem.subtitle && (
-                  <p className="text-sm opacity-60">{displayedItem.subtitle}</p>
+                  <p className="text-sm opacity-60 -mt-1">
+                    {displayedItem.subtitle}
+                  </p>
                 )
               )}
               {isDevMode ? (
@@ -530,11 +534,11 @@ export default function MosaicGrid({
                   </>
                 ) : (
                   <>
-                    <p className="text-2xl text-white">
+                    <p className="text-2xl leading-tight text-white">
                       {currentSelected.title}
                     </p>
                     {currentSelected.subtitle && (
-                      <p className="text-sm text-white/60">
+                      <p className="text-sm text-white/60 -mt-2">
                         {currentSelected.subtitle}
                       </p>
                     )}
