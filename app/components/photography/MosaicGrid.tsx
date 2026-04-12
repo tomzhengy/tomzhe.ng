@@ -442,7 +442,7 @@ export default function MosaicGrid({
           </p>
           <div className="text-sm mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="shrink-0">
-              Sorted by most recent. You can{" "}
+              Images are shown in reverse chronological order, but you can{" "}
               <button
                 className="underline cursor-pointer"
                 onClick={shufflePhotos}
