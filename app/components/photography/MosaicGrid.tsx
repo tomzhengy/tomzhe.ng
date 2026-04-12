@@ -255,7 +255,7 @@ export default function MosaicGrid({
             <>
               {isDevMode ? (
                 <textarea
-                  className="text-xl bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
+                  className="text-2xl bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
                   value={displayedItem.title}
                   rows={1}
                   onInput={(e) => {
@@ -278,11 +278,11 @@ export default function MosaicGrid({
                   }}
                 />
               ) : (
-                <p className="text-xl">{displayedItem.title}</p>
+                <p className="text-2xl">{displayedItem.title}</p>
               )}
               {isDevMode ? (
                 <input
-                  className="text-sm opacity-60 mt-1 bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full"
+                  className="text-sm opacity-60 bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full"
                   value={displayedItem.subtitle || ""}
                   placeholder="add subtitle..."
                   onChange={(e) => {
@@ -296,9 +296,7 @@ export default function MosaicGrid({
                 />
               ) : (
                 displayedItem.subtitle && (
-                  <p className="text-sm opacity-60 mt-1">
-                    {displayedItem.subtitle}
-                  </p>
+                  <p className="text-sm opacity-60">{displayedItem.subtitle}</p>
                 )
               )}
               {isDevMode ? (
@@ -464,7 +462,7 @@ export default function MosaicGrid({
                 {isDevMode ? (
                   <>
                     <textarea
-                      className="text-xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                      className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
                       value={currentSelected.title}
                       rows={1}
                       onInput={(e) => {
@@ -489,7 +487,7 @@ export default function MosaicGrid({
                       }}
                     />
                     <input
-                      className="text-sm text-white/60 mt-1 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                      className="text-sm text-white/60 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
                       value={currentSelected.subtitle || ""}
                       placeholder="add subtitle..."
                       onChange={(e) => {
@@ -532,11 +530,11 @@ export default function MosaicGrid({
                   </>
                 ) : (
                   <>
-                    <p className="text-xl text-white">
+                    <p className="text-2xl text-white">
                       {currentSelected.title}
                     </p>
                     {currentSelected.subtitle && (
-                      <p className="text-sm text-white/60 mt-1">
+                      <p className="text-sm text-white/60">
                         {currentSelected.subtitle}
                       </p>
                     )}
@@ -565,7 +563,7 @@ export default function MosaicGrid({
                       <img
                         src={getImageUrl(currentSelected)!}
                         alt={currentSelected.title}
-                        className="max-w-full max-h-full object-contain absolute inset-0 m-auto opacity-0 transition-opacity duration-300"
+                        className="max-w-full max-h-full object-contain absolute inset-8 m-auto opacity-0 transition-opacity duration-300"
                         onLoad={(e) => {
                           e.currentTarget.style.opacity = "1";
                         }}
