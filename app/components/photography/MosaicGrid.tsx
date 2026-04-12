@@ -472,7 +472,7 @@ export default function MosaicGrid({
             >
               shuffle
             </button>{" "}
-            the heap.
+            the heap. I plan on adding film soon!
           </p>
         </div>
 
