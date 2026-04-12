@@ -143,18 +143,6 @@ export default function MosaicGrid({
   const [closing, setClosing] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [layoutMode, setLayoutMode] = useState<"masonry" | "heap">("masonry");
-  const gridRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  useEffect(() => {
-    const el = gridRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      setContainerWidth(entry.contentRect.width);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   const closeSelected = useCallback(() => {
     setClosing(true);
@@ -193,75 +181,6 @@ export default function MosaicGrid({
     const data = await res.json();
     setPhotos(data.photos);
   }, [isDevMode]);
-
-  // compute heap rows - pack images into justified rows with organic spacing
-  const heapRows = (() => {
-    if (layoutMode !== "heap" || !containerWidth || photos.length === 0)
-      return [];
-
-    const TARGET_H = 200;
-    const BASE_GAP = 16;
-    const rows: {
-      items: {
-        photo: MosaicItem;
-        width: number;
-        height: number;
-        gap: number;
-        offsetY: number;
-      }[];
-      height: number;
-    }[] = [];
-    let current: MosaicItem[] = [];
-    let rowWidth = 0;
-
-    const parseAspect = (a: string) => {
-      const p = a.split("/");
-      return p.length === 2 ? parseInt(p[0]) / parseInt(p[1]) : 1;
-    };
-
-    // deterministic pseudo-random from index
-    const rand = (i: number, seed: number) => ((i * seed + 7) % 17) / 17;
-
-    for (let i = 0; i < photos.length; i++) {
-      const ratio = parseAspect(photos[i].aspect);
-      const w = TARGET_H * ratio;
-      current.push(photos[i]);
-      rowWidth += w + (current.length > 1 ? BASE_GAP : 0);
-
-      if (rowWidth >= containerWidth || i === photos.length - 1) {
-        // compute scale to fill width
-        const totalBaseGap = (current.length - 1) * BASE_GAP;
-        const imageWidthSum = rowWidth - totalBaseGap;
-        const isLast = i === photos.length - 1 && rowWidth < containerWidth;
-        const scale = isLast
-          ? 1
-          : (containerWidth - totalBaseGap) / imageWidthSum;
-        const rowH = TARGET_H * scale;
-
-        const rowItems = current.map((photo, j) => {
-          const globalIdx = i - current.length + 1 + j;
-          const ratio = parseAspect(photo.aspect);
-          const itemW = rowH * ratio;
-          // vary gap slightly: base +/- 6px
-          const gapVariation = Math.round(rand(globalIdx, 41) * 12 - 6);
-          // slight vertical offset: +/- 4px
-          const offsetY = Math.round(rand(globalIdx, 53) * 8 - 4);
-          return {
-            photo,
-            width: itemW,
-            height: rowH,
-            gap: j === 0 ? 0 : BASE_GAP + gapVariation,
-            offsetY,
-          };
-        });
-
-        rows.push({ items: rowItems, height: rowH });
-        current = [];
-        rowWidth = 0;
-      }
-    }
-    return rows;
-  })();
 
   const displayedRef = selectedItem || hoveredItem || lastHoveredItem;
   // look up current version from photos array so edits aren't stale
@@ -449,65 +368,46 @@ export default function MosaicGrid({
         </div>
 
         <div
-          ref={gridRef}
           className={
             layoutMode === "masonry"
               ? "columns-1 sm:columns-2 lg:columns-3 gap-3 mt-2"
-              : "mt-2"
+              : "flex flex-wrap items-center justify-center mt-2"
           }
         >
-          {layoutMode === "masonry"
-            ? photos.map((item, index) => (
-                <PhotoCell
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  total={photos.length}
-                  getThumbUrl={getThumbUrl}
-                  getImageUrl={getImageUrl}
-                  hoveredItem={hoveredItem}
-                  setHoveredItem={setHoveredItem}
-                  setLastHoveredItem={setLastHoveredItem}
-                  setSelectedItem={setSelectedItem}
-                  editMode={editMode}
-                  isDevMode={isDevMode}
-                  onRefresh={refreshPhotos}
-                  style={{ aspectRatio: item.aspect }}
-                  className="mb-3 break-inside-avoid"
-                />
-              ))
-            : heapRows.map((row, ri) => (
-                <div key={ri} className="flex items-center mb-4">
-                  {row.items.map(({ photo, width, height, gap, offsetY }) => {
-                    const index = photos.findIndex((p) => p.id === photo.id);
-                    return (
-                      <PhotoCell
-                        key={photo.id}
-                        item={photo}
-                        index={index}
-                        total={photos.length}
-                        getThumbUrl={getThumbUrl}
-                        getImageUrl={getImageUrl}
-                        hoveredItem={hoveredItem}
-                        setHoveredItem={setHoveredItem}
-                        setLastHoveredItem={setLastHoveredItem}
-                        setSelectedItem={setSelectedItem}
-                        editMode={editMode}
-                        isDevMode={isDevMode}
-                        onRefresh={refreshPhotos}
-                        style={{
-                          width,
-                          height,
-                          marginLeft: gap,
-                          marginTop: offsetY,
-                          flexShrink: 0,
-                        }}
-                        className=""
-                      />
-                    );
-                  })}
-                </div>
-              ))}
+          {photos.map((item, index) => (
+            <PhotoCell
+              key={item.id}
+              item={item}
+              index={index}
+              total={photos.length}
+              getThumbUrl={getThumbUrl}
+              getImageUrl={getImageUrl}
+              hoveredItem={hoveredItem}
+              setHoveredItem={setHoveredItem}
+              setLastHoveredItem={setLastHoveredItem}
+              setSelectedItem={setSelectedItem}
+              editMode={editMode}
+              isDevMode={isDevMode}
+              onRefresh={refreshPhotos}
+              style={
+                layoutMode === "masonry"
+                  ? { aspectRatio: item.aspect }
+                  : {
+                      height: 140 + ((index * 37) % 80),
+                      width: "auto",
+                      aspectRatio: item.aspect,
+                      marginTop: ((index * 53) % 30) - 15,
+                      marginLeft: 16 + ((index * 41) % 24),
+                      marginRight: 16 + ((index * 29) % 24),
+                      marginBottom: 12 + ((index * 47) % 16),
+                    }
+              }
+              className={
+                layoutMode === "masonry" ? "mb-3 break-inside-avoid" : ""
+              }
+              contain={layoutMode === "heap"}
+            />
+          ))}
         </div>
 
         {footer}
