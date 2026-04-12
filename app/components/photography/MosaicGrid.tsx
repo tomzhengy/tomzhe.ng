@@ -26,9 +26,16 @@ export default function MosaicGrid({
     null,
   );
   const [selectedItem, setSelectedItem] = useState<MosaicItem | null>(null);
+  const [closing, setClosing] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  const closeSelected = useCallback(() => setSelectedItem(null), []);
+  const closeSelected = useCallback(() => {
+    setClosing(true);
+    setTimeout(() => {
+      setSelectedItem(null);
+      setClosing(false);
+    }, 200);
+  }, []);
 
   useEffect(() => {
     if (!selectedItem) return;
@@ -253,15 +260,15 @@ export default function MosaicGrid({
         {/* expanded photo - fullscreen */}
         {selectedItem && (
           <>
-            {/* backdrop: fade in only */}
+            {/* backdrop */}
             <div
-              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm cursor-pointer animate-[fade-in_0.3s_ease]"
-              onClick={() => setSelectedItem(null)}
+              className={`fixed inset-0 z-50 bg-black/80 backdrop-blur-sm cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease]"}`}
+              onClick={closeSelected}
             />
-            {/* content: text + image, fades in after backdrop */}
+            {/* content: text + image */}
             <div
-              className="fixed inset-0 z-50 flex cursor-pointer animate-[fade-in_0.3s_ease_0.15s_backwards]"
-              onClick={() => setSelectedItem(null)}
+              className={`fixed inset-0 z-50 flex cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease_0.15s_backwards]"}`}
+              onClick={closeSelected}
             >
               {/* left: text panel */}
               <div className="hidden md:flex w-[240px] shrink-0 flex-col justify-center px-4">
