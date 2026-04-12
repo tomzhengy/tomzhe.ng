@@ -163,9 +163,7 @@ export default function MosaicGrid({
       {/* right: header + photos + footer */}
       <div className="flex-1 relative">
         {/* header - hidden when photo is expanded */}
-        <div style={{ visibility: selectedItem ? "hidden" : "visible" }}>
-          {header}
-        </div>
+        <div>{header}</div>
 
         {/* dev toolbar */}
         {isDevMode && (
@@ -255,7 +253,7 @@ export default function MosaicGrid({
           ))}
         </div>
 
-        {!selectedItem && footer}
+        {footer}
 
         {/* expanded photo - fullscreen */}
         {selectedItem && (
