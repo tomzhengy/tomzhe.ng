@@ -103,8 +103,10 @@ export default function Home() {
             </p>
             <p className="text-lg">
               I try to seek perspectives through{" "}
-              <Link href="/photography">photography</Link>. It brings me ginosko
-              with our world.
+              <Link href="/photography" className="body-link">
+                photography
+              </Link>
+              . It brings me ginosko with our world.
             </p>
           </section>
 
