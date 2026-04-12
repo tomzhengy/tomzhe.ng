@@ -727,17 +727,26 @@ export default function MosaicGrid({
                     </p>
                   )}
                 </div>
-                <div className="flex-1 flex items-center justify-center py-4 overflow-hidden min-h-0">
+                <div className="flex-1 flex items-center justify-center py-4 overflow-hidden min-h-0 relative">
                   {currentSelected.type === "still" &&
                     getThumbUrl(currentSelected) && (
-                      <img
-                        src={
-                          getImageUrl(currentSelected) ||
-                          getThumbUrl(currentSelected)!
-                        }
-                        alt={currentSelected.title}
-                        className="max-w-full max-h-full object-contain"
-                      />
+                      <>
+                        <img
+                          src={getThumbUrl(currentSelected)!}
+                          alt={currentSelected.title}
+                          className="max-w-full max-h-full object-contain blur-sm"
+                        />
+                        {getImageUrl(currentSelected) && (
+                          <img
+                            src={getImageUrl(currentSelected)!}
+                            alt={currentSelected.title}
+                            className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300"
+                            onLoad={(e) => {
+                              e.currentTarget.style.opacity = "1";
+                            }}
+                          />
+                        )}
+                      </>
                     )}
                 </div>
               </div>
