@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
     const photo: MosaicItem = {
       id,
       title,
+      subtitle: "",
       description,
       color,
       type,
@@ -68,8 +69,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ photo });
   } catch (err) {
-    console.error("upload error:", err);
-    return NextResponse.json({ error: "upload failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("upload error:", message, err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -124,7 +126,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "photo not found" }, { status: 404 });
     }
 
-    const allowed = ["title", "description", "color", "type", "aspect"];
+    const allowed = [
+      "title",
+      "subtitle",
+      "description",
+      "color",
+      "type",
+      "aspect",
+    ];
     for (const key of allowed) {
       if (key in updates) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

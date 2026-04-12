@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MosaicItem } from "../../types/photography";
 import DevToolbar from "./DevToolbar";
 import DevPhotoOverlay from "./DevPhotoOverlay";
@@ -27,15 +27,6 @@ export default function MosaicGrid({
   );
   const [selectedItem, setSelectedItem] = useState<MosaicItem | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [fromHome, setFromHome] = useState(false);
-
-  useLayoutEffect(() => {
-    const flag = sessionStorage.getItem("page-transition-from");
-    if (flag === "home") {
-      setFromHome(true);
-      sessionStorage.removeItem("page-transition-from");
-    }
-  }, []);
 
   const closeSelected = useCallback(() => setSelectedItem(null), []);
 
@@ -55,7 +46,11 @@ export default function MosaicGrid({
     setPhotos(data.photos);
   }, [isDevMode]);
 
-  const displayedItem = selectedItem || hoveredItem || lastHoveredItem;
+  const displayedRef = selectedItem || hoveredItem || lastHoveredItem;
+  // look up current version from photos array so edits aren't stale
+  const displayedItem = displayedRef
+    ? photos.find((p) => p.id === displayedRef.id) || displayedRef
+    : null;
 
   const getImageUrl = (item: MosaicItem) => {
     if (!item.r2Key || !R2_URL) return null;
@@ -94,7 +89,36 @@ export default function MosaicGrid({
               ) : (
                 <p className="text-lg">{displayedItem.title}</p>
               )}
-              <p className="text-sm opacity-60 mt-1">{displayedItem.type}</p>
+              {isDevMode ? (
+                <input
+                  className="text-sm opacity-60 mt-1 bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full"
+                  value={displayedItem.subtitle || ""}
+                  placeholder="add subtitle..."
+                  onChange={(e) => {
+                    const updated = photos.map((p) =>
+                      p.id === displayedItem.id
+                        ? { ...p, subtitle: e.target.value }
+                        : p,
+                    );
+                    setPhotos(updated);
+                  }}
+                  onBlur={() => {
+                    fetch(`/api/photos?id=${displayedItem.id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        subtitle: displayedItem.subtitle,
+                      }),
+                    });
+                  }}
+                />
+              ) : (
+                displayedItem.subtitle && (
+                  <p className="text-sm opacity-60 mt-1">
+                    {displayedItem.subtitle}
+                  </p>
+                )
+              )}
               {isDevMode ? (
                 <textarea
                   className="text-sm opacity-80 mt-3 bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
@@ -132,10 +156,7 @@ export default function MosaicGrid({
       {/* right: header + photos + footer */}
       <div className="flex-1 relative">
         {/* header - hidden when photo is expanded */}
-        <div
-          className={fromHome ? "mosaic-header-enter" : ""}
-          style={{ visibility: selectedItem ? "hidden" : "visible" }}
-        >
+        <div style={{ visibility: selectedItem ? "hidden" : "visible" }}>
           {header}
         </div>
 
@@ -148,9 +169,7 @@ export default function MosaicGrid({
           />
         )}
 
-        <div
-          className={`columns-1 sm:columns-2 lg:columns-3 gap-3 mt-6${fromHome ? " mosaic-photos-enter" : ""}`}
-        >
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 mt-6">
           {photos.map((item, index) => (
             <div
               key={item.id}
@@ -229,9 +248,7 @@ export default function MosaicGrid({
           ))}
         </div>
 
-        {!selectedItem && (
-          <div className={fromHome ? "mosaic-footer-enter" : ""}>{footer}</div>
-        )}
+        {!selectedItem && footer}
 
         {/* expanded photo - covers entire right column */}
         {selectedItem && (
