@@ -557,7 +557,7 @@ export default function MosaicGrid({
                 )}
               </div>
               {/* right: image */}
-              <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
+              <div className="flex-1 flex items-center justify-center py-8 pl-4 pr-12 overflow-hidden">
                 {currentSelected.type === "still" ? (
                   <div
                     className="relative flex items-center justify-center max-w-full"
