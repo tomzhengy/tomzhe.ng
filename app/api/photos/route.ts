@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     const photos = getPhotos();
     photos.push(photo);
-    writePhotos(photos);
+    await writePhotos(photos);
 
     return NextResponse.json({ photo });
   } catch (err) {
@@ -122,7 +122,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    writePhotos(reordered);
+    await writePhotos(reordered);
     return NextResponse.json({ photos: reordered });
   } catch (err) {
     console.error("reorder error:", err);
@@ -162,7 +162,7 @@ export async function PATCH(request: NextRequest) {
     }
     photos[index].updatedAt = new Date().toISOString();
 
-    writePhotos(photos);
+    await writePhotos(photos);
     return NextResponse.json({ photo: photos[index] });
   } catch (err) {
     console.error("update error:", err);
@@ -207,7 +207,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const filtered = photos.filter((p) => p.id !== id);
-    writePhotos(filtered);
+    await writePhotos(filtered);
 
     return NextResponse.json({ success: true });
   } catch (err) {

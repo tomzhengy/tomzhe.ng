@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# photos metadata (fetched from R2 at build time)
+/data/photos.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
