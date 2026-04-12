@@ -461,12 +461,12 @@ export default function MosaicGrid({
             />
             {/* content: text + image */}
             <div
-              className={`fixed inset-0 z-50 flex cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease_0.15s_backwards]"}`}
+              className={`fixed inset-0 z-50 cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease_0.15s_backwards]"}`}
               onClick={closeSelected}
             >
-              {/* left: text panel */}
+              {/* left: text panel - absolutely positioned so it doesn't affect image centering */}
               <div
-                className="hidden md:flex w-[200px] min-w-0 shrink-0 flex-col pt-[calc(8vh+5.5rem)] pl-4 pr-4 break-words overflow-hidden"
+                className="hidden md:flex absolute left-0 top-0 w-[200px] min-w-0 flex-col pt-[calc(8vh+5.5rem)] pl-4 pr-4 break-words overflow-hidden z-10"
                 onClick={(e) => e.stopPropagation()}
               >
                 {isDevMode ? (
@@ -557,7 +557,7 @@ export default function MosaicGrid({
                 )}
               </div>
               {/* right: image */}
-              <div className="flex-1 flex items-center justify-center py-8 px-12 overflow-hidden">
+              <div className="absolute inset-0 md:left-[216px] flex items-center justify-center py-8 px-12 overflow-hidden">
                 {currentSelected.type === "still" ? (
                   <div
                     className="relative flex items-center justify-center max-w-full"
