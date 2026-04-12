@@ -176,7 +176,19 @@ export default function MosaicGrid({
         {/* scroll to top button */}
         <button
           className="absolute bottom-4 right-0 w-8 h-8 flex items-center justify-center border border-[var(--foreground)]/20 hover:border-[var(--foreground)]/50 opacity-60 hover:opacity-100 cursor-pointer transition-opacity"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => {
+            const start = window.scrollY;
+            const duration = Math.min(800, 300 + start * 0.3);
+            const startTime = performance.now();
+            const ease = (t: number) =>
+              t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            const step = (now: number) => {
+              const t = Math.min((now - startTime) / duration, 1);
+              window.scrollTo(0, start * (1 - ease(t)));
+              if (t < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+          }}
           aria-label="scroll to top"
         >
           <svg
