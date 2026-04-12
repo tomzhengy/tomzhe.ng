@@ -284,7 +284,36 @@ export default function MosaicGrid({
             >
               {/* left: text panel */}
               <div className="hidden md:flex w-[240px] shrink-0 flex-col justify-center px-4">
-                <p className="text-lg text-white">{selectedItem.title}</p>
+                <div className="flex items-center gap-3">
+                  {photos.findIndex((p) => p.id === selectedItem.id) > 0 ? (
+                    <button
+                      className="text-white/50 hover:text-white cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToPrev();
+                      }}
+                    >
+                      &lt;
+                    </button>
+                  ) : (
+                    <span className="invisible">&lt;</span>
+                  )}
+                  <p className="text-lg text-white">{selectedItem.title}</p>
+                  {photos.findIndex((p) => p.id === selectedItem.id) <
+                  photos.length - 1 ? (
+                    <button
+                      className="text-white/50 hover:text-white cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToNext();
+                      }}
+                    >
+                      &gt;
+                    </button>
+                  ) : (
+                    <span className="invisible">&gt;</span>
+                  )}
+                </div>
                 {selectedItem.subtitle && (
                   <p className="text-sm text-white/60 mt-1">
                     {selectedItem.subtitle}
@@ -296,19 +325,8 @@ export default function MosaicGrid({
                   </p>
                 )}
               </div>
-              {/* right: image with nav arrows */}
-              <div className="flex-1 flex items-center justify-center p-8 relative">
-                {photos.findIndex((p) => p.id === selectedItem.id) > 0 && (
-                  <button
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-2xl cursor-pointer z-10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToPrev();
-                    }}
-                  >
-                    ←
-                  </button>
-                )}
+              {/* right: image */}
+              <div className="flex-1 flex items-center justify-center p-8">
                 {getImageUrl(selectedItem) &&
                   (selectedItem.type === "still" ? (
                     <img
@@ -326,18 +344,6 @@ export default function MosaicGrid({
                       className="max-w-full max-h-full object-contain"
                     />
                   ))}
-                {photos.findIndex((p) => p.id === selectedItem.id) <
-                  photos.length - 1 && (
-                  <button
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-2xl cursor-pointer z-10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToNext();
-                    }}
-                  >
-                    →
-                  </button>
-                )}
               </div>
             </div>
           </>
