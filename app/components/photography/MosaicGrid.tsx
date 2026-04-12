@@ -178,7 +178,13 @@ export default function MosaicGrid({
                     src={getImageUrl(item)!}
                     alt={item.title}
                     loading="lazy"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover opacity-0 transition-opacity duration-500"
+                    onLoad={(e) =>
+                      e.currentTarget.classList.replace(
+                        "opacity-0",
+                        "opacity-100",
+                      )
+                    }
                   />
                 ) : (
                   <video
@@ -186,6 +192,7 @@ export default function MosaicGrid({
                     muted
                     loop
                     playsInline
+                    preload="none"
                     onMouseEnter={(e) => e.currentTarget.play()}
                     onMouseLeave={(e) => {
                       e.currentTarget.pause();
