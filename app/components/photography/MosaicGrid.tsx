@@ -247,7 +247,7 @@ export default function MosaicGrid({
   return (
     <div className="flex gap-8">
       {/* left: text panel */}
-      <div className="hidden md:block w-[200px] shrink-0 self-start sticky top-[8vh] h-[calc(100vh-8vh)] overflow-hidden break-words">
+      <div className="hidden md:block w-[200px] shrink-0 self-start sticky top-[8vh] h-[calc(100vh-8vh)] overflow-hidden break-words pl-1">
         {/* spacer to align with photos below header */}
         <div className="h-8 mb-8" />
         <div className="mt-6">
