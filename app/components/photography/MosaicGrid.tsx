@@ -214,7 +214,7 @@ export default function MosaicGrid({
   return (
     <div className="flex gap-8">
       {/* left: text panel */}
-      <div className="hidden md:block w-[240px] shrink-0 self-start sticky top-[8vh] h-[calc(100vh-8vh)]">
+      <div className="hidden md:block w-[160px] shrink-0 self-start sticky top-[8vh] h-[calc(100vh-8vh)]">
         {/* spacer to align with photos below header */}
         <div className="h-8 mb-8" />
         <div className="mt-6">
@@ -426,7 +426,7 @@ export default function MosaicGrid({
               onClick={closeSelected}
             >
               {/* left: text panel */}
-              <div className="hidden md:flex w-[240px] shrink-0 flex-col justify-center px-4">
+              <div className="hidden md:flex w-[160px] shrink-0 flex-col justify-center px-4">
                 <div className="flex items-center gap-3 mb-2">
                   <button
                     className="text-sm text-white/50 hover:text-white cursor-pointer"
