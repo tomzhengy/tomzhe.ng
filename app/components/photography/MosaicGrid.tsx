@@ -466,7 +466,7 @@ export default function MosaicGrid({
             >
               {/* left: text panel - absolutely positioned so it doesn't affect image centering */}
               <div
-                className="hidden md:flex absolute left-4 top-0 w-[200px] min-w-0 flex-col pt-[calc(8vh+5.5rem)] break-words overflow-hidden z-10"
+                className="hidden md:flex absolute left-4 top-0 w-[200px] min-w-0 flex-col pt-[calc(8vh+5rem)] break-words overflow-hidden z-10"
                 onClick={(e) => e.stopPropagation()}
               >
                 {isDevMode ? (
