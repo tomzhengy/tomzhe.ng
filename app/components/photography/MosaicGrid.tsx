@@ -91,6 +91,12 @@ function PhotoCell({
       onMouseEnter={() => {
         setHoveredItem(item);
         setLastHoveredItem(item);
+        // preload full-res on hover
+        const url = getImageUrl(item);
+        if (url && item.type === "still") {
+          const img = new Image();
+          img.src = url;
+        }
       }}
       onMouseMove={() => {
         if (hoveredItem?.id !== item.id) {
