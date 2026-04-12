@@ -261,7 +261,7 @@ export default function MosaicGrid({
             <>
               {isDevMode ? (
                 <textarea
-                  className="text-2xl bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
+                  className="text-2xl leading-tight bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
                   value={displayedItem.title}
                   rows={1}
                   onInput={(e) => {
@@ -472,7 +472,7 @@ export default function MosaicGrid({
                 {isDevMode ? (
                   <>
                     <textarea
-                      className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                      className="text-2xl leading-tight bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
                       value={currentSelected.title}
                       rows={1}
                       onInput={(e) => {
