@@ -181,20 +181,34 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "photo not found" }, { status: 404 });
     }
 
-    const r2 = getR2Client();
-    await r2.send(
-      new DeleteObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: photo.r2Key,
-      }),
-    );
+    // delete from R2, don't fail if objects are already gone
+    try {
+      const r2 = getR2Client();
+      await r2.send(
+        new DeleteObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: photo.r2Key,
+        }),
+      );
+      if (photo.r2ThumbKey) {
+        await r2.send(
+          new DeleteObjectCommand({
+            Bucket: R2_BUCKET,
+            Key: photo.r2ThumbKey,
+          }),
+        );
+      }
+    } catch (r2Err) {
+      console.error("r2 delete error (continuing):", r2Err);
+    }
 
     const filtered = photos.filter((p) => p.id !== id);
     writePhotos(filtered);
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("delete error:", err);
-    return NextResponse.json({ error: "delete failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("delete error:", message, err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
