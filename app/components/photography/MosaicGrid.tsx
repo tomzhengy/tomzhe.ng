@@ -734,7 +734,7 @@ export default function MosaicGrid({
                         <img
                           src={getThumbUrl(currentSelected)!}
                           alt={currentSelected.title}
-                          className="max-w-full max-h-full object-contain blur-sm"
+                          className="max-w-full max-h-full object-contain transition-[filter] duration-300"
                         />
                         {getImageUrl(currentSelected) && (
                           <img
@@ -743,6 +743,10 @@ export default function MosaicGrid({
                             className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300"
                             onLoad={(e) => {
                               e.currentTarget.style.opacity = "1";
+                              // blur the thumbnail behind
+                              const thumb = e.currentTarget
+                                .previousElementSibling as HTMLElement;
+                              if (thumb) thumb.style.filter = "blur(4px)";
                             }}
                           />
                         )}
@@ -757,16 +761,16 @@ export default function MosaicGrid({
                     className="relative flex items-center justify-center max-w-full"
                     style={{ maxHeight: "calc(100vh - 4rem)" }}
                   >
-                    {/* thumbnail shown instantly as blurred placeholder */}
+                    {/* thumbnail shown instantly, blurs when full-res loads */}
                     {getThumbUrl(currentSelected) && (
                       <img
                         src={getThumbUrl(currentSelected)!}
                         alt={currentSelected.title}
-                        className="max-w-full object-contain blur-sm"
+                        className="max-w-full object-contain transition-[filter] duration-300"
                         style={{ maxHeight: "calc(100vh - 4rem)" }}
                       />
                     )}
-                    {/* full-res loads on top, same size as thumbnail */}
+                    {/* full-res loads on top */}
                     {getImageUrl(currentSelected) && (
                       <img
                         src={getImageUrl(currentSelected)!}
@@ -774,6 +778,9 @@ export default function MosaicGrid({
                         className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300"
                         onLoad={(e) => {
                           e.currentTarget.style.opacity = "1";
+                          const thumb = e.currentTarget
+                            .previousElementSibling as HTMLElement;
+                          if (thumb) thumb.style.filter = "blur(4px)";
                         }}
                       />
                     )}
