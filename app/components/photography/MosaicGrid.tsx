@@ -181,10 +181,21 @@ export default function MosaicGrid({
   items,
   isDevMode,
 }: MosaicGridProps) {
-  const [photos, setPhotos] = useState<MosaicItem[]>(items);
+  const parseDescriptionDate = (desc: string): number => {
+    const d = new Date(desc);
+    if (!isNaN(d.getTime())) return d.getTime();
+    return 0;
+  };
 
-  // shuffle after mount to avoid server/client hydration mismatch
-  useEffect(() => {
+  const [photos, setPhotos] = useState<MosaicItem[]>(() =>
+    [...items].sort(
+      (a, b) =>
+        parseDescriptionDate(b.description) -
+        parseDescriptionDate(a.description),
+    ),
+  );
+
+  const shufflePhotos = useCallback(() => {
     setPhotos((prev) => {
       const shuffled = [...prev];
       for (let i = shuffled.length - 1; i > 0; i--) {
@@ -202,6 +213,20 @@ export default function MosaicGrid({
   const [closing, setClosing] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [layoutMode, setLayoutMode] = useState<"masonry" | "heap">("masonry");
+  const [colCount, setColCount] = useState(3);
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      setColCount(w < 640 ? 1 : w < 1024 ? 2 : 3);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  const [suggestion, setSuggestion] = useState("");
+  const [suggestionSent, setSuggestionSent] = useState(false);
+  const [showContactPrompt, setShowContactPrompt] = useState(false);
+  const [contact, setContact] = useState("");
 
   const closeSelected = useCallback(() => {
     flushAllSaves();
@@ -408,48 +433,177 @@ export default function MosaicGrid({
           </div>
         )}
 
-        <div
-          className={
-            layoutMode === "masonry"
-              ? "columns-1 sm:columns-2 lg:columns-3 gap-3 mt-2"
-              : "flex flex-wrap items-center justify-center mt-2"
-          }
-        >
-          {photos.map((item, index) => (
-            <PhotoCell
-              key={item.id}
-              item={item}
-              index={index}
-              total={photos.length}
-              getThumbUrl={getThumbUrl}
-              getImageUrl={getImageUrl}
-              hoveredItem={hoveredItem}
-              setHoveredItem={setHoveredItem}
-              setLastHoveredItem={setLastHoveredItem}
-              setSelectedItem={setSelectedItem}
-              editMode={editMode}
-              isDevMode={isDevMode}
-              onRefresh={refreshPhotos}
-              style={
-                layoutMode === "masonry"
-                  ? { aspectRatio: item.aspect }
-                  : {
-                      height: 140 + ((index * 37) % 80),
-                      width: "auto",
-                      aspectRatio: item.aspect,
-                      marginTop: ((index * 53) % 30) - 15,
-                      marginLeft: 16 + ((index * 41) % 24),
-                      marginRight: 16 + ((index * 29) % 24),
-                      marginBottom: 12 + ((index * 47) % 16),
-                    }
-              }
-              className={
-                layoutMode === "masonry" ? "mb-3 break-inside-avoid" : ""
-              }
-              contain={layoutMode === "heap"}
+        {/* outlined box */}
+        <div className="w-full border border-[var(--foreground)] mt-4 mb-4 p-4">
+          <p className="text-sm">
+            I have a wide selection of photos that I don't yet have a home for.
+            I'm unsure as to how I will organize these as my collection grows.
+            Click for full image.
+          </p>
+          <div className="text-sm mt-2 flex items-center gap-2">
+            <span className="shrink-0">
+              Sorted by most recent. You can{" "}
+              <button
+                className="underline cursor-pointer"
+                onClick={shufflePhotos}
+              >
+                shuffle
+              </button>{" "}
+              the heap. Please inspire me with ideas!
+            </span>
+            <input
+              className="text-sm flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
+              placeholder="your idea here..."
+              value={suggestion}
+              onChange={(e) => setSuggestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && suggestion.trim()) {
+                  setShowContactPrompt(true);
+                }
+              }}
+              disabled={suggestionSent}
             />
-          ))}
+            <button
+              className="text-sm px-2 py-1 shrink-0 border border-[var(--foreground)] cursor-pointer disabled:opacity-30 disabled:cursor-default"
+              disabled={!suggestion.trim() || suggestionSent}
+              onClick={() => setShowContactPrompt(true)}
+            >
+              {suggestionSent ? "sent!" : "send"}
+            </button>
+          </div>
+
+          {/* contact prompt */}
+          {showContactPrompt && (
+            <div className="mt-3 border border-[var(--foreground)]/30 p-3">
+              <p className="text-sm">
+                if you'd like to continue the conversation, drop your email or
+                social below. totally optional!
+              </p>
+              <div className="flex gap-2 mt-2 items-center">
+                <input
+                  className="text-sm flex-1 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
+                  placeholder="email, twitter, etc. (optional)"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      fetch("/api/suggestions", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          message: suggestion.trim(),
+                          contact: contact.trim() || null,
+                        }),
+                      });
+                      setSuggestion("");
+                      setContact("");
+                      setShowContactPrompt(false);
+                      setSuggestionSent(true);
+                    }
+                  }}
+                />
+                <button
+                  className="text-sm px-2 py-1 border border-[var(--foreground)] cursor-pointer"
+                  onClick={() => {
+                    fetch("/api/suggestions", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        message: suggestion.trim(),
+                        contact: contact.trim() || null,
+                      }),
+                    });
+                    setSuggestion("");
+                    setContact("");
+                    setShowContactPrompt(false);
+                    setSuggestionSent(true);
+                  }}
+                >
+                  send
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {layoutMode === "masonry" ? (
+          <div className="flex gap-3 mt-2">
+            {(() => {
+              // distribute items to shortest column for balanced heights
+              const columns: MosaicItem[][] = Array.from(
+                { length: colCount },
+                () => [],
+              );
+              const heights = new Array(colCount).fill(0);
+              photos.forEach((item) => {
+                const parts = item.aspect.split("/");
+                const aspect =
+                  parts.length === 2
+                    ? Number(parts[0]) / Number(parts[1])
+                    : parseFloat(item.aspect) || 1;
+                // height is inversely proportional to aspect ratio (wider = shorter)
+                const h = 1 / aspect;
+                const shortest = heights.indexOf(Math.min(...heights));
+                columns[shortest].push(item);
+                heights[shortest] += h;
+              });
+              return columns.map((col, colIdx) => (
+                <div key={colIdx} className="flex-1 flex flex-col gap-3">
+                  {col.map((item) => (
+                    <PhotoCell
+                      key={item.id}
+                      item={item}
+                      index={photos.indexOf(item)}
+                      total={photos.length}
+                      getThumbUrl={getThumbUrl}
+                      getImageUrl={getImageUrl}
+                      hoveredItem={hoveredItem}
+                      setHoveredItem={setHoveredItem}
+                      setLastHoveredItem={setLastHoveredItem}
+                      setSelectedItem={setSelectedItem}
+                      editMode={editMode}
+                      isDevMode={isDevMode}
+                      onRefresh={refreshPhotos}
+                      style={{ aspectRatio: item.aspect }}
+                      className=""
+                    />
+                  ))}
+                </div>
+              ));
+            })()}
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-center mt-2">
+            {photos.map((item, index) => (
+              <PhotoCell
+                key={item.id}
+                item={item}
+                index={index}
+                total={photos.length}
+                getThumbUrl={getThumbUrl}
+                getImageUrl={getImageUrl}
+                hoveredItem={hoveredItem}
+                setHoveredItem={setHoveredItem}
+                setLastHoveredItem={setLastHoveredItem}
+                setSelectedItem={setSelectedItem}
+                editMode={editMode}
+                isDevMode={isDevMode}
+                onRefresh={refreshPhotos}
+                style={{
+                  height: 140 + ((index * 37) % 80),
+                  width: "auto",
+                  aspectRatio: item.aspect,
+                  marginTop: ((index * 53) % 30) - 15,
+                  marginLeft: 16 + ((index * 41) % 24),
+                  marginRight: 16 + ((index * 29) % 24),
+                  marginBottom: 12 + ((index * 47) % 16),
+                }}
+                className=""
+                contain
+              />
+            ))}
+          </div>
+        )}
 
         {footer}
 
@@ -558,22 +712,37 @@ export default function MosaicGrid({
                   </>
                 )}
               </div>
-              {/* mobile: text above image */}
-              <div className="md:hidden px-4 pt-6">
-                <p className="text-xl text-white">{currentSelected.title}</p>
-                {currentSelected.subtitle && (
-                  <p className="text-sm text-white/60 mt-0.5">
-                    {currentSelected.subtitle}
-                  </p>
-                )}
-                {currentSelected.description && (
-                  <p className="text-sm text-white/80 mt-2">
-                    {currentSelected.description}
-                  </p>
-                )}
+              {/* mobile: text + image in a column */}
+              <div className="md:hidden flex flex-col h-full px-4 pt-6 pb-4">
+                <div className="shrink-0">
+                  <p className="text-xl text-white">{currentSelected.title}</p>
+                  {currentSelected.subtitle && (
+                    <p className="text-sm text-white/60 mt-0.5">
+                      {currentSelected.subtitle}
+                    </p>
+                  )}
+                  {currentSelected.description && (
+                    <p className="text-sm text-white/80 mt-2">
+                      {currentSelected.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex-1 flex items-center justify-center py-4 overflow-hidden min-h-0">
+                  {currentSelected.type === "still" &&
+                    getThumbUrl(currentSelected) && (
+                      <img
+                        src={
+                          getImageUrl(currentSelected) ||
+                          getThumbUrl(currentSelected)!
+                        }
+                        alt={currentSelected.title}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    )}
+                </div>
               </div>
-              {/* image */}
-              <div className="absolute inset-0 md:left-[216px] flex items-center justify-center py-8 px-12 overflow-hidden max-md:top-[auto] max-md:bottom-0 max-md:h-[70vh]">
+              {/* desktop: image centered in mosaic area */}
+              <div className="hidden md:flex absolute inset-0 md:left-[216px] items-center justify-center py-8 px-12 overflow-hidden">
                 {currentSelected.type === "still" ? (
                   <div
                     className="relative flex items-center justify-center max-w-full"
