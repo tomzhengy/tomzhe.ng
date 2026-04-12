@@ -449,7 +449,7 @@ export default function MosaicGrid({
               >
                 shuffle
               </button>{" "}
-              the heap. Please inspire me with ideas!
+              the heap. Please inspire me!
             </span>
             <input
               className="text-sm w-full sm:flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
