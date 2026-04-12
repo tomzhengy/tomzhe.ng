@@ -438,7 +438,7 @@ export default function MosaicGrid({
 
         {/* outlined box */}
         <div className="w-full border border-[var(--foreground)] mt-4 mb-4 p-4">
-          <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
             <span className="shrink-0">
               I have a wide selection of photos that I'm unsure on organizing as
               my collection grows. Please inspire me!
