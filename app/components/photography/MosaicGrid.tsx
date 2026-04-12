@@ -261,7 +261,7 @@ export default function MosaicGrid({
             <>
               {isDevMode ? (
                 <textarea
-                  className="text-2xl leading-tight bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
+                  className="text-2xl bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
                   value={displayedItem.title}
                   rows={1}
                   onInput={(e) => {
@@ -466,13 +466,13 @@ export default function MosaicGrid({
             >
               {/* left: text panel - absolutely positioned so it doesn't affect image centering */}
               <div
-                className="hidden md:flex absolute left-0 top-0 w-[200px] min-w-0 flex-col pt-[calc(8vh+5.5rem)] pl-4 pr-4 break-words overflow-hidden z-10"
+                className="hidden md:flex absolute left-0 top-0 w-[200px] min-w-0 flex-col pt-[calc(8vh+5.5rem)] break-words overflow-hidden z-10"
                 onClick={(e) => e.stopPropagation()}
               >
                 {isDevMode ? (
                   <>
                     <textarea
-                      className="text-2xl leading-tight bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                      className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
                       value={currentSelected.title}
                       rows={1}
                       onInput={(e) => {
