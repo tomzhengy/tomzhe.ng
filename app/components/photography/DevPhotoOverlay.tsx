@@ -39,10 +39,13 @@ export default function DevPhotoOverlay({
   };
 
   const handleDelete = async () => {
-    if (!confirm("delete this photo?")) return;
     setDeleting(true);
-    await fetch(`/api/photos?id=${photo.id}`, { method: "DELETE" });
-    onRefresh();
+    try {
+      await fetch(`/api/photos?id=${photo.id}`, { method: "DELETE" });
+      onRefresh();
+    } catch {
+      setDeleting(false);
+    }
   };
 
   return (
