@@ -152,28 +152,14 @@ export default function MosaicGrid({
     }, 200);
   }, []);
 
-  const goToPrev = useCallback(() => {
-    if (!selectedItem || photos.length === 0) return;
-    const i = photos.findIndex((p) => p.id === selectedItem.id);
-    setSelectedItem(photos[(i - 1 + photos.length) % photos.length]);
-  }, [selectedItem, photos]);
-
-  const goToNext = useCallback(() => {
-    if (!selectedItem || photos.length === 0) return;
-    const i = photos.findIndex((p) => p.id === selectedItem.id);
-    setSelectedItem(photos[(i + 1) % photos.length]);
-  }, [selectedItem, photos]);
-
   useEffect(() => {
     if (!selectedItem) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeSelected();
-      if (e.key === "ArrowLeft") goToPrev();
-      if (e.key === "ArrowRight") goToNext();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedItem, closeSelected, goToPrev, goToNext]);
+  }, [selectedItem, closeSelected]);
 
   const refreshPhotos = useCallback(async () => {
     if (!isDevMode) return;
@@ -199,23 +185,6 @@ export default function MosaicGrid({
     if (item.r2Key) return `${R2_URL}/${item.r2Key}`;
     return null;
   };
-
-  // preload neighbors of the selected image so arrow navigation is instant
-  useEffect(() => {
-    if (!selectedItem) return;
-    const i = photos.findIndex((p) => p.id === selectedItem.id);
-    const neighbors = [
-      photos[(i - 1 + photos.length) % photos.length],
-      photos[(i + 1) % photos.length],
-    ];
-    neighbors.forEach((item) => {
-      const url = getImageUrl(item);
-      if (url && item.type === "still") {
-        const img = new Image();
-        img.src = url;
-      }
-    });
-  }, [selectedItem, photos]);
 
   return (
     <div className="flex gap-8">
@@ -446,26 +415,6 @@ export default function MosaicGrid({
             >
               {/* left: text panel */}
               <div className="hidden md:flex w-[200px] min-w-0 shrink-0 flex-col justify-center pl-4 break-words overflow-hidden">
-                <div className="flex items-center gap-3 mb-2">
-                  <button
-                    className="text-sm text-white/50 hover:text-white cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToPrev();
-                    }}
-                  >
-                    &lt;
-                  </button>
-                  <button
-                    className="text-sm text-white/50 hover:text-white cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToNext();
-                    }}
-                  >
-                    &gt;
-                  </button>
-                </div>
                 <p className="text-lg text-white">{selectedItem.title}</p>
                 {selectedItem.subtitle && (
                   <p className="text-sm text-white/60 mt-1">
