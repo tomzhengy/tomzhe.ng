@@ -252,28 +252,53 @@ export default function MosaicGrid({
 
         {/* expanded photo - fullscreen */}
         {selectedItem && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-sm cursor-pointer animate-[photo-expand_0.3s_ease]"
-            onClick={() => setSelectedItem(null)}
-          >
-            {getImageUrl(selectedItem) &&
-              (selectedItem.type === "still" ? (
-                <img
-                  src={getImageUrl(selectedItem)!}
-                  alt={selectedItem.title}
-                  className="max-w-full max-h-full object-contain"
-                />
-              ) : (
-                <video
-                  src={getImageUrl(selectedItem)!}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="max-w-full max-h-full object-contain"
-                />
-              ))}
-          </div>
+          <>
+            {/* backdrop: fade in only */}
+            <div
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm cursor-pointer animate-[fade-in_0.3s_ease]"
+              onClick={() => setSelectedItem(null)}
+            />
+            {/* content: text + image, fades in after backdrop */}
+            <div
+              className="fixed inset-0 z-50 flex cursor-pointer animate-[fade-in_0.3s_ease_0.15s_backwards]"
+              onClick={() => setSelectedItem(null)}
+            >
+              {/* left: text panel */}
+              <div className="hidden md:flex w-[240px] shrink-0 flex-col justify-center px-4">
+                <p className="text-lg text-white">{selectedItem.title}</p>
+                {selectedItem.subtitle && (
+                  <p className="text-sm text-white/60 mt-1">
+                    {selectedItem.subtitle}
+                  </p>
+                )}
+                {selectedItem.description && (
+                  <p className="text-sm text-white/80 mt-3">
+                    {selectedItem.description}
+                  </p>
+                )}
+              </div>
+              {/* right: image */}
+              <div className="flex-1 flex items-center justify-center p-8">
+                {getImageUrl(selectedItem) &&
+                  (selectedItem.type === "still" ? (
+                    <img
+                      src={getImageUrl(selectedItem)!}
+                      alt={selectedItem.title}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : (
+                    <video
+                      src={getImageUrl(selectedItem)!}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ))}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
