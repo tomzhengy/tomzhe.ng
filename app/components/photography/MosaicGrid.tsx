@@ -284,10 +284,10 @@ export default function MosaicGrid({
             >
               {/* left: text panel */}
               <div className="hidden md:flex w-[240px] shrink-0 flex-col justify-center px-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-2">
                   {photos.findIndex((p) => p.id === selectedItem.id) > 0 ? (
                     <button
-                      className="text-white/50 hover:text-white cursor-pointer"
+                      className="text-sm text-white/50 hover:text-white cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         goToPrev();
@@ -296,13 +296,12 @@ export default function MosaicGrid({
                       &lt;
                     </button>
                   ) : (
-                    <span className="invisible">&lt;</span>
+                    <span className="text-sm invisible">&lt;</span>
                   )}
-                  <p className="text-lg text-white">{selectedItem.title}</p>
                   {photos.findIndex((p) => p.id === selectedItem.id) <
                   photos.length - 1 ? (
                     <button
-                      className="text-white/50 hover:text-white cursor-pointer"
+                      className="text-sm text-white/50 hover:text-white cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         goToNext();
@@ -311,9 +310,10 @@ export default function MosaicGrid({
                       &gt;
                     </button>
                   ) : (
-                    <span className="invisible">&gt;</span>
+                    <span className="text-sm invisible">&gt;</span>
                   )}
                 </div>
+                <p className="text-lg text-white">{selectedItem.title}</p>
                 {selectedItem.subtitle && (
                   <p className="text-sm text-white/60 mt-1">
                     {selectedItem.subtitle}
