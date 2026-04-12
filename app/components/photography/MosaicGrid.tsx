@@ -1,9 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { MosaicItem } from "../../types/photography";
 import DevToolbar from "./DevToolbar";
 import DevPhotoOverlay from "./DevPhotoOverlay";
+
+function HeaderNavPortal({ children }: { children: React.ReactNode }) {
+  const [target, setTarget] = useState<Element | null>(null);
+  useEffect(() => {
+    setTarget(document.querySelector(".header-nav"));
+  }, []);
+  if (!target) return null;
+  return createPortal(children, target);
+}
 
 const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
 
@@ -230,6 +240,7 @@ export default function MosaicGrid({
   const [suggestionSent, setSuggestionSent] = useState(false);
   const [showContactPrompt, setShowContactPrompt] = useState(false);
   const [contact, setContact] = useState("");
+  const [showInfoBox, setShowInfoBox] = useState(false);
 
   const closeSelected = useCallback(() => {
     flushAllSaves();
@@ -406,8 +417,15 @@ export default function MosaicGrid({
 
       {/* right: header + photos + footer */}
       <div className="flex-1 relative">
-        {/* header - hidden when photo is expanded */}
         <div>{header}</div>
+        <HeaderNavPortal>
+          <button
+            className="hidden md:inline opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-pointer"
+            onClick={() => setShowInfoBox((v) => !v)}
+          >
+            {showInfoBox ? "Hide" : "More Information"}
+          </button>
+        </HeaderNavPortal>
 
         {/* dev toolbar */}
         {isDevMode && (
@@ -436,45 +454,47 @@ export default function MosaicGrid({
           </div>
         )}
 
-        {/* outlined box */}
-        <div className="w-full border border-[var(--foreground)] mt-4 mb-4 p-4">
-          <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-2">
-            <span className="shrink-0">
-              I have a wide selection of photos that I'm unsure on organizing as
-              my collection grows. Please inspire me!
-            </span>
-            <input
-              className="text-sm w-full sm:flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
-              placeholder="your idea here..."
-              value={suggestion}
-              onChange={(e) => setSuggestion(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && suggestion.trim()) {
-                  setShowContactPrompt(true);
-                }
-              }}
-              disabled={suggestionSent}
-            />
-            <button
-              className="text-sm px-2 py-1 shrink-0 border border-[var(--foreground)] cursor-pointer disabled:opacity-30 disabled:cursor-default"
-              disabled={!suggestion.trim() || suggestionSent}
-              onClick={() => setShowContactPrompt(true)}
-            >
-              {suggestionSent ? "sent!" : "send"}
-            </button>
+        {/* outlined box - toggled by "more information" */}
+        {showInfoBox && (
+          <div className="hidden md:block w-full border border-[var(--foreground)] mt-4 mb-4 p-4">
+            <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="shrink-0">
+                I have a wide selection of photos that I'm unsure on organizing
+                as my collection grows. Please inspire me!
+              </span>
+              <input
+                className="text-sm w-full sm:flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
+                placeholder="your idea here..."
+                value={suggestion}
+                onChange={(e) => setSuggestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && suggestion.trim()) {
+                    setShowContactPrompt(true);
+                  }
+                }}
+                disabled={suggestionSent}
+              />
+              <button
+                className="text-sm px-2 py-1 shrink-0 border border-[var(--foreground)] cursor-pointer disabled:opacity-30 disabled:cursor-default"
+                disabled={!suggestion.trim() || suggestionSent}
+                onClick={() => setShowContactPrompt(true)}
+              >
+                {suggestionSent ? "sent!" : "send"}
+              </button>
+            </div>
+            <p className="text-sm mt-2">
+              Click for full image & details. Images are shown in reverse
+              chronological order, but you can{" "}
+              <button
+                className="underline cursor-pointer"
+                onClick={shufflePhotos}
+              >
+                shuffle
+              </button>{" "}
+              the heap.
+            </p>
           </div>
-          <p className="text-sm mt-2">
-            Click for full image & details. Images are shown in reverse
-            chronological order, but you can{" "}
-            <button
-              className="underline cursor-pointer"
-              onClick={shufflePhotos}
-            >
-              shuffle
-            </button>{" "}
-            the heap.
-          </p>
-        </div>
+        )}
 
         {/* contact prompt modal */}
         {showContactPrompt && (
