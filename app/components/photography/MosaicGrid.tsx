@@ -175,14 +175,19 @@ export default function MosaicGrid({
   items,
   isDevMode,
 }: MosaicGridProps) {
-  const [photos, setPhotos] = useState<MosaicItem[]>(() => {
-    const shuffled = [...items];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  });
+  const [photos, setPhotos] = useState<MosaicItem[]>(items);
+
+  // shuffle after mount to avoid server/client hydration mismatch
+  useEffect(() => {
+    setPhotos((prev) => {
+      const shuffled = [...prev];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    });
+  }, []);
   const [hoveredItem, setHoveredItem] = useState<MosaicItem | null>(null);
   const [lastHoveredItem, setLastHoveredItem] = useState<MosaicItem | null>(
     null,
