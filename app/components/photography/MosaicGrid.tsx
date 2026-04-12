@@ -38,15 +38,15 @@ export default function MosaicGrid({
   }, []);
 
   const goToPrev = useCallback(() => {
-    if (!selectedItem) return;
+    if (!selectedItem || photos.length === 0) return;
     const i = photos.findIndex((p) => p.id === selectedItem.id);
-    if (i > 0) setSelectedItem(photos[i - 1]);
+    setSelectedItem(photos[(i - 1 + photos.length) % photos.length]);
   }, [selectedItem, photos]);
 
   const goToNext = useCallback(() => {
-    if (!selectedItem) return;
+    if (!selectedItem || photos.length === 0) return;
     const i = photos.findIndex((p) => p.id === selectedItem.id);
-    if (i < photos.length - 1) setSelectedItem(photos[i + 1]);
+    setSelectedItem(photos[(i + 1) % photos.length]);
   }, [selectedItem, photos]);
 
   useEffect(() => {
@@ -285,33 +285,24 @@ export default function MosaicGrid({
               {/* left: text panel */}
               <div className="hidden md:flex w-[240px] shrink-0 flex-col justify-center px-4">
                 <div className="flex items-center gap-3 mb-2">
-                  {photos.findIndex((p) => p.id === selectedItem.id) > 0 ? (
-                    <button
-                      className="text-sm text-white/50 hover:text-white cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToPrev();
-                      }}
-                    >
-                      &lt;
-                    </button>
-                  ) : (
-                    <span className="text-sm invisible">&lt;</span>
-                  )}
-                  {photos.findIndex((p) => p.id === selectedItem.id) <
-                  photos.length - 1 ? (
-                    <button
-                      className="text-sm text-white/50 hover:text-white cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToNext();
-                      }}
-                    >
-                      &gt;
-                    </button>
-                  ) : (
-                    <span className="text-sm invisible">&gt;</span>
-                  )}
+                  <button
+                    className="text-sm text-white/50 hover:text-white cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToPrev();
+                    }}
+                  >
+                    &lt;
+                  </button>
+                  <button
+                    className="text-sm text-white/50 hover:text-white cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToNext();
+                    }}
+                  >
+                    &gt;
+                  </button>
                 </div>
                 <p className="text-lg text-white">{selectedItem.title}</p>
                 {selectedItem.subtitle && (
