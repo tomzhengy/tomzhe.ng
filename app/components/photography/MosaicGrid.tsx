@@ -250,48 +250,29 @@ export default function MosaicGrid({
 
         {!selectedItem && footer}
 
-        {/* expanded photo - covers entire right column */}
+        {/* expanded photo - fullscreen */}
         {selectedItem && (
           <div
-            className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--background)] cursor-pointer animate-[photo-expand_0.3s_ease]"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--background)] cursor-pointer animate-[photo-expand_0.3s_ease]"
             onClick={() => setSelectedItem(null)}
           >
-            <div
-              className="w-full h-full"
-              style={{ backgroundColor: selectedItem.color }}
-            >
-              {getImageUrl(selectedItem) &&
-                (selectedItem.type === "still" ? (
-                  <img
-                    src={getImageUrl(selectedItem)!}
-                    alt={selectedItem.title}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <video
-                    src={getImageUrl(selectedItem)!}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="w-full h-full object-contain"
-                  />
-                ))}
-
-              {!getImageUrl(selectedItem) && selectedItem.type === "motion" && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="text-white/60"
-                  >
-                    <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
-                  </svg>
-                </div>
-              )}
-            </div>
+            {getImageUrl(selectedItem) &&
+              (selectedItem.type === "still" ? (
+                <img
+                  src={getImageUrl(selectedItem)!}
+                  alt={selectedItem.title}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <video
+                  src={getImageUrl(selectedItem)!}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="max-w-full max-h-full object-contain"
+                />
+              ))}
           </div>
         )}
       </div>
