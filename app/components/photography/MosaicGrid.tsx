@@ -186,6 +186,10 @@ export default function MosaicGrid({
     return null;
   };
 
+  const currentSelected = selectedItem
+    ? photos.find((p) => p.id === selectedItem.id) || selectedItem
+    : null;
+
   return (
     <div className="flex gap-8">
       {/* left: text panel */}
@@ -401,7 +405,7 @@ export default function MosaicGrid({
         {footer}
 
         {/* expanded photo - fullscreen */}
-        {selectedItem && (
+        {currentSelected && (
           <>
             {/* backdrop */}
             <div
@@ -414,31 +418,109 @@ export default function MosaicGrid({
               onClick={closeSelected}
             >
               {/* left: text panel */}
-              <div className="hidden md:flex w-[200px] min-w-0 shrink-0 flex-col justify-center pl-4 break-words overflow-hidden">
-                <p className="text-lg text-white">{selectedItem.title}</p>
-                {selectedItem.subtitle && (
-                  <p className="text-sm text-white/60 mt-1">
-                    {selectedItem.subtitle}
-                  </p>
-                )}
-                {selectedItem.description && (
-                  <p className="text-sm text-white/80 mt-3">
-                    {selectedItem.description}
-                  </p>
+              <div
+                className="hidden md:flex w-[200px] min-w-0 shrink-0 flex-col justify-center pl-4 break-words overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {isDevMode ? (
+                  <>
+                    <input
+                      className="text-lg bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full"
+                      value={currentSelected.title}
+                      onChange={(e) => {
+                        const updated = photos.map((p) =>
+                          p.id === currentSelected.id
+                            ? { ...p, title: e.target.value }
+                            : p,
+                        );
+                        setPhotos(updated);
+                      }}
+                      onBlur={() => {
+                        fetch(`/api/photos?id=${currentSelected.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            title: currentSelected.title,
+                          }),
+                        });
+                      }}
+                    />
+                    <input
+                      className="text-sm text-white/60 mt-1 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                      value={currentSelected.subtitle || ""}
+                      placeholder="add subtitle..."
+                      onChange={(e) => {
+                        const updated = photos.map((p) =>
+                          p.id === currentSelected.id
+                            ? { ...p, subtitle: e.target.value }
+                            : p,
+                        );
+                        setPhotos(updated);
+                      }}
+                      onBlur={() => {
+                        fetch(`/api/photos?id=${currentSelected.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            subtitle: currentSelected.subtitle,
+                          }),
+                        });
+                      }}
+                    />
+                    <textarea
+                      className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                      value={currentSelected.description}
+                      placeholder="add description..."
+                      rows={3}
+                      onChange={(e) => {
+                        const updated = photos.map((p) =>
+                          p.id === currentSelected.id
+                            ? { ...p, description: e.target.value }
+                            : p,
+                        );
+                        setPhotos(updated);
+                      }}
+                      onBlur={() => {
+                        fetch(`/api/photos?id=${currentSelected.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            description: currentSelected.description,
+                          }),
+                        });
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg text-white">
+                      {currentSelected.title}
+                    </p>
+                    {currentSelected.subtitle && (
+                      <p className="text-sm text-white/60 mt-1">
+                        {currentSelected.subtitle}
+                      </p>
+                    )}
+                    {currentSelected.description && (
+                      <p className="text-sm text-white/80 mt-3">
+                        {currentSelected.description}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
               {/* right: image */}
               <div className="flex-1 flex items-center justify-center p-8">
-                {getImageUrl(selectedItem) &&
-                  (selectedItem.type === "still" ? (
+                {getImageUrl(currentSelected) &&
+                  (currentSelected.type === "still" ? (
                     <img
-                      src={getImageUrl(selectedItem)!}
-                      alt={selectedItem.title}
+                      src={getImageUrl(currentSelected)!}
+                      alt={currentSelected.title}
                       className="max-w-full max-h-full object-contain"
                     />
                   ) : (
                     <video
-                      src={getImageUrl(selectedItem)!}
+                      src={getImageUrl(currentSelected)!}
                       autoPlay
                       muted
                       loop
