@@ -46,7 +46,7 @@ function PhotoCell({
   return (
     <div
       className={`relative overflow-hidden transition-opacity duration-300 hover:opacity-80 cursor-pointer ${contain ? "" : "w-full"} ${className}`}
-      style={{ ...(!contain && { backgroundColor: item.color }), ...style }}
+      style={{ backgroundColor: item.color, ...style }}
       onMouseEnter={() => {
         setHoveredItem(item);
         setLastHoveredItem(item);
@@ -66,10 +66,18 @@ function PhotoCell({
             src={getThumbUrl(item)!}
             alt={item.title}
             loading="lazy"
-            className={`w-full h-full ${objectFit} opacity-0 transition-opacity duration-500`}
-            onLoad={(e) =>
-              e.currentTarget.classList.replace("opacity-0", "opacity-100")
-            }
+            className={`w-full h-full ${objectFit} transition-opacity duration-500`}
+            style={{ opacity: 0 }}
+            ref={(el) => {
+              if (!el) return;
+              if (el.complete) {
+                el.style.opacity = "1";
+              } else {
+                el.onload = () => {
+                  el.style.opacity = "1";
+                };
+              }
+            }}
           />
         ) : (
           <video
