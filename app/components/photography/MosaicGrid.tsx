@@ -183,7 +183,8 @@ export default function MosaicGrid({
 }: MosaicGridProps) {
   const parseDescriptionDate = (desc: string): number => {
     const firstLine = desc.split("\n")[0].trim();
-    const d = new Date(firstLine);
+    // "Month Year" format isn't reliably parsed by Date() across browsers
+    const d = new Date(`${firstLine} 1`);
     if (!isNaN(d.getTime())) return d.getTime();
     return 0;
   };
@@ -269,10 +270,37 @@ export default function MosaicGrid({
     setPhotos(data.photos);
   }, [isDevMode]);
 
-  const displayedRef = selectedItem || hoveredItem || lastHoveredItem;
+  const [sidebarItem, setSidebarItem] = useState<MosaicItem | null>(null);
+  const [sidebarFading, setSidebarFading] = useState(false);
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (hoveredItem || selectedItem) {
+      // hovering or selected: cancel any pending fade/clear and show immediately
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+      setSidebarFading(false);
+      setSidebarItem(hoveredItem || selectedItem);
+    } else if (sidebarItem) {
+      // just stopped hovering: wait 3s, then fade out
+      fadeTimerRef.current = setTimeout(() => {
+        setSidebarFading(true);
+        clearTimerRef.current = setTimeout(() => {
+          setSidebarItem(null);
+          setSidebarFading(false);
+        }, 200);
+      }, 750);
+    }
+    return () => {
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+    };
+  }, [hoveredItem, selectedItem]);
+
   // look up current version from photos array so edits aren't stale
-  const displayedItem = displayedRef
-    ? photos.find((p) => p.id === displayedRef.id) || displayedRef
+  const displayedItem = sidebarItem
+    ? photos.find((p) => p.id === sidebarItem.id) || sidebarItem
     : null;
 
   const getImageUrl = (item: MosaicItem) => {
@@ -297,9 +325,13 @@ export default function MosaicGrid({
       <div className="hidden md:block w-[200px] shrink-0 self-start sticky top-[8vh] h-[calc(100vh-8vh)] overflow-hidden break-words">
         {/* spacer to align with photos below header */}
         <div className="h-8 mb-8" />
-        <div>
+        <div className="relative">
+          {/* photo info - fades in/out */}
           {displayedItem && (
-            <>
+            <div
+              className="transition-opacity duration-200"
+              style={{ opacity: sidebarFading ? 0 : 1 }}
+            >
               {isDevMode ? (
                 <textarea
                   className="text-2xl bg-transparent border-b border-transparent focus:border-[var(--foreground)]/30 outline-none w-full resize-none"
@@ -382,7 +414,48 @@ export default function MosaicGrid({
                   {displayedItem.description}
                 </p>
               )}
-            </>
+            </div>
+          )}
+          {/* default text - shown when no photo info */}
+          {!displayedItem && (
+            <div className="text-sm animate-[fade-in_0.2s_ease]">
+              <p>
+                I have a wide selection of photos that I'm unsure on organizing
+                as my collection grows. Please inspire me!
+              </p>
+              <div className="mt-3 flex flex-col gap-2">
+                <input
+                  className="text-sm w-full bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
+                  placeholder="your idea here..."
+                  value={suggestion}
+                  onChange={(e) => setSuggestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && suggestion.trim()) {
+                      setShowContactPrompt(true);
+                    }
+                  }}
+                  disabled={suggestionSent}
+                />
+                <button
+                  className="text-sm px-2 py-1 self-start border border-[var(--foreground)] cursor-pointer disabled:opacity-30 disabled:cursor-default"
+                  disabled={!suggestion.trim() || suggestionSent}
+                  onClick={() => setShowContactPrompt(true)}
+                >
+                  {suggestionSent ? "sent!" : "send"}
+                </button>
+              </div>
+              <p className="mt-4">
+                Images are shown in reverse
+                chronological order, but you can{" "}
+                <button
+                  className="underline cursor-pointer"
+                  onClick={shufflePhotos}
+                >
+                  shuffle
+                </button>{" "}
+                the heap. I plan on adding film soon!
+              </p>
+            </div>
           )}
         </div>
 
@@ -448,46 +521,6 @@ export default function MosaicGrid({
             </button>
           </div>
         )}
-
-        {/* outlined box */}
-        <div className="w-full border border-[var(--foreground)] mt-4 mb-4 p-4">
-          <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
-            <span className="shrink-0">
-              I have a wide selection of photos that I'm unsure on organizing as
-              my collection grows. Please inspire me!
-            </span>
-            <input
-              className="text-sm w-full sm:flex-1 min-w-0 bg-transparent border-b border-[var(--foreground)]/30 focus:border-[var(--foreground)] outline-none py-1"
-              placeholder="your idea here..."
-              value={suggestion}
-              onChange={(e) => setSuggestion(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && suggestion.trim()) {
-                  setShowContactPrompt(true);
-                }
-              }}
-              disabled={suggestionSent}
-            />
-            <button
-              className="text-sm px-2 py-1 shrink-0 border border-[var(--foreground)] cursor-pointer disabled:opacity-30 disabled:cursor-default"
-              disabled={!suggestion.trim() || suggestionSent}
-              onClick={() => setShowContactPrompt(true)}
-            >
-              {suggestionSent ? "sent!" : "send"}
-            </button>
-          </div>
-          <p className="text-sm mt-2">
-            Click for full image & details. Images are shown in reverse
-            chronological order, but you can{" "}
-            <button
-              className="underline cursor-pointer"
-              onClick={shufflePhotos}
-            >
-              shuffle
-            </button>{" "}
-            the heap. I plan on adding film soon!
-          </p>
-        </div>
 
         {/* contact prompt modal */}
         {showContactPrompt && (
