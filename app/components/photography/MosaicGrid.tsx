@@ -623,7 +623,7 @@ export default function MosaicGrid({
             <div
               className={`hidden md:flex fixed inset-0 z-50 justify-center pointer-events-none transition-opacity duration-200 ${closing ? "opacity-0" : ""}`}
             >
-              <div className="w-full max-w-[1200px] px-4 flex gap-4">
+              <div className="w-full max-w-[1400px] px-4 flex gap-4">
                 <div
                   className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] break-words overflow-hidden pointer-events-auto"
                   onClick={(e) => e.stopPropagation()}
@@ -766,7 +766,7 @@ export default function MosaicGrid({
               </div>
               {/* desktop: image centered in mosaic area */}
               <div className="hidden md:flex absolute inset-0 justify-center">
-                <div className="w-full max-w-[1200px] px-4 flex gap-4 h-full">
+                <div className="w-full max-w-[1400px] px-4 flex gap-4 h-full">
                   <div className="w-[200px] shrink-0" />
                   <div className="flex-1 flex items-center justify-center py-8 overflow-hidden">
                     {currentSelected.type === "still" ? (
