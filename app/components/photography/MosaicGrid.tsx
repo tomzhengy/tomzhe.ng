@@ -621,93 +621,101 @@ export default function MosaicGrid({
             />
             {/* desktop: text panel - not animated, appears instantly */}
             <div
-              className={`hidden md:flex fixed left-4 top-0 z-50 w-[200px] min-w-0 flex-col pt-[calc(8vh+4rem)] break-words overflow-hidden transition-opacity duration-200 ${closing ? "opacity-0" : ""}`}
-              onClick={(e) => e.stopPropagation()}
+              className={`hidden md:flex fixed inset-0 z-50 justify-center pointer-events-none transition-opacity duration-200 ${closing ? "opacity-0" : ""}`}
             >
-              {isDevMode ? (
-                <>
-                  <textarea
-                    className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
-                    value={currentSelected.title}
-                    rows={1}
-                    onInput={(e) => {
-                      const el = e.currentTarget;
-                      el.style.height = "auto";
-                      el.style.height = el.scrollHeight + "px";
-                    }}
-                    ref={(el) => {
-                      if (!el) return;
-                      el.style.height = "auto";
-                      el.style.height = el.scrollHeight + "px";
-                    }}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const updated = photos.map((p) =>
-                        p.id === currentSelected.id ? { ...p, title: val } : p,
-                      );
-                      setPhotos(updated);
-                      debouncedSave(currentSelected.id, "title", val);
-                    }}
-                  />
-                  <input
-                    className="text-sm text-white/60 mt-0.5 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
-                    value={currentSelected.subtitle || ""}
-                    placeholder="add subtitle..."
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const updated = photos.map((p) =>
-                        p.id === currentSelected.id
-                          ? { ...p, subtitle: val }
-                          : p,
-                      );
-                      setPhotos(updated);
-                      debouncedSave(currentSelected.id, "subtitle", val);
-                    }}
-                  />
-                  <textarea
-                    className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
-                    value={currentSelected.description}
-                    placeholder="add description..."
-                    rows={1}
-                    onInput={(e) => {
-                      const el = e.currentTarget;
-                      el.style.height = "auto";
-                      el.style.height = el.scrollHeight + "px";
-                    }}
-                    ref={(el) => {
-                      if (!el) return;
-                      el.style.height = "auto";
-                      el.style.height = el.scrollHeight + "px";
-                    }}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const updated = photos.map((p) =>
-                        p.id === currentSelected.id
-                          ? { ...p, description: val }
-                          : p,
-                      );
-                      setPhotos(updated);
-                      debouncedSave(currentSelected.id, "description", val);
-                    }}
-                  />
-                </>
-              ) : (
-                <>
-                  <p className="text-2xl leading-tight text-white">
-                    {currentSelected.title}
-                  </p>
-                  {currentSelected.subtitle && (
-                    <p className="text-sm text-white/60 mt-0.5">
-                      {currentSelected.subtitle}
-                    </p>
+              <div className="w-full max-w-[1200px] px-4 flex gap-4">
+                <div
+                  className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] break-words overflow-hidden pointer-events-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {isDevMode ? (
+                    <>
+                      <textarea
+                        className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                        value={currentSelected.title}
+                        rows={1}
+                        onInput={(e) => {
+                          const el = e.currentTarget;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        ref={(el) => {
+                          if (!el) return;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updated = photos.map((p) =>
+                            p.id === currentSelected.id
+                              ? { ...p, title: val }
+                              : p,
+                          );
+                          setPhotos(updated);
+                          debouncedSave(currentSelected.id, "title", val);
+                        }}
+                      />
+                      <input
+                        className="text-sm text-white/60 mt-0.5 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                        value={currentSelected.subtitle || ""}
+                        placeholder="add subtitle..."
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updated = photos.map((p) =>
+                            p.id === currentSelected.id
+                              ? { ...p, subtitle: val }
+                              : p,
+                          );
+                          setPhotos(updated);
+                          debouncedSave(currentSelected.id, "subtitle", val);
+                        }}
+                      />
+                      <textarea
+                        className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                        value={currentSelected.description}
+                        placeholder="add description..."
+                        rows={1}
+                        onInput={(e) => {
+                          const el = e.currentTarget;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        ref={(el) => {
+                          if (!el) return;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updated = photos.map((p) =>
+                            p.id === currentSelected.id
+                              ? { ...p, description: val }
+                              : p,
+                          );
+                          setPhotos(updated);
+                          debouncedSave(currentSelected.id, "description", val);
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-2xl leading-tight text-white">
+                        {currentSelected.title}
+                      </p>
+                      {currentSelected.subtitle && (
+                        <p className="text-sm text-white/60 mt-0.5">
+                          {currentSelected.subtitle}
+                        </p>
+                      )}
+                      {currentSelected.description && (
+                        <p className="text-sm text-white/80 mt-3">
+                          {currentSelected.description}
+                        </p>
+                      )}
+                    </>
                   )}
-                  {currentSelected.description && (
-                    <p className="text-sm text-white/80 mt-3">
-                      {currentSelected.description}
-                    </p>
-                  )}
-                </>
-              )}
+                </div>
+              </div>
             </div>
             {/* content: mobile text + image (animated) */}
             <div
@@ -757,48 +765,53 @@ export default function MosaicGrid({
                 </div>
               </div>
               {/* desktop: image centered in mosaic area */}
-              <div className="hidden md:flex absolute inset-0 md:left-[216px] items-center justify-center py-8 px-12 overflow-hidden">
-                {currentSelected.type === "still" ? (
-                  <div
-                    className="relative flex items-center justify-center max-w-full"
-                    style={{ maxHeight: "calc(100vh - 4rem)" }}
-                  >
-                    {/* thumbnail shown instantly, blurs when full-res loads */}
-                    {getThumbUrl(currentSelected) && (
-                      <img
-                        src={getThumbUrl(currentSelected)!}
-                        alt={currentSelected.title}
-                        className="max-w-full object-contain transition-[filter] duration-300"
+              <div className="hidden md:flex absolute inset-0 justify-center">
+                <div className="w-full max-w-[1200px] px-4 flex gap-4 h-full">
+                  <div className="w-[200px] shrink-0" />
+                  <div className="flex-1 flex items-center justify-center py-8 overflow-hidden">
+                    {currentSelected.type === "still" ? (
+                      <div
+                        className="relative flex items-center justify-center max-w-full"
                         style={{ maxHeight: "calc(100vh - 4rem)" }}
-                      />
-                    )}
-                    {/* full-res loads on top */}
-                    {getImageUrl(currentSelected) && (
-                      <img
-                        src={getImageUrl(currentSelected)!}
-                        alt={currentSelected.title}
-                        className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300"
-                        onLoad={(e) => {
-                          e.currentTarget.style.opacity = "1";
-                          const thumb = e.currentTarget
-                            .previousElementSibling as HTMLElement;
-                          if (thumb) thumb.style.filter = "blur(4px)";
-                        }}
-                      />
+                      >
+                        {/* thumbnail shown instantly, blurs when full-res loads */}
+                        {getThumbUrl(currentSelected) && (
+                          <img
+                            src={getThumbUrl(currentSelected)!}
+                            alt={currentSelected.title}
+                            className="max-w-full object-contain transition-[filter] duration-300"
+                            style={{ maxHeight: "calc(100vh - 4rem)" }}
+                          />
+                        )}
+                        {/* full-res loads on top */}
+                        {getImageUrl(currentSelected) && (
+                          <img
+                            src={getImageUrl(currentSelected)!}
+                            alt={currentSelected.title}
+                            className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300"
+                            onLoad={(e) => {
+                              e.currentTarget.style.opacity = "1";
+                              const thumb = e.currentTarget
+                                .previousElementSibling as HTMLElement;
+                              if (thumb) thumb.style.filter = "blur(4px)";
+                            }}
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      getImageUrl(currentSelected) && (
+                        <video
+                          src={getImageUrl(currentSelected)!}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      )
                     )}
                   </div>
-                ) : (
-                  getImageUrl(currentSelected) && (
-                    <video
-                      src={getImageUrl(currentSelected)!}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  )
-                )}
+                </div>
               </div>
             </div>
           </>
