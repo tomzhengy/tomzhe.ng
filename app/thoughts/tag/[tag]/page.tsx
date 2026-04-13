@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag } = await params;
   return {
     title: `Posts tagged "${tag}" - Tom Zheng`,
-    description: `All blog posts tagged with ${tag}`,
+    description: `All posts tagged with ${tag}`,
   };
 }
 
@@ -31,7 +31,7 @@ export default async function TagPage({ params }: Props) {
   return (
     <main className="flex min-h-screen justify-center">
       <div className="text-left max-w-[540px] w-full px-4 pt-[8vh] pb-16">
-        <Header ThemeToggleComponent={ThemeToggle} currentPage="blog" />
+        <Header ThemeToggleComponent={ThemeToggle} currentPage="thoughts" />
 
         <section className="mt-6">
           <h1 className="text-xl mb-4">
@@ -42,7 +42,7 @@ export default async function TagPage({ params }: Props) {
 
         <div className="mt-6">
           <Link
-            href="/blog"
+            href="/thoughts"
             className="opacity-60 hover:opacity-100 hover:underline transition-opacity"
           >
             &larr; All posts

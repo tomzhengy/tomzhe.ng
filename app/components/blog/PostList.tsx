@@ -19,7 +19,7 @@ export default function PostList({ posts }: PostListProps) {
             {formatDate(post.date)}
           </span>
           <Link
-            href={`/blog/${post.slug}`}
+            href={`/thoughts/${post.slug}`}
             className="hover:underline opacity-85 hover:opacity-100 transition-opacity"
           >
             {post.title}

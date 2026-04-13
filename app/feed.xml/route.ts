@@ -25,8 +25,8 @@ export async function GET() {
   posts.forEach((post) => {
     feed.addItem({
       title: post.title,
-      id: `${siteUrl}/blog/${post.slug}`,
-      link: `${siteUrl}/blog/${post.slug}`,
+      id: `${siteUrl}/thoughts/${post.slug}`,
+      link: `${siteUrl}/thoughts/${post.slug}`,
       description: post.description,
       date: new Date(post.date),
     });

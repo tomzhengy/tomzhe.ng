@@ -6,7 +6,7 @@ import Tooltip from "../ui/Tooltip";
 
 interface HeaderProps {
   ThemeToggleComponent: ComponentType;
-  currentPage?: "home" | "investing" | "blog" | "photography";
+  currentPage?: "home" | "investing" | "thoughts" | "photography";
 }
 
 export default function Header({
@@ -31,7 +31,7 @@ export default function Header({
         </Link>
         <Tooltip text="coming soon!">
           <span className="opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-pointer">
-            Blog
+            Thoughts
           </span>
         </Tooltip>
       </div>
