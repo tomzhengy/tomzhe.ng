@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { MosaicItem } from "../../types/photography";
 import DevToolbar from "./DevToolbar";
 import DevPhotoOverlay from "./DevPhotoOverlay";
+import { renderDescription } from "./parseDescription";
 
 const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
 
@@ -411,7 +412,7 @@ export default function MosaicGrid({
                 />
               ) : (
                 <p className="text-sm opacity-80 mt-3">
-                  {displayedItem.description}
+                  {renderDescription(displayedItem.description)}
                 </p>
               )}
             </div>
@@ -742,7 +743,7 @@ export default function MosaicGrid({
                       )}
                       {currentSelected.description && (
                         <p className="text-sm text-white/80 mt-3">
-                          {currentSelected.description}
+                          {renderDescription(currentSelected.description)}
                         </p>
                       )}
                     </>
@@ -766,7 +767,7 @@ export default function MosaicGrid({
                   )}
                   {currentSelected.description && (
                     <p className="text-sm text-white/80 mt-2">
-                      {currentSelected.description}
+                      {renderDescription(currentSelected.description)}
                     </p>
                   )}
                 </div>
