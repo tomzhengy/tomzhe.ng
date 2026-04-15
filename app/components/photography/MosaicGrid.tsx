@@ -411,7 +411,7 @@ export default function MosaicGrid({
                   }}
                 />
               ) : (
-                <p className="text-sm opacity-80 mt-3">
+                <p className="text-sm opacity-80 mt-3 whitespace-pre-line">
                   {renderDescription(displayedItem.description)}
                 </p>
               )}
@@ -667,7 +667,7 @@ export default function MosaicGrid({
                     </p>
                   )}
                   {currentSelected.description && (
-                    <p className="text-sm text-white/80 mt-2">
+                    <p className="text-sm text-white/80 mt-2 whitespace-pre-line">
                       {renderDescription(currentSelected.description)}
                     </p>
                   )}
@@ -838,7 +838,7 @@ export default function MosaicGrid({
                         </p>
                       )}
                       {currentSelected.description && (
-                        <p className="text-sm text-white/80 mt-3">
+                        <p className="text-sm text-white/80 mt-3 whitespace-pre-line">
                           {renderDescription(currentSelected.description)}
                         </p>
                       )}
