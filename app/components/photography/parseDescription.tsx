@@ -1,8 +1,7 @@
 import React from "react";
 
-const mentionRegex = /@(\w[\w.]*)\(([^)]+)\)/g;
-
 export function renderDescription(text: string): React.ReactNode {
+  const mentionRegex = /@(\w[\w.]*)\(([^)]+)\)/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;

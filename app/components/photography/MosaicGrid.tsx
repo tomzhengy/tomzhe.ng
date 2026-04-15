@@ -446,8 +446,7 @@ export default function MosaicGrid({
                 </button>
               </div>
               <p className="mt-4">
-                Images are shown in reverse
-                chronological order, but you can{" "}
+                Images are shown in reverse chronological order, but you can{" "}
                 <button
                   className="underline cursor-pointer"
                   onClick={shufflePhotos}
@@ -653,104 +652,6 @@ export default function MosaicGrid({
               className={`fixed inset-0 z-50 bg-black/80 backdrop-blur-sm cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease]"}`}
               onClick={closeSelected}
             />
-            {/* desktop: text panel - not animated, appears instantly */}
-            <div
-              className={`hidden md:flex fixed inset-0 z-50 justify-center pointer-events-none transition-opacity duration-200 ${closing ? "opacity-0" : ""}`}
-            >
-              <div className="w-full max-w-[1400px] px-4 flex gap-4">
-                <div
-                  className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] break-words overflow-hidden pointer-events-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {isDevMode ? (
-                    <>
-                      <textarea
-                        className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
-                        value={currentSelected.title}
-                        rows={1}
-                        onInput={(e) => {
-                          const el = e.currentTarget;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        ref={(el) => {
-                          if (!el) return;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const updated = photos.map((p) =>
-                            p.id === currentSelected.id
-                              ? { ...p, title: val }
-                              : p,
-                          );
-                          setPhotos(updated);
-                          debouncedSave(currentSelected.id, "title", val);
-                        }}
-                      />
-                      <input
-                        className="text-sm text-white/60 mt-0.5 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
-                        value={currentSelected.subtitle || ""}
-                        placeholder="add subtitle..."
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const updated = photos.map((p) =>
-                            p.id === currentSelected.id
-                              ? { ...p, subtitle: val }
-                              : p,
-                          );
-                          setPhotos(updated);
-                          debouncedSave(currentSelected.id, "subtitle", val);
-                        }}
-                      />
-                      <textarea
-                        className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
-                        value={currentSelected.description}
-                        placeholder="add description..."
-                        rows={1}
-                        onInput={(e) => {
-                          const el = e.currentTarget;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        ref={(el) => {
-                          if (!el) return;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const updated = photos.map((p) =>
-                            p.id === currentSelected.id
-                              ? { ...p, description: val }
-                              : p,
-                          );
-                          setPhotos(updated);
-                          debouncedSave(currentSelected.id, "description", val);
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-2xl leading-tight text-white">
-                        {currentSelected.title}
-                      </p>
-                      {currentSelected.subtitle && (
-                        <p className="text-sm text-white/60 mt-0.5">
-                          {currentSelected.subtitle}
-                        </p>
-                      )}
-                      {currentSelected.description && (
-                        <p className="text-sm text-white/80 mt-3">
-                          {renderDescription(currentSelected.description)}
-                        </p>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
             {/* content: mobile text + image (animated) */}
             <div
               className={`fixed inset-0 z-50 cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease_0.15s_backwards]"}`}
@@ -845,6 +746,104 @@ export default function MosaicGrid({
                       )
                     )}
                   </div>
+                </div>
+              </div>
+            </div>
+            {/* desktop: text panel - rendered last so it's on top for editing */}
+            <div
+              className={`hidden md:flex fixed inset-0 z-50 justify-center pointer-events-none transition-opacity duration-200 ${closing ? "opacity-0" : ""}`}
+            >
+              <div className="w-full max-w-[1400px] px-4 flex gap-4">
+                <div
+                  className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] break-words overflow-hidden pointer-events-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {isDevMode ? (
+                    <>
+                      <textarea
+                        className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                        value={currentSelected.title}
+                        rows={1}
+                        onInput={(e) => {
+                          const el = e.currentTarget;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        ref={(el) => {
+                          if (!el) return;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updated = photos.map((p) =>
+                            p.id === currentSelected.id
+                              ? { ...p, title: val }
+                              : p,
+                          );
+                          setPhotos(updated);
+                          debouncedSave(currentSelected.id, "title", val);
+                        }}
+                      />
+                      <input
+                        className="text-sm text-white/60 mt-0.5 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                        value={currentSelected.subtitle || ""}
+                        placeholder="add subtitle..."
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updated = photos.map((p) =>
+                            p.id === currentSelected.id
+                              ? { ...p, subtitle: val }
+                              : p,
+                          );
+                          setPhotos(updated);
+                          debouncedSave(currentSelected.id, "subtitle", val);
+                        }}
+                      />
+                      <textarea
+                        className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                        value={currentSelected.description}
+                        placeholder="add description..."
+                        rows={1}
+                        onInput={(e) => {
+                          const el = e.currentTarget;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        ref={(el) => {
+                          if (!el) return;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updated = photos.map((p) =>
+                            p.id === currentSelected.id
+                              ? { ...p, description: val }
+                              : p,
+                          );
+                          setPhotos(updated);
+                          debouncedSave(currentSelected.id, "description", val);
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-2xl leading-tight text-white">
+                        {currentSelected.title}
+                      </p>
+                      {currentSelected.subtitle && (
+                        <p className="text-sm text-white/60 mt-0.5">
+                          {currentSelected.subtitle}
+                        </p>
+                      )}
+                      {currentSelected.description && (
+                        <p className="text-sm text-white/80 mt-3">
+                          {renderDescription(currentSelected.description)}
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
