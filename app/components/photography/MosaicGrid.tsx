@@ -759,79 +759,85 @@ export default function MosaicGrid({
             >
               <div className="w-full max-w-[1400px] px-4 flex gap-4">
                 <div
-                  className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] break-words overflow-x-hidden overflow-y-auto pointer-events-auto"
+                  className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] pb-[calc(8vh+4rem)] break-words overflow-x-hidden pointer-events-auto"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {isDevMode ? (
                     <>
+                      <div className="flex-1 min-h-0 overflow-y-auto">
+                        <textarea
+                          className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                          value={currentSelected.title}
+                          rows={1}
+                          onInput={(e) => {
+                            const el = e.currentTarget;
+                            el.style.height = "auto";
+                            el.style.height = el.scrollHeight + "px";
+                          }}
+                          ref={(el) => {
+                            if (!el) return;
+                            el.style.height = "auto";
+                            el.style.height = el.scrollHeight + "px";
+                          }}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const updated = photos.map((p) =>
+                              p.id === currentSelected.id
+                                ? { ...p, title: val }
+                                : p,
+                            );
+                            setPhotos(updated);
+                            debouncedSave(currentSelected.id, "title", val);
+                          }}
+                        />
+                        <input
+                          className="text-sm text-white/60 mt-0.5 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                          value={currentSelected.subtitle || ""}
+                          placeholder="add subtitle..."
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const updated = photos.map((p) =>
+                              p.id === currentSelected.id
+                                ? { ...p, subtitle: val }
+                                : p,
+                            );
+                            setPhotos(updated);
+                            debouncedSave(currentSelected.id, "subtitle", val);
+                          }}
+                        />
+                        <textarea
+                          className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
+                          value={currentSelected.description}
+                          placeholder="add description..."
+                          rows={1}
+                          onInput={(e) => {
+                            const el = e.currentTarget;
+                            el.style.height = "auto";
+                            el.style.height = el.scrollHeight + "px";
+                          }}
+                          ref={(el) => {
+                            if (!el) return;
+                            el.style.height = "auto";
+                            el.style.height = el.scrollHeight + "px";
+                          }}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const updated = photos.map((p) =>
+                              p.id === currentSelected.id
+                                ? { ...p, description: val }
+                                : p,
+                            );
+                            setPhotos(updated);
+                            debouncedSave(
+                              currentSelected.id,
+                              "description",
+                              val,
+                            );
+                          }}
+                        />
+                      </div>
                       <textarea
-                        className="text-2xl bg-transparent text-white border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
-                        value={currentSelected.title}
-                        rows={1}
-                        onInput={(e) => {
-                          const el = e.currentTarget;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        ref={(el) => {
-                          if (!el) return;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const updated = photos.map((p) =>
-                            p.id === currentSelected.id
-                              ? { ...p, title: val }
-                              : p,
-                          );
-                          setPhotos(updated);
-                          debouncedSave(currentSelected.id, "title", val);
-                        }}
-                      />
-                      <input
-                        className="text-sm text-white/60 mt-0.5 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
-                        value={currentSelected.subtitle || ""}
-                        placeholder="add subtitle..."
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const updated = photos.map((p) =>
-                            p.id === currentSelected.id
-                              ? { ...p, subtitle: val }
-                              : p,
-                          );
-                          setPhotos(updated);
-                          debouncedSave(currentSelected.id, "subtitle", val);
-                        }}
-                      />
-                      <textarea
-                        className="text-sm text-white/80 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none"
-                        value={currentSelected.description}
-                        placeholder="add description..."
-                        rows={1}
-                        onInput={(e) => {
-                          const el = e.currentTarget;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        ref={(el) => {
-                          if (!el) return;
-                          el.style.height = "auto";
-                          el.style.height = el.scrollHeight + "px";
-                        }}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const updated = photos.map((p) =>
-                            p.id === currentSelected.id
-                              ? { ...p, description: val }
-                              : p,
-                          );
-                          setPhotos(updated);
-                          debouncedSave(currentSelected.id, "description", val);
-                        }}
-                      />
-                      <textarea
-                        className="text-sm text-white/40 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none text-right"
+                        className="shrink-0 text-sm text-white/40 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none text-right"
                         value={currentSelected.gear || DEFAULT_GEAR}
                         placeholder="add gear..."
                         rows={1}
@@ -859,20 +865,22 @@ export default function MosaicGrid({
                     </>
                   ) : (
                     <>
-                      <p className="text-2xl leading-tight text-white">
-                        {currentSelected.title}
-                      </p>
-                      {currentSelected.subtitle && (
-                        <p className="text-sm text-white/60 mt-0.5">
-                          {currentSelected.subtitle}
+                      <div className="flex-1 min-h-0 overflow-y-auto">
+                        <p className="text-2xl leading-tight text-white">
+                          {currentSelected.title}
                         </p>
-                      )}
-                      {currentSelected.description && (
-                        <p className="text-sm text-white/80 mt-3 whitespace-pre-line">
-                          {renderDescription(currentSelected.description)}
-                        </p>
-                      )}
-                      <p className="text-sm text-white/40 mt-3 text-right whitespace-pre-line">
+                        {currentSelected.subtitle && (
+                          <p className="text-sm text-white/60 mt-0.5">
+                            {currentSelected.subtitle}
+                          </p>
+                        )}
+                        {currentSelected.description && (
+                          <p className="text-sm text-white/80 mt-3 whitespace-pre-line">
+                            {renderDescription(currentSelected.description)}
+                          </p>
+                        )}
+                      </div>
+                      <p className="shrink-0 text-sm text-white/40 mt-3 text-right whitespace-pre-line">
                         {currentSelected.gear || DEFAULT_GEAR}
                       </p>
                     </>
