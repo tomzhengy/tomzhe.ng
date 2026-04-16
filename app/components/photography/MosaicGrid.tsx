@@ -671,6 +671,11 @@ export default function MosaicGrid({
                       {renderDescription(currentSelected.description)}
                     </p>
                   )}
+                  {currentSelected.gear && (
+                    <p className="text-sm text-white/40 mt-2">
+                      {currentSelected.gear}
+                    </p>
+                  )}
                 </div>
                 <div className="flex-1 flex items-center justify-center py-4 overflow-hidden min-h-0 relative">
                   {currentSelected.type === "still" &&
@@ -826,6 +831,21 @@ export default function MosaicGrid({
                           debouncedSave(currentSelected.id, "description", val);
                         }}
                       />
+                      <input
+                        className="text-sm text-white/40 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                        value={currentSelected.gear || ""}
+                        placeholder="add gear..."
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const updated = photos.map((p) =>
+                            p.id === currentSelected.id
+                              ? { ...p, gear: val }
+                              : p,
+                          );
+                          setPhotos(updated);
+                          debouncedSave(currentSelected.id, "gear", val);
+                        }}
+                      />
                     </>
                   ) : (
                     <>
@@ -840,6 +860,11 @@ export default function MosaicGrid({
                       {currentSelected.description && (
                         <p className="text-sm text-white/80 mt-3 whitespace-pre-line">
                           {renderDescription(currentSelected.description)}
+                        </p>
+                      )}
+                      {currentSelected.gear && (
+                        <p className="text-sm text-white/40 mt-3">
+                          {currentSelected.gear}
                         </p>
                       )}
                     </>
