@@ -7,7 +7,7 @@ import DevPhotoOverlay from "./DevPhotoOverlay";
 import { renderDescription } from "./parseDescription";
 
 const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
-const DEFAULT_GEAR = "Sony A6700 | Sigma 18-50mm f/2.8";
+const DEFAULT_GEAR = "Sony A6700\nSIGMA 18-50mm f/2.8";
 
 const pendingSaves = new Map<
   string,
@@ -672,7 +672,7 @@ export default function MosaicGrid({
                       {renderDescription(currentSelected.description)}
                     </p>
                   )}
-                  <p className="text-sm text-white/40 mt-2">
+                  <p className="text-sm text-white/40 mt-2 text-right whitespace-pre-line">
                     {currentSelected.gear || DEFAULT_GEAR}
                   </p>
                 </div>
@@ -830,10 +830,21 @@ export default function MosaicGrid({
                           debouncedSave(currentSelected.id, "description", val);
                         }}
                       />
-                      <input
-                        className="text-sm text-white/40 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
+                      <textarea
+                        className="text-sm text-white/40 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full resize-none text-right"
                         value={currentSelected.gear || DEFAULT_GEAR}
                         placeholder="add gear..."
+                        rows={1}
+                        onInput={(e) => {
+                          const el = e.currentTarget;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
+                        ref={(el) => {
+                          if (!el) return;
+                          el.style.height = "auto";
+                          el.style.height = el.scrollHeight + "px";
+                        }}
                         onChange={(e) => {
                           const val = e.target.value;
                           const updated = photos.map((p) =>
@@ -861,7 +872,7 @@ export default function MosaicGrid({
                           {renderDescription(currentSelected.description)}
                         </p>
                       )}
-                      <p className="text-sm text-white/40 mt-3">
+                      <p className="text-sm text-white/40 mt-3 text-right whitespace-pre-line">
                         {currentSelected.gear || DEFAULT_GEAR}
                       </p>
                     </>
