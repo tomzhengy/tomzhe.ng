@@ -7,6 +7,7 @@ import DevPhotoOverlay from "./DevPhotoOverlay";
 import { renderDescription } from "./parseDescription";
 
 const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
+const DEFAULT_GEAR = "Sony A6700 | Sigma 18-50mm f/2.8";
 
 const pendingSaves = new Map<
   string,
@@ -671,11 +672,9 @@ export default function MosaicGrid({
                       {renderDescription(currentSelected.description)}
                     </p>
                   )}
-                  {currentSelected.gear && (
-                    <p className="text-sm text-white/40 mt-2">
-                      {currentSelected.gear}
-                    </p>
-                  )}
+                  <p className="text-sm text-white/40 mt-2">
+                    {currentSelected.gear || DEFAULT_GEAR}
+                  </p>
                 </div>
                 <div className="flex-1 flex items-center justify-center py-4 overflow-hidden min-h-0 relative">
                   {currentSelected.type === "still" &&
@@ -833,7 +832,7 @@ export default function MosaicGrid({
                       />
                       <input
                         className="text-sm text-white/40 mt-3 bg-transparent border-b border-transparent focus:border-white/30 outline-none w-full"
-                        value={currentSelected.gear || ""}
+                        value={currentSelected.gear || DEFAULT_GEAR}
                         placeholder="add gear..."
                         onChange={(e) => {
                           const val = e.target.value;
@@ -862,11 +861,9 @@ export default function MosaicGrid({
                           {renderDescription(currentSelected.description)}
                         </p>
                       )}
-                      {currentSelected.gear && (
-                        <p className="text-sm text-white/40 mt-3">
-                          {currentSelected.gear}
-                        </p>
-                      )}
+                      <p className="text-sm text-white/40 mt-3">
+                        {currentSelected.gear || DEFAULT_GEAR}
+                      </p>
                     </>
                   )}
                 </div>
