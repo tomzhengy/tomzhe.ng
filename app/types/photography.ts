@@ -3,6 +3,7 @@ export interface MosaicItem {
   title: string;
   subtitle: string;
   description: string;
+  gear: string;
   color: string;
   type: "still" | "motion";
   aspect: string;
