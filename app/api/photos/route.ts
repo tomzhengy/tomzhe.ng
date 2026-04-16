@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
 
     const title = (formData.get("title") as string) || file.name;
     const description = (formData.get("description") as string) || "";
+    const gear = (formData.get("gear") as string) || "";
     const type = (formData.get("type") as "still" | "motion") || "still";
     const width = parseInt(formData.get("width") as string) || 0;
     const height = parseInt(formData.get("height") as string) || 0;
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
       title,
       subtitle: "",
       description,
+      gear,
       color,
       type,
       aspect,
@@ -150,6 +152,7 @@ export async function PATCH(request: NextRequest) {
       "title",
       "subtitle",
       "description",
+      "gear",
       "color",
       "type",
       "aspect",
