@@ -216,7 +216,7 @@ export default function MosaicGrid({
   const [closing, setClosing] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [layoutMode, setLayoutMode] = useState<"masonry" | "heap">("masonry");
-  const [colCount, setColCount] = useState(3);
+  const [colCount, setColCount] = useState(1);
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
