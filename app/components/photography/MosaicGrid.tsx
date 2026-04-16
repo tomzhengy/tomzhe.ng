@@ -660,7 +660,7 @@ export default function MosaicGrid({
             >
               {/* mobile: text + image in a column */}
               <div className="md:hidden flex flex-col h-full px-4 pt-6 pb-4">
-                <div className="shrink-0">
+                <div className="shrink-0 break-words">
                   <p className="text-xl text-white">{currentSelected.title}</p>
                   {currentSelected.subtitle && (
                     <p className="text-sm text-white/60 mt-0.5">
