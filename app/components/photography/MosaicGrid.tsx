@@ -759,7 +759,7 @@ export default function MosaicGrid({
             >
               <div className="w-full max-w-[1400px] px-4 flex gap-4">
                 <div
-                  className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] break-words overflow-hidden pointer-events-auto"
+                  className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] break-words overflow-x-hidden overflow-y-auto pointer-events-auto"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {isDevMode ? (
