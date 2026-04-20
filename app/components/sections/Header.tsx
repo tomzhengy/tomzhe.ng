@@ -6,7 +6,7 @@ import Tooltip from "../ui/Tooltip";
 
 interface HeaderProps {
   ThemeToggleComponent: ComponentType;
-  currentPage?: "home" | "investing" | "thoughts" | "photography";
+  currentPage?: "home" | "investing" | "thoughts" | "photography" | "health";
 }
 
 export default function Header({
@@ -28,6 +28,12 @@ export default function Header({
           className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "investing" ? "underline" : "hover:underline"}`}
         >
           Investing
+        </Link>
+        <Link
+          href="/health"
+          className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "health" ? "underline" : "hover:underline"}`}
+        >
+          Health
         </Link>
         <Tooltip text="coming soon!">
           <span className="opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-pointer">
