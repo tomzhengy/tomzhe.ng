@@ -38,7 +38,9 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
     return LINES.map((ln) => {
       let d = "";
       data.forEach((dp, i) => {
-        const raw = (dp as Record<string, number | string | null>)[ln.key];
+        const raw = (dp as unknown as Record<string, number | string | null>)[
+          ln.key
+        ];
         if (raw == null || typeof raw !== "number" || !Number.isFinite(raw))
           return;
         const x = xFor(i);
@@ -127,7 +129,10 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
             />
             {LINES.map((ln) => {
               const raw = (
-                active as Record<string, number | string | null> | null
+                active as unknown as Record<
+                  string,
+                  number | string | null
+                > | null
               )?.[ln.key];
               if (raw == null || typeof raw !== "number") return null;
               return (
