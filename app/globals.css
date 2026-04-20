@@ -209,3 +209,42 @@ button svg {
   border-radius: 6px;
   display: block;
 }
+
+/* ---------- health dashboard tokens ---------- */
+.health-page {
+  --accent: var(--link-color);
+  --select: var(--link-selection-color);
+  --warn: #c9a24a;
+  --danger: #c8573d;
+  --ok: #6f9a6a;
+
+  --f-serif: var(--font-instrument-serif), "Times New Roman", serif;
+  --f-sans: var(--font-inter), system-ui, sans-serif;
+  --f-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* dark-theme-derived surfaces (default) */
+  --fg-soft: #f0eee6cc;
+  --fg-mute: #f0eee680;
+  --fg-faint: #f0eee640;
+  --rule: #f0eee61f;
+  --rule-strong: #f0eee633;
+  --card: #26241f;
+  --card-elev: #2b2925;
+  --overlay: #15141380;
+}
+
+.light .health-page {
+  --fg-soft: #1f1e1dcc;
+  --fg-mute: #1f1e1d80;
+  --fg-faint: #1f1e1d30;
+  --rule: #1f1e1d1a;
+  --rule-strong: #1f1e1d33;
+  --card: #e8e5da;
+  --card-elev: #ded9cb;
+  --overlay: #ffffff99;
+}
+
+.health-page ::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
