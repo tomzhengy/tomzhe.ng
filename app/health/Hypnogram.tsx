@@ -71,8 +71,9 @@ export default function Hypnogram({
     const bridges: Array<{
       x: number;
       yTop: number;
-      splitY: number;
       yBot: number;
+      gapStartPct: number;
+      gapEndPct: number;
       upperStage: Stage;
       lowerStage: Stage;
     }> = [];
@@ -85,11 +86,15 @@ export default function Hypnogram({
       const lowerStage = aUp ? b.stage : a.stage;
       const U = BAND[upperStage];
       const L = BAND[lowerStage];
+      const yTop = U.top;
+      const yBot = L.top + L.h;
+      const total = yBot - yTop;
       bridges.push({
         x: a.x1,
-        yTop: U.top,
-        splitY: (U.top + U.h + L.top) / 2,
-        yBot: L.top + L.h,
+        yTop,
+        yBot,
+        gapStartPct: (U.h / total) * 100,
+        gapEndPct: ((L.top - yTop) / total) * 100,
         upperStage,
         lowerStage,
       });
@@ -177,6 +182,36 @@ export default function Hypnogram({
           preserveAspectRatio="none"
           style={{ width: "100%", height: VIEW_H, display: "block" }}
         >
+          <defs>
+            {connectors.map((c, i) => (
+              <linearGradient
+                key={`grad-${i}`}
+                id={`hypno-conn-${i}`}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  style={{ stopColor: STAGE_COLOR[c.upperStage] }}
+                />
+                <stop
+                  offset={`${c.gapStartPct}%`}
+                  style={{ stopColor: STAGE_COLOR[c.upperStage] }}
+                />
+                <stop
+                  offset={`${c.gapEndPct}%`}
+                  style={{ stopColor: STAGE_COLOR[c.lowerStage] }}
+                />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: STAGE_COLOR[c.lowerStage] }}
+                />
+              </linearGradient>
+            ))}
+          </defs>
+
           {STAGE_ORDER.map((st) => (
             <rect
               key={`track-${st}`}
@@ -200,22 +235,14 @@ export default function Hypnogram({
           ))}
 
           {connectors.map((c, i) => (
-            <g key={`conn-${i}`}>
-              <rect
-                x={c.x - CONNECTOR_W / 2}
-                y={c.yTop}
-                width={CONNECTOR_W}
-                height={c.splitY - c.yTop}
-                fill={STAGE_COLOR[c.upperStage]}
-              />
-              <rect
-                x={c.x - CONNECTOR_W / 2}
-                y={c.splitY}
-                width={CONNECTOR_W}
-                height={c.yBot - c.splitY}
-                fill={STAGE_COLOR[c.lowerStage]}
-              />
-            </g>
+            <rect
+              key={`conn-${i}`}
+              x={c.x - CONNECTOR_W / 2}
+              y={c.yTop}
+              width={CONNECTOR_W}
+              height={c.yBot - c.yTop}
+              fill={`url(#hypno-conn-${i})`}
+            />
           ))}
 
           {segs.map((s, i) => (
