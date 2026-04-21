@@ -43,6 +43,17 @@ const STAGE_LABEL: Record<Stage, string> = {
 
 const STAGE_ORDER: Stage[] = ["awake", "rem", "light", "deep"];
 
+// depth rank for picking the darker color on a transition
+const STAGE_DEPTH: Record<Stage, number> = {
+  awake: 0,
+  light: 1,
+  rem: 2,
+  deep: 3,
+};
+
+const BAR_RX = 3;
+const CONNECTOR_W = 2;
+
 export default function Hypnogram({
   segments,
   startIso,
@@ -53,22 +64,43 @@ export default function Hypnogram({
     null,
   );
 
-  const { segs, totalMs } = useMemo(() => {
-    if (!segments.length) return { segs: [], totalMs: 1 };
+  const { segs, connectors, totalMs } = useMemo(() => {
+    if (!segments.length) return { segs: [], connectors: [], totalMs: 1 };
     const t0 = segments[0].startMs;
     const tN = segments[segments.length - 1].endMs;
     const total = Math.max(1, tN - t0);
     const scale = (ms: number) => ((ms - t0) / total) * VIEW_W;
-    return {
-      segs: segments.map((s) => ({
-        stage: s.stage,
-        x0: scale(s.startMs),
-        x1: scale(s.endMs),
-        band: BAND[s.stage],
-        durationMin: Math.round((s.endMs - s.startMs) / 60000),
-      })),
-      totalMs: total,
-    };
+    const mapped = segments.map((s) => ({
+      stage: s.stage,
+      x0: scale(s.startMs),
+      x1: scale(s.endMs),
+      band: BAND[s.stage],
+      durationMin: Math.round((s.endMs - s.startMs) / 60000),
+    }));
+    const bridges: Array<{
+      x: number;
+      y: number;
+      h: number;
+      stage: Stage;
+    }> = [];
+    for (let i = 0; i < mapped.length - 1; i++) {
+      const a = mapped[i];
+      const b = mapped[i + 1];
+      if (a.stage === b.stage) continue;
+      const A = BAND[a.stage];
+      const B = BAND[b.stage];
+      const yTop = Math.min(A.top, B.top);
+      const yBot = Math.max(A.top + A.h, B.top + B.h);
+      const deeper =
+        STAGE_DEPTH[a.stage] >= STAGE_DEPTH[b.stage] ? a.stage : b.stage;
+      bridges.push({
+        x: a.x1,
+        y: yTop,
+        h: yBot - yTop,
+        stage: deeper,
+      });
+    }
+    return { segs: mapped, connectors: bridges, totalMs: total };
   }, [segments]);
 
   const axisLabels = useMemo(() => {
@@ -169,7 +201,20 @@ export default function Hypnogram({
               y={s.band.top}
               width={Math.max(0, s.x1 - s.x0)}
               height={s.band.h}
+              rx={BAR_RX}
+              ry={BAR_RX}
               fill={STAGE_COLOR[s.stage]}
+            />
+          ))}
+
+          {connectors.map((c, i) => (
+            <rect
+              key={`conn-${i}`}
+              x={c.x - CONNECTOR_W / 2}
+              y={c.y}
+              width={CONNECTOR_W}
+              height={c.h}
+              fill={STAGE_COLOR[c.stage]}
             />
           ))}
 
