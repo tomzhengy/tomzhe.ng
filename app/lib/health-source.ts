@@ -16,7 +16,12 @@
  */
 
 import { exchangeRefreshToken, whoopFetch, type WhoopEnv } from "./whoop";
-import { readTrendSince, upsertBatch, type TrendPoint } from "./health-archive";
+import {
+  buildTrendFromRecords,
+  readTrendSince,
+  upsertBatch,
+  type TrendPoint,
+} from "./health-archive";
 
 export type { TrendPoint };
 
@@ -71,7 +76,13 @@ export async function fetchHealthData(env: HealthEnv): Promise<HealthPayload> {
     const sinceIso = new Date(
       Date.now() - TREND_DAYS * 24 * 60 * 60 * 1000,
     ).toISOString();
-    const trend = await readTrendSince(env, SOURCE, sinceIso);
+    let trend = await readTrendSince(env, SOURCE, sinceIso);
+
+    // fallback: if the archive is empty (migration not run yet, or first
+    // boot) fetch trend live from whoop so the chart isn't blank.
+    if (trend.length === 0) {
+      trend = await fetchTrendLive(accessToken);
+    }
 
     const copy = await generateCopy(env, { cycle, recovery, sleep, trend });
 
@@ -109,6 +120,36 @@ function ensureEnv(env: HealthEnv) {
   if (missing.length) {
     throw new Error(`missing env: ${missing.join(", ")}`);
   }
+}
+
+async function fetchTrendLive(accessToken: string): Promise<TrendPoint[]> {
+  const [cyclesRaw, recoveriesRaw, sleepsRaw] = await Promise.all([
+    whoopFetch(accessToken, "/cycle?limit=25"),
+    whoopFetch(accessToken, "/recovery?limit=25"),
+    whoopFetch(accessToken, "/activity/sleep?limit=25"),
+  ]);
+
+  const cycles = listRecords(cyclesRaw)
+    .filter((c) => c.id != null && typeof c.start === "string")
+    .map((c) => ({
+      external_id: String(c.id),
+      start_at: c.start as string,
+      score: (c.score ?? null) as Record<string, unknown> | null,
+    }));
+  const recoveries = listRecords(recoveriesRaw)
+    .filter((r) => r.cycle_id != null)
+    .map((r) => ({
+      external_id: String(r.cycle_id),
+      score: (r.score ?? null) as Record<string, unknown> | null,
+    }));
+  const sleeps = listRecords(sleepsRaw)
+    .filter((s) => typeof s.start === "string")
+    .map((s) => ({
+      start_at: s.start as string,
+      score: (s.score ?? null) as Record<string, unknown> | null,
+    }));
+
+  return buildTrendFromRecords(cycles, recoveries, sleeps);
 }
 
 function firstRecord(raw: unknown): Record<string, unknown> | null {

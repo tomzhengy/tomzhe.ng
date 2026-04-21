@@ -66,6 +66,10 @@ async function upsert(
   }
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
 function toCycleRow(
   source: string,
   r: Record<string, unknown>,
@@ -80,6 +84,7 @@ function toCycleRow(
     end_at: (r.end as string | null) ?? null,
     score: r.score ?? null,
     raw: r,
+    fetched_at: nowIso(),
   };
 }
 
@@ -94,6 +99,7 @@ function toRecoveryRow(
     external_id: String(cid),
     score: r.score ?? null,
     raw: r,
+    fetched_at: nowIso(),
   };
 }
 
@@ -113,6 +119,7 @@ function toSleepRow(
     nap: Boolean(r.nap),
     score: r.score ?? null,
     raw: r,
+    fetched_at: nowIso(),
   };
 }
 
@@ -131,6 +138,7 @@ function toWorkoutRow(
     sport_name: (r.sport_name as string | null) ?? null,
     score: r.score ?? null,
     raw: r,
+    fetched_at: nowIso(),
   };
 }
 
@@ -215,44 +223,36 @@ function numOrNull(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
+export interface TrendInputCycle {
+  external_id: string;
+  start_at: string;
+  score: Record<string, unknown> | null;
+}
+
+export interface TrendInputRecovery {
+  external_id: string; // whoop cycle_id
+  score: Record<string, unknown> | null;
+}
+
+export interface TrendInputSleep {
+  start_at: string;
+  score: Record<string, unknown> | null;
+}
+
 /**
- * build the trend points from archive tables. joins cycles + recoveries +
- * sleeps by date (same logic as the removed buildTrend, but reading from
- * supabase rather than live whoop).
+ * pure trend builder — joins cycles + recoveries + sleeps by date / cycle
+ * external id. reused by the archive read path and the live fallback path.
  */
-export async function readTrendSince(
-  env: ArchiveEnv,
-  source: string,
-  sinceIso: string,
-): Promise<TrendPoint[]> {
-  const [cycles, sleeps] = await Promise.all([
-    selectRange<{
-      external_id: string;
-      start_at: string;
-      score: Record<string, unknown> | null;
-    }>(env, "health_cycles", source, sinceIso, "external_id,start_at,score"),
-    selectRange<{
-      start_at: string;
-      score: Record<string, unknown> | null;
-    }>(env, "health_sleeps", source, sinceIso, "start_at,score"),
-  ]);
-
-  const cycleIds = cycles.map((c) => c.external_id);
-  const recoveries = await selectByIds<{
-    external_id: string;
-    score: Record<string, unknown> | null;
-  }>(env, "health_recoveries", source, cycleIds, "external_id,score");
-
+export function buildTrendFromRecords(
+  cycles: TrendInputCycle[],
+  recoveries: TrendInputRecovery[],
+  sleeps: TrendInputSleep[],
+): TrendPoint[] {
   const recByCycle = new Map<string, Record<string, unknown> | null>();
-  for (const r of recoveries) {
-    recByCycle.set(r.external_id, r.score);
-  }
+  for (const r of recoveries) recByCycle.set(r.external_id, r.score);
 
   const sleepByDate = new Map<string, Record<string, unknown> | null>();
-  for (const s of sleeps) {
-    const key = s.start_at.slice(0, 10);
-    sleepByDate.set(key, s.score);
-  }
+  for (const s of sleeps) sleepByDate.set(s.start_at.slice(0, 10), s.score);
 
   const points: TrendPoint[] = [];
   for (const c of cycles) {
@@ -288,6 +288,41 @@ export async function readTrendSince(
       ),
     });
   }
-
   return points;
+}
+
+/**
+ * build the trend points from archive tables. joins cycles + recoveries +
+ * sleeps by date. returns [] if the archive is empty or misconfigured.
+ */
+export async function readTrendSince(
+  env: ArchiveEnv,
+  source: string,
+  sinceIso: string,
+): Promise<TrendPoint[]> {
+  const [cycles, sleeps] = await Promise.all([
+    selectRange<TrendInputCycle>(
+      env,
+      "health_cycles",
+      source,
+      sinceIso,
+      "external_id,start_at,score",
+    ),
+    selectRange<TrendInputSleep>(
+      env,
+      "health_sleeps",
+      source,
+      sinceIso,
+      "start_at,score",
+    ),
+  ]);
+  const cycleIds = cycles.map((c) => c.external_id);
+  const recoveries = await selectByIds<TrendInputRecovery>(
+    env,
+    "health_recoveries",
+    source,
+    cycleIds,
+    "external_id,score",
+  );
+  return buildTrendFromRecords(cycles, recoveries, sleeps);
 }
