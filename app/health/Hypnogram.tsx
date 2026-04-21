@@ -212,16 +212,22 @@ export default function Hypnogram({
             ))}
           </defs>
 
-          {STAGE_ORDER.map((st) => (
-            <rect
-              key={`track-${st}`}
-              x={0}
-              y={BAND[st].top}
-              width={VIEW_W}
-              height={BAND[st].h}
-              fill="var(--rule)"
-            />
-          ))}
+          {STAGE_ORDER.slice(0, -1).map((st, i) => {
+            const U = BAND[st];
+            const L = BAND[STAGE_ORDER[i + 1]];
+            const y = (U.top + U.h + L.top) / 2;
+            return (
+              <line
+                key={`sep-${st}`}
+                x1={0}
+                x2={VIEW_W}
+                y1={y}
+                y2={y}
+                stroke="var(--rule)"
+                strokeWidth={1}
+              />
+            );
+          })}
 
           {segs.map((s, i) => (
             <rect
