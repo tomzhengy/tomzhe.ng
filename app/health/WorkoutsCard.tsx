@@ -1,7 +1,69 @@
 "use client";
 
+import { useRef, useState } from "react";
 import type { Workout } from "./types";
 import { CardHead } from "./StrainCard";
+
+const ZONES: Array<{
+  key:
+    | "zone_zero_milli"
+    | "zone_one_milli"
+    | "zone_two_milli"
+    | "zone_three_milli"
+    | "zone_four_milli"
+    | "zone_five_milli";
+  label: string;
+  range: string;
+  bg: string;
+}> = [
+  {
+    key: "zone_zero_milli",
+    label: "Zone 0",
+    range: "0–50% max HR",
+    bg: "color-mix(in oklab, var(--fg) 12%, transparent)",
+  },
+  {
+    key: "zone_one_milli",
+    label: "Zone 1",
+    range: "50–60% max HR",
+    bg: "color-mix(in oklab, var(--select) 50%, transparent)",
+  },
+  {
+    key: "zone_two_milli",
+    label: "Zone 2",
+    range: "60–70% max HR",
+    bg: "color-mix(in oklab, var(--select) 80%, transparent)",
+  },
+  {
+    key: "zone_three_milli",
+    label: "Zone 3",
+    range: "70–80% max HR",
+    bg: "color-mix(in oklab, var(--warn) 85%, transparent)",
+  },
+  {
+    key: "zone_four_milli",
+    label: "Zone 4",
+    range: "80–90% max HR",
+    bg: "color-mix(in oklab, var(--accent) 85%, transparent)",
+  },
+  {
+    key: "zone_five_milli",
+    label: "Zone 5",
+    range: "90–100% max HR",
+    bg: "var(--danger)",
+  },
+];
+
+function formatZoneDuration(ms: number) {
+  if (ms <= 0) return "0s";
+  const totalSec = Math.round(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  return `${s}s`;
+}
 
 interface WorkoutsCardProps {
   workouts: Workout[];
@@ -123,49 +185,7 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
           label="bpm avg"
         />
       </div>
-      <div>
-        <div style={{ display: "flex", gap: 2, width: 220, height: 26 }}>
-          <ZoneSeg
-            pct={pct(zones?.zone_zero_milli)}
-            bg="color-mix(in oklab, var(--fg) 12%, transparent)"
-          />
-          <ZoneSeg
-            pct={pct(zones?.zone_one_milli)}
-            bg="color-mix(in oklab, var(--select) 50%, transparent)"
-          />
-          <ZoneSeg
-            pct={pct(zones?.zone_two_milli)}
-            bg="color-mix(in oklab, var(--select) 80%, transparent)"
-          />
-          <ZoneSeg
-            pct={pct(zones?.zone_three_milli)}
-            bg="color-mix(in oklab, var(--warn) 85%, transparent)"
-          />
-          <ZoneSeg
-            pct={pct(zones?.zone_four_milli)}
-            bg="color-mix(in oklab, var(--accent) 85%, transparent)"
-          />
-          <ZoneSeg pct={pct(zones?.zone_five_milli)} bg="var(--danger)" />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontFamily: "var(--f-mono)",
-            fontSize: 9.5,
-            color: "var(--fg-mute)",
-            letterSpacing: "0.1em",
-            marginTop: 5,
-            width: 220,
-          }}
-        >
-          <span>Z1</span>
-          <span>Z2</span>
-          <span>Z3</span>
-          <span>Z4</span>
-          <span>Z5</span>
-        </div>
-      </div>
+      <ZoneBar zones={zones} pct={pct} />
       <div
         style={{
           fontFamily: "var(--f-serif)",
@@ -202,15 +222,124 @@ function WStat({ value, label }: { value: string; label: string }) {
   );
 }
 
-function ZoneSeg({ pct, bg }: { pct: number; bg: string }) {
+function ZoneBar({
+  zones,
+  pct,
+}: {
+  zones: Workout["score"] extends infer S
+    ? S extends { zone_durations: infer Z }
+      ? Z
+      : undefined
+    : undefined;
+  pct: (ms: number | undefined) => number;
+}) {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [hover, setHover] = useState<{
+    idx: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const hoveredZone = hover != null ? ZONES[hover.idx] : null;
+  const hoveredMs =
+    hoveredZone && zones
+      ? ((zones as unknown as Record<string, number>)[hoveredZone.key] ?? 0)
+      : 0;
+
   return (
-    <span
-      style={{
-        display: "block",
-        height: "100%",
-        width: `${pct}%`,
-        background: bg,
-      }}
-    />
+    <div style={{ position: "relative" }} ref={wrapRef}>
+      <div style={{ display: "flex", gap: 2, width: 220, height: 26 }}>
+        {ZONES.map((z, i) => {
+          const ms = zones
+            ? ((zones as unknown as Record<string, number>)[z.key] ?? 0)
+            : 0;
+          return (
+            <span
+              key={z.key}
+              style={{
+                display: "block",
+                height: "100%",
+                width: `${pct(ms)}%`,
+                background: z.bg,
+                cursor: "crosshair",
+              }}
+              onMouseEnter={(e) => {
+                const r = wrapRef.current?.getBoundingClientRect();
+                if (!r) return;
+                setHover({
+                  idx: i,
+                  x: e.clientX - r.left,
+                  y: e.clientY - r.top,
+                });
+              }}
+              onMouseMove={(e) => {
+                const r = wrapRef.current?.getBoundingClientRect();
+                if (!r) return;
+                setHover({
+                  idx: i,
+                  x: e.clientX - r.left,
+                  y: e.clientY - r.top,
+                });
+              }}
+              onMouseLeave={() => setHover(null)}
+            />
+          );
+        })}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontFamily: "var(--f-mono)",
+          fontSize: 9.5,
+          color: "var(--fg-mute)",
+          letterSpacing: "0.1em",
+          marginTop: 5,
+          width: 220,
+        }}
+      >
+        <span>Z1</span>
+        <span>Z2</span>
+        <span>Z3</span>
+        <span>Z4</span>
+        <span>Z5</span>
+      </div>
+
+      {hover && hoveredZone && (
+        <div
+          style={{
+            position: "absolute",
+            left: hover.x,
+            top: -8,
+            transform: "translate(-50%, -100%)",
+            background: "var(--card-elev)",
+            border: "1px solid var(--rule-strong)",
+            padding: "8px 10px",
+            fontFamily: "var(--f-mono)",
+            fontSize: 10.5,
+            letterSpacing: "0.06em",
+            color: "var(--fg)",
+            pointerEvents: "none",
+            whiteSpace: "nowrap",
+            zIndex: 10,
+            lineHeight: 1.5,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--f-serif)",
+              fontStyle: "italic",
+              fontSize: 13,
+              letterSpacing: 0,
+              marginBottom: 2,
+            }}
+          >
+            {hoveredZone.label}
+          </div>
+          <div style={{ color: "var(--fg-mute)" }}>{hoveredZone.range}</div>
+          <div>{formatZoneDuration(hoveredMs)}</div>
+        </div>
+      )}
+    </div>
   );
 }
