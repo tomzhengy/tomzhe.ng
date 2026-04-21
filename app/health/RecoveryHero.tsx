@@ -155,6 +155,7 @@ export default function RecoveryHero({
             avgHrv > 0 ? `7-day avg ${Math.round(avgHrv)}` : "Baseline pending"
           }
           series={hrvSeries}
+          seriesDigits={0}
           position="tl"
         />
         <SubMetric
@@ -167,6 +168,7 @@ export default function RecoveryHero({
             avgRhr > 0 ? `7-day avg ${Math.round(avgRhr)}` : "Baseline pending"
           }
           series={rhrSeries}
+          seriesDigits={0}
           position="tr"
         />
         <SubMetric
@@ -176,6 +178,7 @@ export default function RecoveryHero({
           delta={null}
           caption="Typical 95–99% range"
           series={spo2Series}
+          seriesDigits={1}
           position="bl"
         />
         <SubMetric
@@ -185,6 +188,7 @@ export default function RecoveryHero({
           delta={null}
           caption="Relative to baseline"
           series={tempSeries}
+          seriesDigits={1}
           position="br"
         />
       </div>
@@ -200,6 +204,7 @@ function SubMetric({
   invertDelta = false,
   caption,
   series,
+  seriesDigits = 0,
   position,
 }: {
   label: string;
@@ -209,6 +214,7 @@ function SubMetric({
   invertDelta?: boolean;
   caption: string;
   series: number[];
+  seriesDigits?: number;
   position: "tl" | "tr" | "bl" | "br";
 }) {
   const top = position === "tl" || position === "tr";
@@ -290,7 +296,7 @@ function SubMetric({
       >
         {caption}
       </div>
-      <Sparkline values={series} />
+      <Sparkline values={series} unit={unit} digits={seriesDigits} />
     </div>
   );
 }
