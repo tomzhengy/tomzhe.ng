@@ -60,9 +60,9 @@ export async function fetchHealthData(env: HealthEnv): Promise<HealthPayload> {
       whoopFetch(accessToken, "/recovery?limit=1"),
       whoopFetch(accessToken, "/activity/sleep?limit=1"),
       whoopFetch(accessToken, "/activity/workout?limit=5"),
-      whoopFetch(accessToken, "/cycle?limit=30"),
-      whoopFetch(accessToken, "/recovery?limit=30"),
-      whoopFetch(accessToken, "/activity/sleep?limit=30"),
+      whoopFetch(accessToken, "/cycle?limit=25"),
+      whoopFetch(accessToken, "/recovery?limit=25"),
+      whoopFetch(accessToken, "/activity/sleep?limit=25"),
     ]);
 
     const cycle = firstRecord(latestCycle);
