@@ -40,10 +40,10 @@ export default function Masthead({ syncedAt, themeToggle }: MastheadProps) {
             fontSize: 40,
             letterSpacing: "-0.01em",
             margin: 0,
+            color: "var(--foreground)",
           }}
         >
-          <em style={{ color: "var(--accent)", fontStyle: "italic" }}>Vital</em>{" "}
-          Signs
+          Health
         </h1>
         <span
           style={{
