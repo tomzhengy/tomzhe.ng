@@ -43,16 +43,7 @@ const STAGE_LABEL: Record<Stage, string> = {
 
 const STAGE_ORDER: Stage[] = ["awake", "rem", "light", "deep"];
 
-// depth rank for picking the darker color on a transition
-const STAGE_DEPTH: Record<Stage, number> = {
-  awake: 0,
-  light: 1,
-  rem: 2,
-  deep: 3,
-};
-
-const BAR_RX = 3;
-const CONNECTOR_W = 2;
+const CONNECTOR_W = 3;
 
 export default function Hypnogram({
   segments,
@@ -79,25 +70,28 @@ export default function Hypnogram({
     }));
     const bridges: Array<{
       x: number;
-      y: number;
-      h: number;
-      stage: Stage;
+      yTop: number;
+      splitY: number;
+      yBot: number;
+      upperStage: Stage;
+      lowerStage: Stage;
     }> = [];
     for (let i = 0; i < mapped.length - 1; i++) {
       const a = mapped[i];
       const b = mapped[i + 1];
       if (a.stage === b.stage) continue;
-      const A = BAND[a.stage];
-      const B = BAND[b.stage];
-      const yTop = Math.min(A.top, B.top);
-      const yBot = Math.max(A.top + A.h, B.top + B.h);
-      const deeper =
-        STAGE_DEPTH[a.stage] >= STAGE_DEPTH[b.stage] ? a.stage : b.stage;
+      const aUp = BAND[a.stage].top <= BAND[b.stage].top;
+      const upperStage = aUp ? a.stage : b.stage;
+      const lowerStage = aUp ? b.stage : a.stage;
+      const U = BAND[upperStage];
+      const L = BAND[lowerStage];
       bridges.push({
         x: a.x1,
-        y: yTop,
-        h: yBot - yTop,
-        stage: deeper,
+        yTop: U.top,
+        splitY: (U.top + U.h + L.top) / 2,
+        yBot: L.top + L.h,
+        upperStage,
+        lowerStage,
       });
     }
     return { segs: mapped, connectors: bridges, totalMs: total };
@@ -201,21 +195,27 @@ export default function Hypnogram({
               y={s.band.top}
               width={Math.max(0, s.x1 - s.x0)}
               height={s.band.h}
-              rx={BAR_RX}
-              ry={BAR_RX}
               fill={STAGE_COLOR[s.stage]}
             />
           ))}
 
           {connectors.map((c, i) => (
-            <rect
-              key={`conn-${i}`}
-              x={c.x - CONNECTOR_W / 2}
-              y={c.y}
-              width={CONNECTOR_W}
-              height={c.h}
-              fill={STAGE_COLOR[c.stage]}
-            />
+            <g key={`conn-${i}`}>
+              <rect
+                x={c.x - CONNECTOR_W / 2}
+                y={c.yTop}
+                width={CONNECTOR_W}
+                height={c.splitY - c.yTop}
+                fill={STAGE_COLOR[c.upperStage]}
+              />
+              <rect
+                x={c.x - CONNECTOR_W / 2}
+                y={c.splitY}
+                width={CONNECTOR_W}
+                height={c.yBot - c.splitY}
+                fill={STAGE_COLOR[c.lowerStage]}
+              />
+            </g>
           ))}
 
           {segs.map((s, i) => (
