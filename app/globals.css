@@ -248,3 +248,42 @@ button svg {
   background: var(--foreground);
   color: var(--background);
 }
+
+/* skeleton shimmer — active only while the dashboard is loading.
+   target any element with .skel; descendants also get hidden so the
+   animated block shows clean. */
+.health-page[data-state="loading"] .skel {
+  color: transparent !important;
+  position: relative;
+  overflow: hidden;
+  background: var(--rule);
+  display: inline-block;
+  border-radius: 2px;
+  min-width: 1.4em;
+  min-height: 0.8em;
+  vertical-align: baseline;
+}
+.health-page[data-state="loading"] .skel > * {
+  color: transparent !important;
+  background: transparent !important;
+}
+.health-page[data-state="loading"] .skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--rule-strong) 50%,
+    transparent 100%
+  );
+  animation: health-shimmer 1.6s linear infinite;
+}
+@keyframes health-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

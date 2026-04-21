@@ -75,7 +75,7 @@ export default function SleepCard({
               margin: "0 0 4px",
             }}
           >
-            <span>{sleepH}</span>
+            <span className="skel">{sleepH}</span>
             <span
               style={{
                 fontStyle: "italic",
@@ -85,7 +85,7 @@ export default function SleepCard({
             >
               h
             </span>
-            <span>{String(sleepM).padStart(2, "0")}</span>
+            <span className="skel">{String(sleepM).padStart(2, "0")}</span>
             <span
               style={{
                 fontStyle: "italic",
@@ -262,7 +262,7 @@ function Stat({
           marginTop: 2,
         }}
       >
-        {value}
+        <span className="skel">{value}</span>
         {unit && (
           <span
             style={{

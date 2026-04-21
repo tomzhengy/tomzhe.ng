@@ -50,7 +50,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
           gap: 6,
         }}
       >
-        <span>{strain != null ? strain.toFixed(1) : "—"}</span>
+        <span className="skel">{strain != null ? strain.toFixed(1) : "—"}</span>
       </div>
       <p
         style={{
@@ -117,7 +117,9 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
             letterSpacing: "-0.02em",
           }}
         >
-          {avgHr != null ? Math.round(avgHr) : "—"}
+          <span className="skel">
+            {avgHr != null ? Math.round(avgHr) : "—"}
+          </span>
           <span
             style={{
               fontFamily: "var(--f-serif)",
@@ -175,7 +177,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
               marginTop: 4,
             }}
           >
-            {formatNumber(kj)}
+            <span className="skel">{formatNumber(kj)}</span>
             <span
               style={{
                 fontStyle: "italic",
@@ -208,7 +210,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
               marginTop: 4,
             }}
           >
-            {formatNumber(cals)}
+            <span className="skel">{formatNumber(cals)}</span>
             <span
               style={{
                 fontStyle: "italic",

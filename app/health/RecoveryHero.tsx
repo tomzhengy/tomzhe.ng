@@ -94,7 +94,7 @@ export default function RecoveryHero({
             color: "var(--recovery-hue)",
           }}
         >
-          <span>{score ?? "—"}</span>
+          <span className="skel">{score ?? "—"}</span>
           <span
             style={{
               fontSize: 40,
@@ -275,7 +275,7 @@ function SubMetric({
           gap: 4,
         }}
       >
-        <span>{value}</span>
+        <span className="skel">{value}</span>
         <span
           style={{
             fontFamily: "var(--f-serif)",
