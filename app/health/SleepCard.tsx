@@ -23,6 +23,8 @@ export default function SleepCard({
   const lightMs = stage?.total_light_sleep_time_milli ?? 0;
   const remMs = stage?.total_rem_sleep_time_milli ?? 0;
   const deepMs = stage?.total_slow_wave_sleep_time_milli ?? 0;
+  const pct = (ms: number) =>
+    inBedMs > 0 ? `${Math.round((ms / inBedMs) * 100)}%` : "—";
   const { h: sleepH, m: sleepM } = splitHoursMinutes(asleepMs);
 
   const perf = sleep?.score?.sleep_performance_percentage ?? null;
@@ -165,21 +167,25 @@ export default function SleepCard({
             color="color-mix(in oklab, var(--foreground) 22%, var(--background))"
             label="Awake"
             value={formatDuration(awakeMs)}
+            pct={pct(awakeMs)}
           />
           <Total
             color="color-mix(in oklab, var(--foreground) 45%, var(--background))"
             label="Light"
             value={formatDuration(lightMs)}
+            pct={pct(lightMs)}
           />
           <Total
             color="color-mix(in oklab, var(--foreground) 68%, var(--background))"
             label="REM"
             value={formatDuration(remMs)}
+            pct={pct(remMs)}
           />
           <Total
             color="var(--foreground)"
             label="Deep"
             value={formatDuration(deepMs)}
+            pct={pct(deepMs)}
             last
           />
         </div>
@@ -241,47 +247,73 @@ function Total({
   color,
   label,
   value,
+  pct,
   last,
 }: {
   color: string;
   label: string;
   value: string;
+  pct: string;
   last?: boolean;
 }) {
   return (
     <div
       style={{
         display: "flex",
-        alignItems: "baseline",
-        gap: 8,
+        flexDirection: "column",
+        gap: 6,
         paddingRight: 14,
         borderRight: last ? "none" : "1px solid var(--rule)",
       }}
     >
-      <span
+      <div
         style={{
-          display: "inline-block",
-          width: 8,
-          height: 8,
-          transform: "translateY(1px)",
-          background: color,
-        }}
-      />
-      <span
-        style={{
-          fontFamily: "var(--f-mono)",
-          fontSize: 10,
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          color: "var(--fg-mute)",
-          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
         }}
       >
-        {label}
-      </span>
-      <span style={{ fontFamily: "var(--f-serif)", fontSize: 20 }}>
-        {value}
-      </span>
+        <span
+          style={{
+            display: "inline-block",
+            width: 8,
+            height: 8,
+            background: color,
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            color: "var(--fg-mute)",
+          }}
+        >
+          {label}
+        </span>
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--f-serif)",
+          fontSize: 22,
+          lineHeight: 1.1,
+          display: "flex",
+          alignItems: "baseline",
+          gap: 8,
+        }}
+      >
+        <span>{value}</span>
+        <span
+          style={{
+            fontSize: 14,
+            fontStyle: "italic",
+            color: "var(--fg-mute)",
+          }}
+        >
+          {pct}
+        </span>
+      </div>
     </div>
   );
 }
