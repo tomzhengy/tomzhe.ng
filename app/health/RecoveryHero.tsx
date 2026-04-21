@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Recovery, TrendPoint } from "./types";
 import { formatDateShort, recoveryHue, sanitizeCopyHtml } from "./format";
 import Sparkline from "./Sparkline";
@@ -19,6 +20,8 @@ export default function RecoveryHero({
   headlineHtml,
   subHtml,
 }: RecoveryHeroProps) {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
   const score = recovery?.score?.recovery_score ?? null;
   const hrv = recovery?.score?.hrv_rmssd_milli ?? null;
   const rhr = recovery?.score?.resting_heart_rate ?? null;
@@ -157,6 +160,8 @@ export default function RecoveryHero({
           series={hrvSeries}
           seriesDigits={0}
           position="tl"
+          hoverIdx={hoverIdx}
+          onHoverChange={setHoverIdx}
         />
         <SubMetric
           label="Resting Heart Rate"
@@ -170,6 +175,8 @@ export default function RecoveryHero({
           series={rhrSeries}
           seriesDigits={0}
           position="tr"
+          hoverIdx={hoverIdx}
+          onHoverChange={setHoverIdx}
         />
         <SubMetric
           label="Blood Oxygen"
@@ -180,6 +187,8 @@ export default function RecoveryHero({
           series={spo2Series}
           seriesDigits={1}
           position="bl"
+          hoverIdx={hoverIdx}
+          onHoverChange={setHoverIdx}
         />
         <SubMetric
           label="Skin Temperature"
@@ -190,6 +199,8 @@ export default function RecoveryHero({
           series={tempSeries}
           seriesDigits={1}
           position="br"
+          hoverIdx={hoverIdx}
+          onHoverChange={setHoverIdx}
         />
       </div>
     </section>
@@ -206,6 +217,8 @@ function SubMetric({
   series,
   seriesDigits = 0,
   position,
+  hoverIdx,
+  onHoverChange,
 }: {
   label: string;
   value: string;
@@ -216,6 +229,8 @@ function SubMetric({
   series: number[];
   seriesDigits?: number;
   position: "tl" | "tr" | "bl" | "br";
+  hoverIdx: number | null;
+  onHoverChange: (idx: number | null) => void;
 }) {
   const top = position === "tl" || position === "tr";
   const left = position === "tl" || position === "bl";
@@ -296,7 +311,13 @@ function SubMetric({
       >
         {caption}
       </div>
-      <Sparkline values={series} unit={unit} digits={seriesDigits} />
+      <Sparkline
+        values={series}
+        unit={unit}
+        digits={seriesDigits}
+        sharedHoverIdx={hoverIdx}
+        onHoverChange={onHoverChange}
+      />
     </div>
   );
 }

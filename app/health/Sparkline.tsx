@@ -10,6 +10,8 @@ interface SparklineProps {
   dotColor?: string;
   unit?: string;
   digits?: number;
+  sharedHoverIdx?: number | null;
+  onHoverChange?: (idx: number | null) => void;
 }
 
 export default function Sparkline({
@@ -20,13 +22,13 @@ export default function Sparkline({
   dotColor = "var(--accent)",
   unit = "",
   digits = 0,
+  sharedHoverIdx,
+  onHoverChange,
 }: SparklineProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [hover, setHover] = useState<{
-    idx: number;
-    clientX: number;
-    clientY: number;
-  } | null>(null);
+  const [localIdx, setLocalIdx] = useState<number | null>(null);
+  const shared = onHoverChange != null;
+  const hoverIdx = shared ? (sharedHoverIdx ?? null) : localIdx;
 
   if (!values.length) {
     return (
@@ -71,18 +73,21 @@ export default function Sparkline({
     const svgX = ((e.clientX - rect.left) / rect.width) * width;
     let idx = Math.round((svgX - padX) / (step || 1));
     idx = Math.max(0, Math.min(clean.length - 1, idx));
-    setHover({
-      idx,
-      clientX: e.clientX - rect.left,
-      clientY: e.clientY - rect.top,
-    });
+    if (shared) onHoverChange!(idx);
+    else setLocalIdx(idx);
   };
 
-  const hoverValue = hover ? clean[hover.idx] : null;
-  const hoverX = hover ? xFor(hover.idx) : 0;
+  const handleLeave = () => {
+    if (shared) onHoverChange!(null);
+    else setLocalIdx(null);
+  };
+
+  const hoverValue =
+    hoverIdx != null && hoverIdx < clean.length ? clean[hoverIdx] : null;
+  const hoverX = hoverIdx != null ? xFor(hoverIdx) : 0;
   const hoverY = hoverValue != null ? yFor(hoverValue) : 0;
 
-  const daysAgo = hover ? clean.length - 1 - hover.idx : 0;
+  const daysAgo = hoverIdx != null ? clean.length - 1 - hoverIdx : 0;
   const dayLabel =
     daysAgo === 0
       ? "today"
@@ -106,7 +111,7 @@ export default function Sparkline({
           height={6}
           fill={dotColor}
         />
-        {hover && hoverValue != null && (
+        {hoverIdx != null && hoverValue != null && (
           <>
             <line
               x1={hoverX}
@@ -137,11 +142,11 @@ export default function Sparkline({
           fill="transparent"
           style={{ cursor: "crosshair" }}
           onMouseMove={handleMove}
-          onMouseLeave={() => setHover(null)}
+          onMouseLeave={handleLeave}
         />
       </svg>
 
-      {hover && hoverValue != null && (
+      {hoverIdx != null && hoverValue != null && (
         <div
           style={{
             position: "absolute",
