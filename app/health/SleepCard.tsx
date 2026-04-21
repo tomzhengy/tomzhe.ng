@@ -186,7 +186,6 @@ export default function SleepCard({
             label="Deep"
             value={formatDuration(deepMs)}
             pct={pct(deepMs)}
-            last
           />
         </div>
       </div>
@@ -248,13 +247,11 @@ function Total({
   label,
   value,
   pct,
-  last,
 }: {
   color: string;
   label: string;
   value: string;
   pct: string;
-  last?: boolean;
 }) {
   return (
     <div
@@ -262,8 +259,6 @@ function Total({
         display: "flex",
         flexDirection: "column",
         gap: 6,
-        paddingRight: 14,
-        borderRight: last ? "none" : "1px solid var(--rule)",
       }}
     >
       <div
