@@ -116,39 +116,16 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
         ))}
 
         {hover && (
-          <>
-            <line
-              x1={activePx}
-              x2={activePx}
-              y1={PAD.t}
-              y2={PAD.t + innerH}
-              stroke="var(--fg-mute)"
-              strokeWidth={1}
-              strokeDasharray="2 3"
-              pointerEvents="none"
-            />
-            {LINES.map((ln) => {
-              const raw = (
-                active as unknown as Record<
-                  string,
-                  number | string | null
-                > | null
-              )?.[ln.key];
-              if (raw == null || typeof raw !== "number") return null;
-              return (
-                <circle
-                  key={`dot-${ln.key}`}
-                  cx={activePx}
-                  cy={yForNorm(raw, ln.min, ln.max)}
-                  r={4.5}
-                  fill={ln.color}
-                  stroke="var(--background)"
-                  strokeWidth={2}
-                  pointerEvents="none"
-                />
-              );
-            })}
-          </>
+          <line
+            x1={activePx}
+            x2={activePx}
+            y1={PAD.t}
+            y2={PAD.t + innerH}
+            stroke="var(--fg-mute)"
+            strokeWidth={1}
+            strokeDasharray="2 3"
+            pointerEvents="none"
+          />
         )}
 
         <rect
@@ -165,6 +142,40 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
           }}
         />
       </svg>
+
+      {hover && active && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            height: VIEW_H,
+            pointerEvents: "none",
+          }}
+        >
+          {LINES.map((ln) => {
+            const raw = (
+              active as unknown as Record<string, number | string | null> | null
+            )?.[ln.key];
+            if (raw == null || typeof raw !== "number") return null;
+            return (
+              <div
+                key={`dot-${ln.key}`}
+                style={{
+                  position: "absolute",
+                  left: `${(activePx / VIEW_W) * 100}%`,
+                  top: yForNorm(raw, ln.min, ln.max),
+                  width: 9,
+                  height: 9,
+                  borderRadius: "50%",
+                  background: ln.color,
+                  border: "2px solid var(--background)",
+                  transform: "translate(-50%, -50%)",
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
 
       <div
         style={{
