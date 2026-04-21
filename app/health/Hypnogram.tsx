@@ -16,22 +16,32 @@ interface HypnogramProps {
   endIso: string;
 }
 
-const PLATEAU_Y: Record<Stage, number> = {
-  awake: 16,
-  rem: 46,
-  light: 82,
-  deep: 118,
+// horizontal band per stage: top = y offset, h = band height
+const BAND: Record<Stage, { top: number; h: number }> = {
+  awake: { top: 10, h: 24 },
+  rem: { top: 42, h: 28 },
+  light: { top: 78, h: 30 },
+  deep: { top: 116, h: 22 },
 };
-const FLOOR = 136;
 const VIEW_W = 800;
-const VIEW_H = 140;
+const VIEW_H = 148;
 
+// monochromatic depth scale: awake (lightest) -> deep (darkest)
 const STAGE_COLOR: Record<Stage, string> = {
-  awake: "var(--accent)",
-  rem: "color-mix(in oklab, var(--select) 70%, var(--fg))",
-  light: "var(--select)",
-  deep: "color-mix(in oklab, var(--select) 55%, #000)",
+  awake: "color-mix(in oklab, var(--foreground) 22%, var(--background))",
+  light: "color-mix(in oklab, var(--foreground) 45%, var(--background))",
+  rem: "color-mix(in oklab, var(--foreground) 68%, var(--background))",
+  deep: "var(--foreground)",
 };
+
+const STAGE_LABEL: Record<Stage, string> = {
+  awake: "AWAKE",
+  rem: "REM",
+  light: "LIGHT",
+  deep: "DEEP",
+};
+
+const STAGE_ORDER: Stage[] = ["awake", "rem", "light", "deep"];
 
 export default function Hypnogram({
   segments,
@@ -54,23 +64,12 @@ export default function Hypnogram({
         stage: s.stage,
         x0: scale(s.startMs),
         x1: scale(s.endMs),
-        y: PLATEAU_Y[s.stage],
+        band: BAND[s.stage],
         durationMin: Math.round((s.endMs - s.startMs) / 60000),
       })),
       totalMs: total,
     };
   }, [segments]);
-
-  const outlinePath = useMemo(() => {
-    if (!segs.length) return "";
-    return segs
-      .map((s, i) =>
-        i === 0
-          ? `M ${s.x0} ${s.y} L ${s.x1} ${s.y}`
-          : ` L ${s.x0} ${s.y} L ${s.x1} ${s.y}`,
-      )
-      .join("");
-  }, [segs]);
 
   const axisLabels = useMemo(() => {
     if (!segments.length) return [] as string[];
@@ -104,77 +103,106 @@ export default function Hypnogram({
   void startIso;
   void endIso;
 
+  const labelStyle: React.CSSProperties = {
+    position: "absolute",
+    left: 0,
+    fontFamily: "var(--f-mono)",
+    fontSize: 10,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "var(--fg-mute)",
+    lineHeight: 1,
+  };
+
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
-      <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        preserveAspectRatio="none"
-        style={{ width: "100%", height: 140, display: "block" }}
-      >
-        {segs.map((s, i) => (
-          <rect
-            key={`fill-${i}`}
-            x={s.x0}
-            y={s.y}
-            width={Math.max(0, s.x1 - s.x0)}
-            height={FLOOR - s.y}
-            fill={STAGE_COLOR[s.stage]}
-            fillOpacity={0.22}
-          />
-        ))}
-
-        {outlinePath && (
-          <path
-            d={outlinePath}
-            fill="none"
-            stroke="var(--fg)"
-            strokeWidth={1.25}
-            strokeOpacity={0.85}
-            strokeLinejoin="miter"
-          />
-        )}
-
-        {segs.map((s, i) => (
-          <line
-            key={`cap-${i}`}
-            x1={s.x0}
-            x2={s.x1}
-            y1={s.y}
-            y2={s.y}
-            stroke={STAGE_COLOR[s.stage]}
-            strokeWidth={2.5}
-          />
-        ))}
-
-        {segs.map((s, i) => (
-          <rect
-            key={`hit-${i}`}
-            x={s.x0}
-            y={0}
-            width={Math.max(0, s.x1 - s.x0)}
-            height={FLOOR}
-            fill="transparent"
-            style={{ cursor: "pointer" }}
-            onMouseMove={(e) => handleMove(e, s)}
-            onMouseLeave={() => setTip(null)}
-          />
-        ))}
-      </svg>
-
+    <div
+      ref={wrapRef}
+      style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+      }}
+    >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontFamily: "var(--f-mono)",
-          fontSize: 10,
-          letterSpacing: "0.08em",
-          color: "var(--fg-mute)",
-          marginTop: 6,
+          position: "relative",
+          width: 44,
+          height: VIEW_H,
+          flexShrink: 0,
         }}
       >
-        {axisLabels.map((l, i) => (
-          <span key={i}>{l}</span>
+        {STAGE_ORDER.map((st) => (
+          <span
+            key={`label-${st}`}
+            style={{
+              ...labelStyle,
+              top: BAND[st].top + BAND[st].h / 2 - 5,
+            }}
+          >
+            {STAGE_LABEL[st]}
+          </span>
         ))}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <svg
+          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+          preserveAspectRatio="none"
+          style={{ width: "100%", height: VIEW_H, display: "block" }}
+        >
+          {STAGE_ORDER.map((st) => (
+            <rect
+              key={`track-${st}`}
+              x={0}
+              y={BAND[st].top}
+              width={VIEW_W}
+              height={BAND[st].h}
+              fill="var(--rule)"
+            />
+          ))}
+
+          {segs.map((s, i) => (
+            <rect
+              key={`fill-${i}`}
+              x={s.x0}
+              y={s.band.top}
+              width={Math.max(0, s.x1 - s.x0)}
+              height={s.band.h}
+              fill={STAGE_COLOR[s.stage]}
+            />
+          ))}
+
+          {segs.map((s, i) => (
+            <rect
+              key={`hit-${i}`}
+              x={s.x0}
+              y={0}
+              width={Math.max(0, s.x1 - s.x0)}
+              height={VIEW_H}
+              fill="transparent"
+              style={{ cursor: "pointer" }}
+              onMouseMove={(e) => handleMove(e, s)}
+              onMouseLeave={() => setTip(null)}
+            />
+          ))}
+        </svg>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            letterSpacing: "0.08em",
+            color: "var(--fg-mute)",
+            marginTop: 6,
+          }}
+        >
+          {axisLabels.map((l, i) => (
+            <span key={i}>{l}</span>
+          ))}
+        </div>
       </div>
 
       {tip && (
@@ -188,7 +216,7 @@ export default function Hypnogram({
             padding: "8px 10px",
             fontFamily: "var(--f-mono)",
             fontSize: 11,
-            color: "var(--fg)",
+            color: "var(--foreground)",
             pointerEvents: "none",
             whiteSpace: "nowrap",
             zIndex: 10,

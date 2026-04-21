@@ -145,31 +145,6 @@ export default function SleepCard({
           paddingTop: 22,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            gap: 18,
-            marginBottom: 12,
-            fontFamily: "var(--f-mono)",
-            fontSize: 10,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "var(--fg-mute)",
-            flexWrap: "wrap",
-          }}
-        >
-          <Legend color="var(--accent)" label="Awake" />
-          <Legend
-            color="color-mix(in oklab, var(--select) 70%, var(--fg))"
-            label="REM"
-          />
-          <Legend color="var(--select)" label="Light" />
-          <Legend
-            color="color-mix(in oklab, var(--select) 55%, #000)"
-            label="Deep (SWS)"
-          />
-        </div>
-
         <Hypnogram
           segments={segments}
           startIso={sleep?.start ?? ""}
@@ -187,22 +162,22 @@ export default function SleepCard({
           }}
         >
           <Total
-            color="var(--accent)"
+            color="color-mix(in oklab, var(--foreground) 22%, var(--background))"
             label="Awake"
             value={formatDuration(awakeMs)}
           />
           <Total
-            color="color-mix(in oklab, var(--select) 70%, var(--fg))"
-            label="REM"
-            value={formatDuration(remMs)}
-          />
-          <Total
-            color="var(--select)"
+            color="color-mix(in oklab, var(--foreground) 45%, var(--background))"
             label="Light"
             value={formatDuration(lightMs)}
           />
           <Total
-            color="color-mix(in oklab, var(--select) 55%, #000)"
+            color="color-mix(in oklab, var(--foreground) 68%, var(--background))"
+            label="REM"
+            value={formatDuration(remMs)}
+          />
+          <Total
+            color="var(--foreground)"
             label="Deep"
             value={formatDuration(deepMs)}
             last
@@ -210,24 +185,6 @@ export default function SleepCard({
         </div>
       </div>
     </article>
-  );
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span>
-      <span
-        style={{
-          display: "inline-block",
-          width: 10,
-          height: 10,
-          marginRight: 6,
-          verticalAlign: -1,
-          background: color,
-        }}
-      />
-      {label}
-    </span>
   );
 }
 
