@@ -30,6 +30,8 @@ export async function GET() {
     WHOOP_REFRESH_TOKEN: process.env.WHOOP_REFRESH_TOKEN,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 
   return NextResponse.json(payload);

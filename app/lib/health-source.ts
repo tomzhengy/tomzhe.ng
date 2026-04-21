@@ -14,6 +14,11 @@ export interface HealthEnv {
   WHOOP_REFRESH_TOKEN?: string;
   OPENROUTER_API_KEY?: string;
   OPENROUTER_MODEL?: string;
+  // supabase persistence for the rotated refresh token. optional — if unset
+  // we fall back to WHOOP_REFRESH_TOKEN from env (good for first boot, bad
+  // long-term since whoop rotates on every exchange).
+  NEXT_PUBLIC_SUPABASE_URL?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
 }
 
 export interface TrendPoint {
@@ -102,17 +107,26 @@ function ensureEnv(env: HealthEnv) {
   const missing: string[] = [];
   if (!env.WHOOP_CLIENT_ID) missing.push("WHOOP_CLIENT_ID");
   if (!env.WHOOP_CLIENT_SECRET) missing.push("WHOOP_CLIENT_SECRET");
-  if (!env.WHOOP_REFRESH_TOKEN) missing.push("WHOOP_REFRESH_TOKEN");
   if (!env.OPENROUTER_API_KEY) missing.push("OPENROUTER_API_KEY");
+  // WHOOP_REFRESH_TOKEN is only required on first boot; once supabase has
+  // a token stored, env can be empty.
   if (missing.length) {
     throw new Error(`missing env: ${missing.join(", ")}`);
   }
 }
 
 async function exchangeRefreshToken(env: HealthEnv): Promise<string> {
+  const currentToken =
+    (await readStoredRefreshToken(env)) || env.WHOOP_REFRESH_TOKEN;
+  if (!currentToken) {
+    throw new Error(
+      "no refresh token available — seed whoop_tokens or set WHOOP_REFRESH_TOKEN",
+    );
+  }
+
   const body = new URLSearchParams({
     grant_type: "refresh_token",
-    refresh_token: env.WHOOP_REFRESH_TOKEN!,
+    refresh_token: currentToken,
     client_id: env.WHOOP_CLIENT_ID!,
     client_secret: env.WHOOP_CLIENT_SECRET!,
     scope: "offline",
@@ -126,11 +140,67 @@ async function exchangeRefreshToken(env: HealthEnv): Promise<string> {
     const t = await r.text();
     throw new Error(`whoop token exchange failed: ${r.status} ${t}`);
   }
-  const json = (await r.json()) as { access_token?: string };
+  const json = (await r.json()) as {
+    access_token?: string;
+    refresh_token?: string;
+  };
   if (!json.access_token) {
     throw new Error("whoop token response missing access_token");
   }
+
+  // persist the rotated refresh token so the next call doesn't use a stale one.
+  if (json.refresh_token && json.refresh_token !== currentToken) {
+    await writeStoredRefreshToken(env, json.refresh_token);
+  }
+
   return json.access_token;
+}
+
+async function readStoredRefreshToken(env: HealthEnv): Promise<string | null> {
+  const base = env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!base || !key) return null;
+  try {
+    const r = await fetch(
+      `${base}/rest/v1/whoop_tokens?id=eq.current&select=refresh_token`,
+      {
+        headers: { apikey: key, authorization: `Bearer ${key}` },
+      },
+    );
+    if (!r.ok) return null;
+    const rows = (await r.json()) as Array<{ refresh_token?: string }>;
+    const val = rows?.[0]?.refresh_token;
+    return val && val.length > 0 ? val : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeStoredRefreshToken(
+  env: HealthEnv,
+  refreshToken: string,
+): Promise<void> {
+  const base = env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!base || !key) return;
+  try {
+    await fetch(`${base}/rest/v1/whoop_tokens?id=eq.current`, {
+      method: "PATCH",
+      headers: {
+        apikey: key,
+        authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+        prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        refresh_token: refreshToken,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch {
+    // swallow; next call will still work with the rotated token in memory
+    // only if the exchange succeeds, and env fallback remains as insurance.
+  }
 }
 
 async function whoopFetch(accessToken: string, path: string): Promise<unknown> {
