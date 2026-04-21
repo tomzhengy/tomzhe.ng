@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ThemeToggle from "../components/ui/theme/ThemeToggle";
 import type { HealthPayload, TrendPoint } from "./types";
 import Masthead from "./Masthead";
 import Dateline from "./Dateline";
@@ -74,10 +73,7 @@ export default function Dashboard() {
         lineHeight: 1.5,
       }}
     >
-      <Masthead
-        syncedAt={payload?.syncedAt ?? null}
-        themeToggle={<ThemeToggle />}
-      />
+      <Masthead syncedAt={payload?.syncedAt ?? null} />
 
       <Dateline cycleStartIso={payload?.cycle?.start ?? null} nowIso={nowIso} />
 

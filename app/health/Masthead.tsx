@@ -5,10 +5,9 @@ import { formatRelativeTime } from "./format";
 
 interface MastheadProps {
   syncedAt: number | null;
-  themeToggle: React.ReactNode;
 }
 
-export default function Masthead({ syncedAt, themeToggle }: MastheadProps) {
+export default function Masthead({ syncedAt }: MastheadProps) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -59,25 +58,22 @@ export default function Masthead({ syncedAt, themeToggle }: MastheadProps) {
         </span>
       </div>
 
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "8px 12px",
-            border: "1px solid var(--rule-strong)",
-            fontFamily: "var(--f-mono)",
-            fontSize: 11,
-            letterSpacing: "0.08em",
-            color: "var(--fg-soft)",
-            background: "transparent",
-          }}
-        >
-          {syncLabel}
-        </span>
-        {themeToggle}
-      </div>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 12px",
+          border: "1px solid var(--rule-strong)",
+          fontFamily: "var(--f-mono)",
+          fontSize: 11,
+          letterSpacing: "0.08em",
+          color: "var(--fg-soft)",
+          background: "transparent",
+        }}
+      >
+        {syncLabel}
+      </span>
     </header>
   );
 }
