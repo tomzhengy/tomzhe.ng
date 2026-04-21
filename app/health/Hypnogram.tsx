@@ -225,6 +225,7 @@ export default function Hypnogram({
                 y2={y}
                 stroke="var(--rule)"
                 strokeWidth={1}
+                strokeDasharray="2 4"
               />
             );
           })}
