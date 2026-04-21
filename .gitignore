@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# wrangler local state
+.wrangler/
+
 # photos metadata (fetched from R2 at build time)
 /data/photos.json
 
