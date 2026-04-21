@@ -27,24 +27,12 @@ export default function Masthead({ syncedAt, themeToggle }: MastheadProps) {
         display: "grid",
         gridTemplateColumns: "1fr auto",
         gap: 24,
-        alignItems: "end",
+        alignItems: "center",
         paddingBottom: 22,
         borderBottom: "1px solid var(--rule-strong)",
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
-        <span
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            background: "var(--accent)",
-            boxShadow:
-              "0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent)",
-            marginRight: 2,
-            animation: "health-pulse 2.6s ease-in-out infinite",
-          }}
-        />
         <h1
           style={{
             fontFamily: "var(--f-serif)",
@@ -65,7 +53,6 @@ export default function Masthead({ syncedAt, themeToggle }: MastheadProps) {
             textTransform: "uppercase",
             color: "var(--fg-mute)",
             marginLeft: 8,
-            paddingBottom: 8,
           }}
         >
           Personal Health · Vol. 04
@@ -91,13 +78,6 @@ export default function Masthead({ syncedAt, themeToggle }: MastheadProps) {
         </span>
         {themeToggle}
       </div>
-
-      <style>{`
-        @keyframes health-pulse {
-          0%, 100% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 10%, transparent); }
-          50%      { box-shadow: 0 0 0 9px color-mix(in oklab, var(--accent) 0%, transparent); }
-        }
-      `}</style>
     </header>
   );
 }
