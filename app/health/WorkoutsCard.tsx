@@ -248,7 +248,7 @@ function ZoneBar({
       : 0;
 
   return (
-    <div style={{ position: "relative" }} ref={wrapRef}>
+    <div style={{ position: "relative", justifySelf: "start" }} ref={wrapRef}>
       <div style={{ display: "flex", gap: 2, width: 220, height: 26 }}>
         {ZONES.map((z, i) => {
           const ms = zones
