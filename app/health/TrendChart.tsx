@@ -22,7 +22,6 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
   const [hover, setHover] = useState<{
     idx: number;
     clientX: number;
-    clientY: number;
   } | null>(null);
 
   const innerW = VIEW_W - PAD.l - PAD.r;
@@ -77,7 +76,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
     const svgX = ((e.clientX - r.left) / r.width) * VIEW_W;
     let idx = Math.round((svgX - PAD.l) / (stepX || 1));
     idx = Math.max(0, Math.min(n - 1, idx));
-    setHover({ idx, clientX: e.clientX - r.left, clientY: e.clientY - r.top });
+    setHover({ idx, clientX: e.clientX - r.left });
   };
 
   const active = hover ? data[hover.idx] : null;
@@ -200,7 +199,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
             left:
               (activePx / VIEW_W) *
               (wrapRef.current?.getBoundingClientRect().width ?? VIEW_W),
-            top: hover.clientY,
+            top: 8,
             background: "var(--card-elev)",
             border: "1px solid var(--rule-strong)",
             padding: "10px 12px",
@@ -210,7 +209,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
             pointerEvents: "none",
             whiteSpace: "nowrap",
             zIndex: 10,
-            transform: "translate(-50%, -120%)",
+            transform: "translate(-50%, 0)",
             minWidth: 140,
           }}
         >

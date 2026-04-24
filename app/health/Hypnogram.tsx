@@ -50,10 +50,12 @@ export default function Hypnogram({
   startIso,
   endIso,
 }: HypnogramProps) {
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(
-    null,
-  );
+  const svgWrapRef = useRef<HTMLDivElement | null>(null);
+  const [tip, setTip] = useState<{
+    xPx: number;
+    svgX: number;
+    text: string;
+  } | null>(null);
 
   const { segs, connectors, totalMs } = useMemo(() => {
     if (!segments.length) return { segs: [], connectors: [], totalMs: 1 };
@@ -120,12 +122,14 @@ export default function Hypnogram({
     e: React.MouseEvent<SVGRectElement>,
     seg: (typeof segs)[number],
   ) => {
-    const wrap = wrapRef.current;
+    const wrap = svgWrapRef.current;
     if (!wrap) return;
     const r = wrap.getBoundingClientRect();
+    const xPx = e.clientX - r.left;
+    const svgX = r.width > 0 ? (xPx / r.width) * VIEW_W : 0;
     setTip({
-      x: e.clientX - r.left,
-      y: e.clientY - r.top,
+      xPx,
+      svgX,
       text: `${seg.stage.toUpperCase()} · ${seg.durationMin} min`,
     });
   };
@@ -147,7 +151,6 @@ export default function Hypnogram({
 
   return (
     <div
-      ref={wrapRef}
       style={{
         position: "relative",
         display: "flex",
@@ -176,7 +179,10 @@ export default function Hypnogram({
         ))}
       </div>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div
+        ref={svgWrapRef}
+        style={{ flex: 1, minWidth: 0, position: "relative" }}
+      >
         <svg
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
           preserveAspectRatio="none"
@@ -265,6 +271,19 @@ export default function Hypnogram({
               onMouseLeave={() => setTip(null)}
             />
           ))}
+
+          {tip && (
+            <line
+              x1={tip.svgX}
+              x2={tip.svgX}
+              y1={0}
+              y2={VIEW_H}
+              stroke="var(--fg-mute)"
+              strokeWidth={1}
+              strokeDasharray="2 3"
+              pointerEvents="none"
+            />
+          )}
         </svg>
 
         <div
@@ -282,29 +301,29 @@ export default function Hypnogram({
             <span key={i}>{l}</span>
           ))}
         </div>
-      </div>
 
-      {tip && (
-        <div
-          style={{
-            position: "absolute",
-            left: tip.x,
-            top: tip.y,
-            background: "var(--card-elev)",
-            border: "1px solid var(--rule-strong)",
-            padding: "8px 10px",
-            fontFamily: "var(--f-mono)",
-            fontSize: 11,
-            color: "var(--foreground)",
-            pointerEvents: "none",
-            whiteSpace: "nowrap",
-            zIndex: 10,
-            transform: "translate(-50%, -110%)",
-          }}
-        >
-          {tip.text}
-        </div>
-      )}
+        {tip && (
+          <div
+            style={{
+              position: "absolute",
+              left: tip.xPx,
+              top: 8,
+              background: "var(--card-elev)",
+              border: "1px solid var(--rule-strong)",
+              padding: "8px 10px",
+              fontFamily: "var(--f-mono)",
+              fontSize: 11,
+              color: "var(--foreground)",
+              pointerEvents: "none",
+              whiteSpace: "nowrap",
+              zIndex: 10,
+              transform: "translate(-50%, 0)",
+            }}
+          >
+            {tip.text}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
