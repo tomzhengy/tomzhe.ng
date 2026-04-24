@@ -37,7 +37,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
         position: "relative",
       }}
     >
-      <CardHead title="Strain" subtitle="Day · 0–21 scale" />
+      <CardHead title="Strain" subtitle="0–21 scale" />
       <div
         style={{
           fontFamily: "var(--f-serif)",
@@ -234,7 +234,7 @@ export function CardHead({
   subtitleAccent,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   subtitleAccent?: string;
 }) {
   return (
@@ -269,17 +269,19 @@ export function CardHead({
           </span>
         )}
       </h3>
-      <span
-        style={{
-          fontFamily: "var(--f-mono)",
-          fontSize: 10.5,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: "var(--fg-mute)",
-        }}
-      >
-        {subtitle}
-      </span>
+      {subtitle && (
+        <span
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 10.5,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "var(--fg-mute)",
+          }}
+        >
+          {subtitle}
+        </span>
+      )}
     </div>
   );
 }

@@ -49,12 +49,7 @@ export default function SleepCard({
         position: "relative",
       }}
     >
-      <CardHead
-        title="Sleep"
-        subtitle={
-          perf != null ? `Performance ${Math.round(perf)}%` : "Performance —"
-        }
-      />
+      <CardHead title="Sleep" />
 
       <div
         style={{
