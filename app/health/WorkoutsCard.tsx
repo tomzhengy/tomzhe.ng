@@ -116,7 +116,11 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
   const score = workout.score;
   const zones = score?.zone_durations;
   const totalZone = zones
-    ? Object.values(zones).reduce((s, v) => s + (v ?? 0), 0)
+    ? (zones.zone_one_milli ?? 0) +
+      (zones.zone_two_milli ?? 0) +
+      (zones.zone_three_milli ?? 0) +
+      (zones.zone_four_milli ?? 0) +
+      (zones.zone_five_milli ?? 0)
     : 0;
   const pct = (ms: number | undefined) =>
     totalZone > 0 ? ((ms ?? 0) / totalZone) * 100 : 0;
@@ -241,7 +245,8 @@ function ZoneBar({
     y: number;
   } | null>(null);
 
-  const hoveredZone = hover != null ? ZONES[hover.idx] : null;
+  const visibleZones = ZONES.filter((z) => z.key !== "zone_zero_milli");
+  const hoveredZone = hover != null ? visibleZones[hover.idx] : null;
   const hoveredMs =
     hoveredZone && zones
       ? ((zones as unknown as Record<string, number>)[hoveredZone.key] ?? 0)
@@ -250,7 +255,7 @@ function ZoneBar({
   return (
     <div style={{ position: "relative", justifySelf: "start" }} ref={wrapRef}>
       <div style={{ display: "flex", gap: 2, width: 220, height: 26 }}>
-        {ZONES.map((z, i) => {
+        {visibleZones.map((z, i) => {
           const ms = zones
             ? ((zones as unknown as Record<string, number>)[z.key] ?? 0)
             : 0;
