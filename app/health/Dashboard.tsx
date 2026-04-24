@@ -61,7 +61,11 @@ export default function Dashboard() {
   }, [payload]);
 
   const nowIso = new Date().toISOString();
-  const trend: TrendPoint[] = payload?.trend ?? [];
+  const trend = useMemo<TrendPoint[]>(
+    () =>
+      [...(payload?.trend ?? [])].sort((a, b) => a.date.localeCompare(b.date)),
+    [payload],
+  );
 
   return (
     <div
@@ -125,7 +129,6 @@ export default function Dashboard() {
         >
           <CardHead
             title="Trends"
-            subtitle="Click any day for details · hover for values"
             subtitleAccent="recovery, strain & sleep over time."
           />
           <TrendChart data={trend} onPointClick={setDrillIdx} />
