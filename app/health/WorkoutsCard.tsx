@@ -83,7 +83,7 @@ export default function WorkoutsCard({ workouts }: WorkoutsCardProps) {
       <CardHead
         title="Workouts"
         subtitle="Heart-rate zones · z1→z5"
-        subtitleAccent={`${workouts.length} session${workouts.length === 1 ? "" : "s"} this week.`}
+        subtitleAccent={`last ${Math.min(workouts.length, 5)} session${Math.min(workouts.length, 5) === 1 ? "" : "s"}.`}
       />
 
       {workouts.length === 0 && (
