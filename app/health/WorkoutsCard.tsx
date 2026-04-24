@@ -82,8 +82,8 @@ export default function WorkoutsCard({ workouts }: WorkoutsCardProps) {
     >
       <CardHead
         title="Workouts"
-        subtitle="Heart-rate zones · z1→z5"
         subtitleAccent={`last ${Math.min(workouts.length, 5)} session${Math.min(workouts.length, 5) === 1 ? "" : "s"}.`}
+        rightSlot={<ZoneLegend />}
       />
 
       {workouts.length === 0 && (
@@ -286,25 +286,6 @@ function ZoneBar({
           );
         })}
       </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontFamily: "var(--f-mono)",
-          fontSize: 9.5,
-          color: "var(--fg-mute)",
-          letterSpacing: "0.1em",
-          marginTop: 5,
-          width: 220,
-        }}
-      >
-        <span>Z1</span>
-        <span>Z2</span>
-        <span>Z3</span>
-        <span>Z4</span>
-        <span>Z5</span>
-      </div>
-
       {hover && hoveredZone && (
         <div
           style={{
@@ -340,6 +321,40 @@ function ZoneBar({
           <div>{formatZoneDuration(hoveredMs)}</div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ZoneLegend() {
+  const items = ZONES.filter((z) => z.key !== "zone_zero_milli");
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 12,
+        fontFamily: "var(--f-mono)",
+        fontSize: 10,
+        letterSpacing: "0.14em",
+        textTransform: "uppercase",
+        color: "var(--fg-mute)",
+      }}
+    >
+      {items.map((z, i) => (
+        <span
+          key={z.key}
+          style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+        >
+          <span
+            style={{
+              display: "inline-block",
+              width: 10,
+              height: 10,
+              background: z.bg,
+            }}
+          />
+          Z{i + 1}
+        </span>
+      ))}
     </div>
   );
 }

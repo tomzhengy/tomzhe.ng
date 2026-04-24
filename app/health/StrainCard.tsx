@@ -232,10 +232,12 @@ export function CardHead({
   title,
   subtitle,
   subtitleAccent,
+  rightSlot,
 }: {
   title: string;
   subtitle?: string;
   subtitleAccent?: string;
+  rightSlot?: React.ReactNode;
 }) {
   return (
     <div
@@ -269,19 +271,21 @@ export function CardHead({
           </span>
         )}
       </h3>
-      {subtitle && (
-        <span
-          style={{
-            fontFamily: "var(--f-mono)",
-            fontSize: 10.5,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "var(--fg-mute)",
-          }}
-        >
-          {subtitle}
-        </span>
-      )}
+      {rightSlot
+        ? rightSlot
+        : subtitle && (
+            <span
+              style={{
+                fontFamily: "var(--f-mono)",
+                fontSize: 10.5,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "var(--fg-mute)",
+              }}
+            >
+              {subtitle}
+            </span>
+          )}
     </div>
   );
 }
