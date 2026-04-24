@@ -85,6 +85,7 @@ export default function RecoveryHero({
           Recovery · {formatDateShort(nowIso)}
         </div>
         <div
+          className="hp-hero-score"
           style={{
             fontFamily: "var(--f-serif)",
             fontSize: 180,
@@ -139,6 +140,7 @@ export default function RecoveryHero({
       </div>
 
       <div
+        className="hp-hero-metrics"
         style={{
           position: "relative",
           zIndex: 1,

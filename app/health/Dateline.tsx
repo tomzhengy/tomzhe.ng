@@ -29,6 +29,7 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 
   return (
     <section
+      className="hp-dateline"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr auto",

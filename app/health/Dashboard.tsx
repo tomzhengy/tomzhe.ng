@@ -100,6 +100,7 @@ export default function Dashboard() {
       />
 
       <section
+        className="hp-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(12, 1fr)",

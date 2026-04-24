@@ -287,3 +287,89 @@ button svg {
     transform: translateX(100%);
   }
 }
+
+/* ---------- health dashboard responsive ---------- */
+@media (max-width: 900px) {
+  .hp-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .hp-grid > article {
+    grid-column: auto !important;
+  }
+  .health-hero {
+    grid-template-columns: 1fr !important;
+    padding: 26px 22px !important;
+    gap: 22px !important;
+  }
+  .hp-workout-row {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .hp-workout-row > :last-child {
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .hp-masthead {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .hp-masthead > :last-child {
+    justify-self: start;
+  }
+  .hp-dateline {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+    gap: 18px !important;
+  }
+  .hp-dateline > :last-child {
+    text-align: left !important;
+  }
+  .hp-dateline h2 {
+    font-size: 44px !important;
+  }
+  .hp-sleep-top {
+    grid-template-columns: 1fr !important;
+  }
+  .hp-hero-metrics {
+    grid-template-columns: 1fr !important;
+  }
+  .hp-hero-metrics > div {
+    border-right: none !important;
+  }
+  .hp-hero-metrics > div:not(:last-child) {
+    border-bottom: 1px solid var(--rule) !important;
+  }
+  .hp-journal {
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+  }
+  .hp-stage-totals {
+    grid-template-columns: 1fr 1fr !important;
+    row-gap: 14px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .hp-hero-score {
+    font-size: 128px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .health-hero h3 {
+    font-size: 26px !important;
+  }
+  .hp-hero-score {
+    font-size: 104px !important;
+  }
+  .hp-strain-energy {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .hp-sleep-stats {
+    gap: 12px 20px !important;
+  }
+}

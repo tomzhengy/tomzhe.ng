@@ -52,6 +52,7 @@ export default function SleepCard({
       <CardHead title="Sleep" />
 
       <div
+        className="hp-sleep-top"
         style={{
           display: "grid",
           gridTemplateColumns: "1.3fr 1fr",
@@ -109,6 +110,7 @@ export default function SleepCard({
           />
         </div>
         <div
+          className="hp-sleep-stats"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
@@ -149,6 +151,7 @@ export default function SleepCard({
         />
 
         <div
+          className="hp-stage-totals"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",

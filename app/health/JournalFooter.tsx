@@ -15,6 +15,7 @@ export default function JournalFooter({
 }: JournalFooterProps) {
   return (
     <footer
+      className="hp-journal"
       style={{
         marginTop: 54,
         paddingTop: 22,

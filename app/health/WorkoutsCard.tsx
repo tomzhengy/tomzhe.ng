@@ -126,6 +126,7 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
 
   return (
     <div
+      className="hp-workout-row"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr 1fr auto",

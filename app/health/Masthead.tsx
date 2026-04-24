@@ -22,6 +22,7 @@ export default function Masthead({ syncedAt }: MastheadProps) {
 
   return (
     <header
+      className="hp-masthead"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr auto",

@@ -147,6 +147,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
       </div>
 
       <div
+        className="hp-strain-energy"
         style={{
           marginTop: 28,
           paddingTop: 20,
