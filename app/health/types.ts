@@ -90,6 +90,22 @@ export interface TrendPoint {
   rhr: number | null;
 }
 
+export interface BodyMeasurement {
+  measuredAt: string;
+  weightKg: number | null;
+  bodyFatPct: number | null;
+  fatMassKg: number | null;
+  fatFreeMassKg: number | null;
+  muscleMassKg: number | null;
+  hydrationKg: number | null;
+  boneMassKg: number | null;
+}
+
+export interface BodyData {
+  latest: BodyMeasurement | null;
+  trend: BodyMeasurement[];
+}
+
 export interface Copy {
   headline: string;
   sub: string;
@@ -110,6 +126,7 @@ export interface HealthPayload {
   sleep: Sleep | null;
   workouts: Workout[];
   trend: TrendPoint[];
+  body: BodyData | null;
   copy: Copy | null;
   message?: string;
 }

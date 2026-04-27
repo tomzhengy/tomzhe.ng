@@ -17,17 +17,42 @@
 
 import { exchangeRefreshToken, whoopFetch, type WhoopEnv } from "./whoop";
 import {
+  exchangeWithingsRefreshToken,
+  withingsGetMeas,
+  type WithingsEnv,
+} from "./withings";
+import {
   buildTrendFromRecords,
   readTrendSince,
   upsertBatch,
+  upsertBodyMeasurements,
+  readBodyMeasurementsSince,
+  readLatestBodyMeasurement,
+  type BodyMeasurementRow,
   type TrendPoint,
 } from "./health-archive";
 
 export type { TrendPoint };
 
-export interface HealthEnv extends WhoopEnv {
+export interface HealthEnv extends WhoopEnv, WithingsEnv {
   OPENROUTER_API_KEY?: string;
   OPENROUTER_MODEL?: string;
+}
+
+export interface BodyMeasurementOut {
+  measuredAt: string;
+  weightKg: number | null;
+  bodyFatPct: number | null;
+  fatMassKg: number | null;
+  fatFreeMassKg: number | null;
+  muscleMassKg: number | null;
+  hydrationKg: number | null;
+  boneMassKg: number | null;
+}
+
+export interface BodyData {
+  latest: BodyMeasurementOut | null;
+  trend: BodyMeasurementOut[];
 }
 
 export interface HealthPayload {
@@ -38,12 +63,15 @@ export interface HealthPayload {
   sleep: Record<string, unknown> | null;
   workouts: Record<string, unknown>[];
   trend: TrendPoint[];
+  body: BodyData | null;
   copy: Record<string, unknown> | null;
   message?: string;
 }
 
 const SOURCE = "whoop";
+const WITHINGS_SOURCE = "withings";
 const TREND_DAYS = 30;
+const BODY_TREND_DAYS = 90;
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "google/gemini-2.5-flash-lite";
 
@@ -52,12 +80,13 @@ export async function fetchHealthData(env: HealthEnv): Promise<HealthPayload> {
     ensureEnv(env);
     const accessToken = await exchangeRefreshToken(env);
 
-    const [latestCycle, latestRecovery, latestSleep, latestWorkouts] =
+    const [latestCycle, latestRecovery, latestSleep, latestWorkouts, body] =
       await Promise.all([
         whoopFetch(accessToken, "/cycle?limit=1"),
         whoopFetch(accessToken, "/recovery?limit=1"),
         whoopFetch(accessToken, "/activity/sleep?limit=1"),
         whoopFetch(accessToken, "/activity/workout?limit=25"),
+        fetchBodyData(env),
       ]);
 
     const cycle = firstRecord(latestCycle);
@@ -94,6 +123,7 @@ export async function fetchHealthData(env: HealthEnv): Promise<HealthPayload> {
       sleep,
       workouts: workouts.slice(0, 5),
       trend,
+      body,
       copy,
     };
   } catch (err) {
@@ -106,9 +136,70 @@ export async function fetchHealthData(env: HealthEnv): Promise<HealthPayload> {
       sleep: null,
       workouts: [],
       trend: [],
+      body: null,
       copy: null,
       message,
     };
+  }
+}
+
+function rowToBody(row: BodyMeasurementRow): BodyMeasurementOut {
+  return {
+    measuredAt: row.measured_at,
+    weightKg: row.weight_kg,
+    bodyFatPct: row.body_fat_pct,
+    fatMassKg: row.fat_mass_kg,
+    fatFreeMassKg: row.fat_free_mass_kg,
+    muscleMassKg: row.muscle_mass_kg,
+    hydrationKg: row.hydration_kg,
+    boneMassKg: row.bone_mass_kg,
+  };
+}
+
+async function fetchBodyData(env: HealthEnv): Promise<BodyData | null> {
+  // withings is optional. when not configured, return null so the dashboard
+  // renders the empty state without breaking the rest of the payload.
+  if (!env.WITHINGS_CLIENT_ID || !env.WITHINGS_CLIENT_SECRET) {
+    return null;
+  }
+  try {
+    const accessToken = await exchangeWithingsRefreshToken(env);
+    const startMs = Date.now() - BODY_TREND_DAYS * 24 * 60 * 60 * 1000;
+    const page = await withingsGetMeas(accessToken, {
+      meastype: "1,5,6,8,76,77,88",
+      category: "1",
+      startdate: String(Math.floor(startMs / 1000)),
+    });
+
+    if (page.measuregrps.length > 0) {
+      await upsertBodyMeasurements(
+        env,
+        WITHINGS_SOURCE,
+        page.measuregrps as unknown as Record<string, unknown>[],
+      );
+    }
+
+    const sinceIso = new Date(startMs).toISOString();
+    const archiveRows = await readBodyMeasurementsSince(
+      env,
+      WITHINGS_SOURCE,
+      sinceIso,
+    );
+    const trend = archiveRows.map(rowToBody);
+
+    let latest: BodyMeasurementOut | null =
+      trend.length > 0 ? (trend[trend.length - 1] ?? null) : null;
+    if (!latest) {
+      // archive may be empty (no recent weigh-ins) — fall back to the all-time
+      // latest so the hero number still has something to show.
+      const latestRow = await readLatestBodyMeasurement(env, WITHINGS_SOURCE);
+      latest = latestRow ? rowToBody(latestRow) : null;
+    }
+
+    return { latest, trend };
+  } catch (err) {
+    console.warn("withings fetchBodyData error:", err);
+    return null;
   }
 }
 

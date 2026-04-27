@@ -18,6 +18,7 @@ export async function GET() {
       sleep: null,
       workouts: [],
       trend: [],
+      body: null,
       copy: null,
       message:
         "static build placeholder · cloudflare pages function handles prod",
@@ -28,6 +29,9 @@ export async function GET() {
     WHOOP_CLIENT_ID: process.env.WHOOP_CLIENT_ID,
     WHOOP_CLIENT_SECRET: process.env.WHOOP_CLIENT_SECRET,
     WHOOP_REFRESH_TOKEN: process.env.WHOOP_REFRESH_TOKEN,
+    WITHINGS_CLIENT_ID: process.env.WITHINGS_CLIENT_ID,
+    WITHINGS_CLIENT_SECRET: process.env.WITHINGS_CLIENT_SECRET,
+    WITHINGS_REFRESH_TOKEN: process.env.WITHINGS_REFRESH_TOKEN,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
