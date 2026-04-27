@@ -8,6 +8,7 @@ import RecoveryHero from "./RecoveryHero";
 import StrainCard from "./StrainCard";
 import SleepCard from "./SleepCard";
 import WorkoutsCard from "./WorkoutsCard";
+import BodyCard from "./BodyCard";
 import JournalFooter from "./JournalFooter";
 import DrillModal from "./DrillModal";
 import TrendChart from "./TrendChart";
@@ -136,6 +137,8 @@ export default function Dashboard() {
         </article>
 
         <WorkoutsCard workouts={payload?.workouts ?? []} />
+
+        <BodyCard body={payload?.body ?? null} />
       </section>
 
       <JournalFooter

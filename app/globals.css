@@ -358,6 +358,16 @@ button svg {
   }
 }
 
+@media (max-width: 680px) {
+  .hp-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+  }
+  .hp-body-weight {
+    font-size: 88px !important;
+  }
+}
+
 @media (max-width: 480px) {
   .health-hero h3 {
     font-size: 26px !important;
@@ -371,5 +381,12 @@ button svg {
   }
   .hp-sleep-stats {
     gap: 12px 20px !important;
+  }
+  .hp-body-metrics {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .hp-body-weight {
+    font-size: 76px !important;
   }
 }
