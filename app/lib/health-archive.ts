@@ -142,6 +142,133 @@ function toWorkoutRow(
   };
 }
 
+// withings meastype -> column on health_body_measurements.
+// real_value = measure.value * 10^measure.unit (unit is signed).
+const WITHINGS_TYPE_TO_COLUMN: Record<number, string> = {
+  1: "weight_kg",
+  5: "fat_free_mass_kg",
+  6: "body_fat_pct",
+  8: "fat_mass_kg",
+  76: "muscle_mass_kg",
+  77: "hydration_kg",
+  88: "bone_mass_kg",
+};
+
+const BODY_FIELDS = [
+  "weight_kg",
+  "body_fat_pct",
+  "fat_mass_kg",
+  "fat_free_mass_kg",
+  "muscle_mass_kg",
+  "hydration_kg",
+  "bone_mass_kg",
+] as const;
+
+function toBodyMeasurementRow(
+  source: string,
+  grp: Record<string, unknown>,
+): UpsertRow | null {
+  const grpid = grp.grpid;
+  const date = grp.date;
+  if (grpid == null || typeof date !== "number") return null;
+
+  const measures = Array.isArray(grp.measures)
+    ? (grp.measures as Array<Record<string, unknown>>)
+    : [];
+
+  const fields: Record<string, number | null> = {};
+  for (const f of BODY_FIELDS) fields[f] = null;
+
+  for (const m of measures) {
+    const type = m.type;
+    const value = m.value;
+    const unit = m.unit;
+    if (
+      typeof type !== "number" ||
+      typeof value !== "number" ||
+      typeof unit !== "number"
+    ) {
+      continue;
+    }
+    const col = WITHINGS_TYPE_TO_COLUMN[type];
+    if (!col) continue;
+    fields[col] = value * Math.pow(10, unit);
+  }
+
+  // skip groups that contain none of the columns we care about (e.g. a
+  // weigh-in that only recorded heart rate or temperature).
+  if (BODY_FIELDS.every((f) => fields[f] == null)) return null;
+
+  return {
+    source,
+    external_id: String(grpid),
+    measured_at: new Date(date * 1000).toISOString(),
+    ...fields,
+    raw: grp,
+    fetched_at: nowIso(),
+  };
+}
+
+export async function upsertBodyMeasurements(
+  env: ArchiveEnv,
+  source: string,
+  grps: Record<string, unknown>[],
+): Promise<void> {
+  const rows = grps
+    .map((g) => toBodyMeasurementRow(source, g))
+    .filter((v): v is UpsertRow => v != null);
+  await upsert(env, "health_body_measurements", rows);
+}
+
+export interface BodyMeasurementRow {
+  external_id: string;
+  measured_at: string;
+  weight_kg: number | null;
+  body_fat_pct: number | null;
+  fat_mass_kg: number | null;
+  fat_free_mass_kg: number | null;
+  muscle_mass_kg: number | null;
+  hydration_kg: number | null;
+  bone_mass_kg: number | null;
+}
+
+const BODY_SELECT =
+  "external_id,measured_at,weight_kg,body_fat_pct,fat_mass_kg,fat_free_mass_kg,muscle_mass_kg,hydration_kg,bone_mass_kg";
+
+export async function readBodyMeasurementsSince(
+  env: ArchiveEnv,
+  source: string,
+  sinceIso: string,
+): Promise<BodyMeasurementRow[]> {
+  return selectRange<BodyMeasurementRow>(
+    env,
+    "health_body_measurements",
+    source,
+    sinceIso,
+    BODY_SELECT,
+    "measured_at",
+  );
+}
+
+export async function readLatestBodyMeasurement(
+  env: ArchiveEnv,
+  source: string,
+): Promise<BodyMeasurementRow | null> {
+  const cfg = supaConfig(env);
+  if (!cfg) return null;
+  const url =
+    `${cfg.base}/rest/v1/health_body_measurements` +
+    `?source=eq.${encodeURIComponent(source)}` +
+    `&select=${encodeURIComponent(BODY_SELECT)}` +
+    `&order=measured_at.desc&limit=1`;
+  const r = await fetch(url, {
+    headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+  });
+  if (!r.ok) return null;
+  const rows = (await r.json()) as BodyMeasurementRow[];
+  return rows[0] ?? null;
+}
+
 export async function upsertBatch(
   env: ArchiveEnv,
   source: string,
