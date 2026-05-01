@@ -90,12 +90,18 @@ export default function Sparkline({
     padTop + (1 - (v - min) / span) * (height - padTop - padBottom);
   const xFor = (i: number) => padX + i * step;
 
-  const d = clean
-    .map(
-      (v, i) =>
-        `${i === 0 ? "M" : "L"} ${xFor(i).toFixed(1)} ${yFor(v).toFixed(1)}`,
-    )
-    .join(" ");
+  // a single datapoint produces just `M x y` which has no visible stroke.
+  // draw a flat horizontal line across the chart at that value instead so
+  // the user sees something even with sparse data.
+  const d =
+    clean.length === 1
+      ? `M ${padX.toFixed(1)} ${yFor(clean[0]).toFixed(1)} L ${(width - padX).toFixed(1)} ${yFor(clean[0]).toFixed(1)}`
+      : clean
+          .map(
+            (v, i) =>
+              `${i === 0 ? "M" : "L"} ${xFor(i).toFixed(1)} ${yFor(v).toFixed(1)}`,
+          )
+          .join(" ");
 
   const lastX = xFor(clean.length - 1);
   const lastY = yFor(clean[clean.length - 1]);

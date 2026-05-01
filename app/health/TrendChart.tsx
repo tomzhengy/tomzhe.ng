@@ -35,19 +35,28 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 
   const paths = useMemo(() => {
     return LINES.map((ln) => {
-      let d = "";
+      const points: Array<{ x: number; y: number }> = [];
       data.forEach((dp, i) => {
         const raw = (dp as unknown as Record<string, number | string | null>)[
           ln.key
         ];
         if (raw == null || typeof raw !== "number" || !Number.isFinite(raw))
           return;
-        const x = xFor(i);
-        const y = yForNorm(raw, ln.min, ln.max);
-        d += d
-          ? ` L ${x.toFixed(1)} ${y.toFixed(1)}`
-          : `M ${x.toFixed(1)} ${y.toFixed(1)}`;
+        points.push({ x: xFor(i), y: yForNorm(raw, ln.min, ln.max) });
       });
+      // single point: draw a flat horizontal line so the value is visible.
+      // multi-point: connect them.
+      let d = "";
+      if (points.length === 1) {
+        d = `M ${PAD.l} ${points[0].y.toFixed(1)} L ${(VIEW_W - PAD.r).toFixed(1)} ${points[0].y.toFixed(1)}`;
+      } else {
+        points.forEach((p, i) => {
+          d +=
+            i === 0
+              ? `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
+              : ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+        });
+      }
       return { ...ln, d };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
