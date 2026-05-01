@@ -322,15 +322,14 @@ async function generateCopy(
   };
 
   const systemPrompt = [
-    "You write terse, warm, editorial-tone health copy for a compact personal dashboard.",
-    "Be concise: every line must be short enough to fit beside a big number in a narrow card.",
+    "You write warm, editorial-tone health copy for a compact personal dashboard.",
+    "Write naturally — connecting words like 'and', 'but', 'so', 'with' are welcome when they make the line read better.",
     "Vary phrasing day to day so it never feels templated.",
     "Output STRICT JSON only. No prose outside the JSON.",
     "Wrap exactly one key word in <em>...</em> for headline, strainCopy, sleepCopy.",
     "Wrap one number in <b>...</b> inside sub, strainCopy, and sleepCopy when it helps anchor the sentence.",
     "Use plain text (no <em>/<b>) inside the journal fields.",
-    "Hard limits: headline ≤ 8 words; sub ≤ 22 words and 2 short sentences; strainCopy and sleepCopy ≤ 22 words and 2 short sentences each; each journal field ≤ 18 words.",
-    "No filler like 'indicating', 'showing a', 'suggesting'. Cut weak verbs. Imperatives are fine.",
+    "Hard limit: every field is at most 2 sentences. Headline is one short phrase.",
   ].join(" ");
 
   const userPrompt = `Today's WHOOP summary: ${JSON.stringify(summary)}. Return JSON matching: { "headline": string, "sub": string, "strainCopy": string, "sleepCopy": string, "journal": { "weekly": string, "watch": string, "checkIn": string } }`;
