@@ -248,8 +248,11 @@ function ZoneBar({
       : 0;
 
   return (
-    <div style={{ position: "relative", justifySelf: "start" }} ref={wrapRef}>
-      <div style={{ display: "flex", gap: 2, width: 220, height: 26 }}>
+    <div
+      style={{ position: "relative", width: "100%", minWidth: 0 }}
+      ref={wrapRef}
+    >
+      <div style={{ display: "flex", gap: 2, width: "100%", height: 26 }}>
         {ZONES.map((z, i) => {
           const ms = zones
             ? ((zones as unknown as Record<string, number>)[z.key] ?? 0)
