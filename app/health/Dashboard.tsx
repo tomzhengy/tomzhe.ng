@@ -92,14 +92,6 @@ export default function Dashboard() {
         <Banner text={`Couldn't reach WHOOP. ${errorMsg ?? ""}`} />
       )}
 
-      <RecoveryHero
-        recovery={payload?.recovery ?? null}
-        nowIso={nowIso}
-        trend={trend}
-        headlineHtml={payload?.copy?.headline ?? null}
-        subHtml={payload?.copy?.sub ?? null}
-      />
-
       <section
         className="hp-grid"
         style={{
@@ -109,6 +101,30 @@ export default function Dashboard() {
           marginTop: 28,
         }}
       >
+        <RecoveryHero
+          recovery={payload?.recovery ?? null}
+          trend={trend}
+          subHtml={payload?.copy?.sub ?? null}
+        />
+
+        <article
+          className="health-card filled"
+          style={{
+            background: "var(--card)",
+            border: "1px solid transparent",
+            padding: "22px 24px 24px",
+            gridColumn: "span 8",
+            position: "relative",
+            alignSelf: "start",
+          }}
+        >
+          <CardHead
+            title="Trends"
+            subtitleAccent="recovery, strain & sleep over time."
+          />
+          <TrendChart data={trend} onPointClick={setDrillIdx} />
+        </article>
+
         <StrainCard
           cycle={payload?.cycle ?? null}
           strainCopyHtml={payload?.copy?.strainCopy ?? null}
@@ -118,23 +134,6 @@ export default function Dashboard() {
           segments={hypnoSegments}
           sleepCopyHtml={payload?.copy?.sleepCopy ?? null}
         />
-
-        <article
-          className="health-card filled"
-          style={{
-            background: "var(--card)",
-            border: "1px solid transparent",
-            padding: "22px 24px 24px",
-            gridColumn: "span 12",
-            position: "relative",
-          }}
-        >
-          <CardHead
-            title="Trends"
-            subtitleAccent="recovery, strain & sleep over time."
-          />
-          <TrendChart data={trend} onPointClick={setDrillIdx} />
-        </article>
 
         <WorkoutsCard workouts={payload?.workouts ?? []} />
 

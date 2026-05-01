@@ -2,19 +2,18 @@
 
 import { useState } from "react";
 import type { Recovery, TrendPoint } from "./types";
-import { formatDateShort, recoveryHue, sanitizeCopyHtml } from "./format";
+import { recoveryHue, sanitizeCopyHtml } from "./format";
+import { CardHead } from "./StrainCard";
 import Sparkline from "./Sparkline";
 
 interface RecoveryHeroProps {
   recovery: Recovery | null;
-  nowIso: string;
   trend: TrendPoint[];
   subHtml: string | null;
 }
 
 export default function RecoveryHero({
   recovery,
-  nowIso,
   trend,
   subHtml,
 }: RecoveryHeroProps) {
@@ -39,95 +38,66 @@ export default function RecoveryHero({
   const hrvDelta = hrv != null && avgHrv > 0 ? hrv - avgHrv : 0;
   const rhrDelta = rhr != null && avgRhr > 0 ? rhr - avgRhr : 0;
 
-  const fallbackSub = recovery
+  const fallbackCopy = recovery
     ? "HRV and recovery metrics from WHOOP."
     : "No recovery score yet — check back after your next sleep.";
 
   return (
-    <section
+    <article
+      className="health-card filled"
       style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr)",
-        gap: 0,
-        alignItems: "stretch",
-        padding: 0,
-        border: "1px solid var(--rule)",
+        background: "var(--card)",
+        border: "1px solid transparent",
+        padding: "22px 24px 24px",
+        gridColumn: "span 4",
         position: "relative",
-        overflow: "hidden",
         ["--recovery-hue" as string]: recoveryHue(score),
       }}
-      className="health-hero"
     >
-      {/* recovery cell */}
+      <CardHead title="Recovery" subtitle="0–100% scale" />
+
       <div
-        className="hp-hero-recovery"
+        className="hp-hero-score"
         style={{
-          position: "relative",
-          zIndex: 1,
-          padding: "22px 26px",
+          fontFamily: "var(--f-serif)",
+          fontSize: 110,
+          lineHeight: 0.9,
+          letterSpacing: "-0.03em",
+          margin: "14px 0 8px",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          minHeight: 0,
+          alignItems: "baseline",
+          gap: 6,
+          color: "var(--recovery-hue)",
         }}
       >
-        <div>
-          <div
-            style={{
-              fontFamily: "var(--f-mono)",
-              fontSize: 10.5,
-              letterSpacing: "0.24em",
-              textTransform: "uppercase",
-              color: "var(--fg-mute)",
-            }}
-          >
-            Recovery · {formatDateShort(nowIso)}
-          </div>
-          <div
-            className="hp-hero-score"
-            style={{
-              fontFamily: "var(--f-serif)",
-              fontSize: 120,
-              lineHeight: 0.9,
-              letterSpacing: "-0.035em",
-              margin: "10px 0 0",
-              display: "flex",
-              alignItems: "baseline",
-              gap: 4,
-              color: "var(--recovery-hue)",
-            }}
-          >
-            <span className="skel">{score ?? "—"}</span>
-            <span
-              style={{
-                fontSize: 28,
-                color: "var(--fg-mute)",
-                fontStyle: "italic",
-                marginLeft: 4,
-              }}
-            >
-              %
-            </span>
-          </div>
-        </div>
-        <p
+        <span className="skel">{score ?? "—"}</span>
+        <span
           style={{
             fontFamily: "var(--f-serif)",
             fontStyle: "italic",
-            fontSize: 16,
-            lineHeight: 1.35,
-            color: "var(--fg-soft)",
-            maxWidth: "32ch",
-            margin: "12px 0 0",
+            fontSize: 22,
+            color: "var(--fg-mute)",
           }}
-          dangerouslySetInnerHTML={{
-            __html: subHtml ? sanitizeCopyHtml(subHtml) : fallbackSub,
-          }}
-        />
+        >
+          %
+        </span>
       </div>
 
-      {/* hrv cell */}
-      <SubMetric
+      <p
+        style={{
+          fontFamily: "var(--f-serif)",
+          fontSize: 20,
+          lineHeight: 1.25,
+          color: "var(--fg-soft)",
+          maxWidth: "30ch",
+          margin: 0,
+        }}
+        dangerouslySetInnerHTML={{
+          __html: subHtml ? sanitizeCopyHtml(subHtml) : fallbackCopy,
+        }}
+      />
+
+      <RecoveryStat
         label="Heart Rate Variability"
         value={hrv != null ? `${Math.round(hrv)}` : "—"}
         unit="ms"
@@ -140,9 +110,7 @@ export default function RecoveryHero({
         hoverIdx={hoverIdx}
         onHoverChange={setHoverIdx}
       />
-
-      {/* rhr cell */}
-      <SubMetric
+      <RecoveryStat
         label="Resting Heart Rate"
         value={rhr != null ? `${Math.round(rhr)}` : "—"}
         unit="bpm"
@@ -156,11 +124,11 @@ export default function RecoveryHero({
         hoverIdx={hoverIdx}
         onHoverChange={setHoverIdx}
       />
-    </section>
+    </article>
   );
 }
 
-function SubMetric({
+function RecoveryStat({
   label,
   value,
   unit,
@@ -201,67 +169,60 @@ function SubMetric({
 
   return (
     <div
-      className="hp-hero-cell"
       style={{
-        padding: "22px 26px",
-        position: "relative",
-        borderLeft: "1px solid var(--rule)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        minWidth: 0,
+        marginTop: 24,
+        paddingTop: 18,
+        borderTop: "1px solid var(--rule)",
       }}
     >
-      <div>
-        <div
-          style={{
-            fontFamily: "var(--f-mono)",
-            fontSize: 10,
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: "var(--fg-mute)",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          <span>{label}</span>
-          <span style={{ color: deltaColor, letterSpacing: "0.06em" }}>
-            {deltaTxt}
-          </span>
-        </div>
-        <div
+      <div
+        style={{
+          fontFamily: "var(--f-mono)",
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: "var(--fg-mute)",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <span>{label}</span>
+        <span style={{ color: deltaColor, letterSpacing: "0.06em" }}>
+          {deltaTxt}
+        </span>
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--f-serif)",
+          fontSize: 36,
+          lineHeight: 1,
+          letterSpacing: "-0.02em",
+          margin: "8px 0 2px",
+          display: "flex",
+          alignItems: "baseline",
+          gap: 4,
+        }}
+      >
+        <span className="skel">{value}</span>
+        <span
           style={{
             fontFamily: "var(--f-serif)",
-            fontSize: 52,
-            lineHeight: 1,
-            letterSpacing: "-0.02em",
-            margin: "10px 0 2px",
-            display: "flex",
-            alignItems: "baseline",
-            gap: 4,
-          }}
-        >
-          <span className="skel">{value}</span>
-          <span
-            style={{
-              fontFamily: "var(--f-serif)",
-              fontStyle: "italic",
-              fontSize: 18,
-              color: "var(--fg-mute)",
-            }}
-          >
-            {unit}
-          </span>
-        </div>
-        <div
-          style={{
-            fontFamily: "var(--f-sans)",
-            fontSize: 12,
+            fontStyle: "italic",
+            fontSize: 14,
             color: "var(--fg-mute)",
           }}
         >
-          {caption}
-        </div>
+          {unit}
+        </span>
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--f-sans)",
+          fontSize: 11.5,
+          color: "var(--fg-mute)",
+        }}
+      >
+        {caption}
       </div>
       <Sparkline
         values={series}
@@ -269,7 +230,7 @@ function SubMetric({
         digits={seriesDigits}
         sharedHoverIdx={hoverIdx}
         onHoverChange={onHoverChange}
-        height={36}
+        height={32}
       />
     </div>
   );

@@ -297,18 +297,6 @@ button svg {
   .hp-grid > article {
     grid-column: auto !important;
   }
-  .health-hero {
-    grid-template-columns: 1fr !important;
-    padding: 0 !important;
-    gap: 0 !important;
-  }
-  .health-hero > .hp-hero-cell,
-  .health-hero > .hp-hero-recovery {
-    border-left: none !important;
-  }
-  .health-hero > .hp-hero-cell {
-    border-top: 1px solid var(--rule) !important;
-  }
   .hp-workout-row {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
