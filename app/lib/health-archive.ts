@@ -64,8 +64,11 @@ async function upsert(
       body: JSON.stringify(rows),
     });
     if (!r.ok) {
+      // 404 means the table isn't provisioned in this supabase project —
+      // a known "not configured" state, not a failure. silent so the dev
+      // log isn't flooded with warnings on every request.
+      if (r.status === 404) return;
       const body = await r.text();
-      // log loudly but don't throw — archive failures shouldn't nuke reads.
       console.warn(`supabase upsert ${table} failed: ${r.status} ${body}`);
     }
   } catch (err) {
