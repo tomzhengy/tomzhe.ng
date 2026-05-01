@@ -59,45 +59,55 @@ export default function RecoveryHero({
       <CardHead title="Recovery" subtitle="0–100% scale" />
 
       <div
-        className="hp-hero-score"
+        className="hp-hero-top"
         style={{
-          fontFamily: "var(--f-serif)",
-          fontSize: 110,
-          lineHeight: 0.9,
-          letterSpacing: "-0.03em",
-          margin: "14px 0 8px",
-          display: "flex",
-          alignItems: "baseline",
-          gap: 6,
-          color: "var(--recovery-hue)",
+          display: "grid",
+          gridTemplateColumns: "auto minmax(0, 1fr)",
+          gap: 24,
+          alignItems: "start",
+          marginTop: 14,
         }}
       >
-        <span className="skel">{score ?? "—"}</span>
-        <span
+        <div
+          className="hp-hero-score"
           style={{
             fontFamily: "var(--f-serif)",
-            fontStyle: "italic",
-            fontSize: 22,
-            color: "var(--fg-mute)",
+            fontSize: 110,
+            lineHeight: 0.9,
+            letterSpacing: "-0.03em",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 6,
+            color: "var(--recovery-hue)",
+            margin: 0,
           }}
         >
-          %
-        </span>
-      </div>
+          <span className="skel">{score ?? "—"}</span>
+          <span
+            style={{
+              fontFamily: "var(--f-serif)",
+              fontStyle: "italic",
+              fontSize: 22,
+              color: "var(--fg-mute)",
+            }}
+          >
+            %
+          </span>
+        </div>
 
-      <p
-        style={{
-          fontFamily: "var(--f-serif)",
-          fontSize: 20,
-          lineHeight: 1.25,
-          color: "var(--fg-soft)",
-          maxWidth: "30ch",
-          margin: 0,
-        }}
-        dangerouslySetInnerHTML={{
-          __html: subHtml ? sanitizeCopyHtml(subHtml) : fallbackCopy,
-        }}
-      />
+        <p
+          style={{
+            fontFamily: "var(--f-serif)",
+            fontSize: 18,
+            lineHeight: 1.3,
+            color: "var(--fg-soft)",
+            margin: 0,
+          }}
+          dangerouslySetInnerHTML={{
+            __html: subHtml ? sanitizeCopyHtml(subHtml) : fallbackCopy,
+          }}
+        />
+      </div>
 
       {/* push the hrv/rhr strip to the bottom so the card matches the
           taller strain/sleep cards in row 1 without dead space at the top. */}

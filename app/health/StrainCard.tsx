@@ -40,30 +40,44 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
       <CardHead title="Strain" subtitle="0–21 scale" />
       <div
         style={{
-          fontFamily: "var(--f-serif)",
-          fontSize: 110,
-          lineHeight: 0.9,
-          letterSpacing: "-0.03em",
-          margin: "14px 0 8px",
-          display: "flex",
-          alignItems: "baseline",
-          gap: 6,
+          display: "grid",
+          gridTemplateColumns: "auto minmax(0, 1fr)",
+          gap: 24,
+          alignItems: "start",
+          marginTop: 14,
         }}
       >
-        <span className="skel">{strain != null ? strain.toFixed(1) : "—"}</span>
+        <div
+          style={{
+            fontFamily: "var(--f-serif)",
+            fontSize: 110,
+            lineHeight: 0.9,
+            letterSpacing: "-0.03em",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 6,
+            margin: 0,
+          }}
+        >
+          <span className="skel">
+            {strain != null ? strain.toFixed(1) : "—"}
+          </span>
+        </div>
+        <p
+          style={{
+            fontFamily: "var(--f-serif)",
+            fontSize: 18,
+            lineHeight: 1.3,
+            color: "var(--fg-soft)",
+            margin: 0,
+          }}
+          dangerouslySetInnerHTML={{
+            __html: strainCopyHtml
+              ? sanitizeCopyHtml(strainCopyHtml)
+              : fallback,
+          }}
+        />
       </div>
-      <p
-        style={{
-          fontFamily: "var(--f-serif)",
-          fontSize: 20,
-          lineHeight: 1.25,
-          color: "var(--fg-soft)",
-          maxWidth: "24ch",
-        }}
-        dangerouslySetInnerHTML={{
-          __html: strainCopyHtml ? sanitizeCopyHtml(strainCopyHtml) : fallback,
-        }}
-      />
 
       <div
         style={{
