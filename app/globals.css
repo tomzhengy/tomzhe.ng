@@ -282,6 +282,12 @@ button svg {
   );
   animation: health-shimmer 1.6s linear infinite;
 }
+/* full-width block variant — for chart / bar placeholders that need to fill
+   the row instead of sitting inline with text. */
+.health-page[data-state="loading"] .hp-skel-block {
+  display: block;
+  min-width: 0;
+}
 @keyframes health-shimmer {
   0% {
     transform: translateX(-100%);

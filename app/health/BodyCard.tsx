@@ -107,34 +107,28 @@ export default function BodyCard({ body }: BodyCardProps) {
       <CardHead
         title="Body"
         subtitleAccent="the long arc."
-        rightSlot={latest ? <MeasuredAt iso={latest.measuredAt} /> : undefined}
+        rightSlot={<MeasuredAt iso={latest?.measuredAt ?? null} />}
       />
 
-      {!latest ? (
-        <EmptyBanner />
-      ) : (
-        <>
-          <div
-            className="hp-body-top"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1.6fr",
-              gap: 40,
-              paddingTop: 6,
-            }}
-          >
-            <Portrait latest={latest} bfDelta={bfDelta} />
-            <TrendPanel
-              series={weightSeries}
-              range={range}
-              onRangeChange={setRange}
-              summary={summary}
-            />
-          </div>
+      <div
+        className="hp-body-top"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1.6fr",
+          gap: 40,
+          paddingTop: 6,
+        }}
+      >
+        <Portrait latest={latest} bfDelta={bfDelta} />
+        <TrendPanel
+          series={weightSeries}
+          range={range}
+          onRangeChange={setRange}
+          summary={summary}
+        />
+      </div>
 
-          <Tiles latest={latest} monthAgo={monthAgo} />
-        </>
-      )}
+      <Tiles latest={latest} monthAgo={monthAgo} />
     </article>
   );
 }
@@ -143,14 +137,14 @@ function Portrait({
   latest,
   bfDelta,
 }: {
-  latest: BodyMeasurement;
+  latest: BodyMeasurement | null;
   bfDelta: number | null;
 }) {
-  const weight = latest.weightKg;
-  const bf = latest.bodyFatPct;
-  const muscle = latest.muscleMassKg ?? 0;
-  const fat = latest.fatMassKg ?? 0;
-  const bone = latest.boneMassKg ?? 0;
+  const weight = latest?.weightKg ?? null;
+  const bf = latest?.bodyFatPct ?? null;
+  const muscle = latest?.muscleMassKg ?? 0;
+  const fat = latest?.fatMassKg ?? 0;
+  const bone = latest?.boneMassKg ?? 0;
   const total = weight ?? muscle + fat + bone;
 
   return (
@@ -179,35 +173,40 @@ function Portrait({
         </span>
       </div>
 
-      {bf != null && (
-        <div
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          fontFamily: "var(--f-serif)",
+        }}
+      >
+        <span
+          className="skel"
+          style={{ fontSize: 32, color: "var(--fg)", marginRight: 8 }}
+        >
+          {bf != null ? bf.toFixed(1) : "—"}
+        </span>
+        <span
           style={{
-            display: "flex",
-            alignItems: "baseline",
-            fontFamily: "var(--f-serif)",
+            fontStyle: "italic",
+            fontSize: 16,
+            color: "var(--fg-mute)",
           }}
         >
-          <span style={{ fontSize: 32, color: "var(--fg)", marginRight: 8 }}>
-            {bf.toFixed(1)}
-          </span>
-          <span
-            style={{
-              fontStyle: "italic",
-              fontSize: 16,
-              color: "var(--fg-mute)",
-            }}
-          >
-            % body fat
-          </span>
-          {bfDelta != null && Math.abs(bfDelta) >= 0.05 && (
-            <DeltaTag value={bfDelta} digits={1} style={{ marginLeft: 14 }} />
-          )}
-        </div>
-      )}
+          % body fat
+        </span>
+        {bfDelta != null && Math.abs(bfDelta) >= 0.05 && (
+          <DeltaTag value={bfDelta} digits={1} style={{ marginLeft: 14 }} />
+        )}
+      </div>
 
-      {total > 0 && (
-        <CompositionBar muscle={muscle} fat={fat} bone={bone} total={total} />
-      )}
+      <CompositionBar
+        muscle={muscle}
+        fat={fat}
+        bone={bone}
+        total={total}
+        empty={latest == null || total <= 0}
+      />
     </div>
   );
 }
@@ -217,11 +216,13 @@ function CompositionBar({
   fat,
   bone,
   total,
+  empty,
 }: {
   muscle: number;
   fat: number;
   bone: number;
   total: number;
+  empty: boolean;
 }) {
   const segments = [
     { key: "muscle", label: "Muscle", value: muscle, color: "var(--fg)" },
@@ -231,28 +232,41 @@ function CompositionBar({
 
   return (
     <>
-      <div
-        aria-label="Body composition"
-        style={{
-          display: "flex",
-          height: 14,
-          width: "100%",
-          marginTop: 10,
-          border: "1px solid var(--rule-strong)",
-        }}
-      >
-        {segments.map((s) => (
-          <span
-            key={s.key}
-            style={{
-              display: "block",
-              height: "100%",
-              width: `${(s.value / total) * 100}%`,
-              background: s.color,
-            }}
-          />
-        ))}
-      </div>
+      {empty ? (
+        <div
+          className="skel hp-skel-block"
+          aria-label="Body composition"
+          style={{
+            height: 14,
+            width: "100%",
+            marginTop: 10,
+            border: "1px solid var(--rule-strong)",
+          }}
+        />
+      ) : (
+        <div
+          aria-label="Body composition"
+          style={{
+            display: "flex",
+            height: 14,
+            width: "100%",
+            marginTop: 10,
+            border: "1px solid var(--rule-strong)",
+          }}
+        >
+          {segments.map((s) => (
+            <span
+              key={s.key}
+              style={{
+                display: "block",
+                height: "100%",
+                width: `${(s.value / total) * 100}%`,
+                background: s.color,
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div
         style={{
           display: "flex",
@@ -274,10 +288,11 @@ function CompositionBar({
                 height: 10,
                 marginRight: 6,
                 verticalAlign: -1,
-                background: s.color,
+                background: empty ? "var(--rule-strong)" : s.color,
               }}
             />
-            {s.label} {s.value.toFixed(1)}
+            {s.label}{" "}
+            <span className="skel">{empty ? "—" : s.value.toFixed(1)}</span>
           </span>
         ))}
       </div>
@@ -308,19 +323,21 @@ function TrendPanel({
         }}
       >
         <RangeTabs value={range} onChange={onRangeChange} />
-        {summary && (
-          <div
-            style={{
-              fontFamily: "var(--f-serif)",
-              fontSize: 18,
-              color: "var(--fg)",
-            }}
-          >
-            <span style={{ color: "var(--fg-mute)" }}>
-              {summary.from.toFixed(1)}
-            </span>
-            <span style={{ color: "var(--fg-mute)", margin: "0 4px" }}>→</span>
-            <span>{summary.to.toFixed(1)} kg</span>
+        <div
+          style={{
+            fontFamily: "var(--f-serif)",
+            fontSize: 18,
+            color: "var(--fg)",
+          }}
+        >
+          <span className="skel" style={{ color: "var(--fg-mute)" }}>
+            {summary ? summary.from.toFixed(1) : "—"}
+          </span>
+          <span style={{ color: "var(--fg-mute)", margin: "0 4px" }}>→</span>
+          <span className="skel">
+            {summary ? `${summary.to.toFixed(1)} kg` : "—"}
+          </span>
+          {summary && (
             <span
               style={{
                 fontFamily: "var(--f-serif)",
@@ -332,8 +349,8 @@ function TrendPanel({
             >
               over <em>{formatSpan(summary.days)}</em>.
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       <WeightChart series={series} />
     </div>
@@ -469,19 +486,13 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
   if (n < 2) {
     return (
       <div
+        className="skel hp-skel-block"
         style={{
           height: H,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "var(--f-mono)",
-          fontSize: 11,
-          letterSpacing: "0.1em",
-          color: "var(--fg-mute)",
+          width: "100%",
+          marginTop: 4,
         }}
-      >
-        Not enough data in this window.
-      </div>
+      />
     );
   }
 
@@ -636,11 +647,14 @@ function Tiles({
   latest,
   monthAgo,
 }: {
-  latest: BodyMeasurement;
+  latest: BodyMeasurement | null;
   monthAgo: BodyMeasurement | null;
 }) {
-  const muscleDelta = delta(latest.muscleMassKg, monthAgo?.muscleMassKg);
-  const fatDelta = delta(latest.fatMassKg, monthAgo?.fatMassKg);
+  const muscleDelta = delta(
+    latest?.muscleMassKg ?? null,
+    monthAgo?.muscleMassKg,
+  );
+  const fatDelta = delta(latest?.fatMassKg ?? null, monthAgo?.fatMassKg);
   const hydrationCap = hydrationCaption(latest);
 
   return (
@@ -657,7 +671,7 @@ function Tiles({
     >
       <Tile
         label="Muscle Mass"
-        value={latest.muscleMassKg}
+        value={latest?.muscleMassKg ?? null}
         unit="kg"
         digits={1}
         cap={
@@ -670,7 +684,7 @@ function Tiles({
       />
       <Tile
         label="Fat Mass"
-        value={latest.fatMassKg}
+        value={latest?.fatMassKg ?? null}
         unit="kg"
         digits={1}
         cap={
@@ -684,7 +698,7 @@ function Tiles({
       />
       <Tile
         label="Visceral Fat"
-        value={latest.visceralFat}
+        value={latest?.visceralFat ?? null}
         digits={1}
         cap={
           <>
@@ -694,14 +708,14 @@ function Tiles({
       />
       <Tile
         label="BMR"
-        value={latest.basalMetabolicRateKcal}
+        value={latest?.basalMetabolicRateKcal ?? null}
         unit="kcal"
         digits={0}
         cap={<>Resting daily burn.</>}
       />
       <Tile
         label="Hydration"
-        value={latest.hydrationKg}
+        value={latest?.hydrationKg ?? null}
         unit="kg"
         digits={1}
         cap={hydrationCap}
@@ -752,7 +766,9 @@ function Tile({
           color: "var(--fg)",
         }}
       >
-        <span>{value != null ? formatTileNumber(value, digits) : "—"}</span>
+        <span className="skel">
+          {value != null ? formatTileNumber(value, digits) : "—"}
+        </span>
         {unit && (
           <span
             style={{
@@ -816,7 +832,7 @@ function DeltaTag({
   );
 }
 
-function MeasuredAt({ iso }: { iso: string }) {
+function MeasuredAt({ iso }: { iso: string | null }) {
   return (
     <span
       style={{
@@ -827,26 +843,11 @@ function MeasuredAt({ iso }: { iso: string }) {
         color: "var(--fg-mute)",
       }}
     >
-      Measured · {formatDateShort(iso)} · {formatClockTime(iso)}
+      Measured ·{" "}
+      <span className="skel">
+        {iso ? `${formatDateShort(iso)} · ${formatClockTime(iso)}` : "—"}
+      </span>
     </span>
-  );
-}
-
-function EmptyBanner() {
-  return (
-    <div
-      style={{
-        margin: "12px 0 0",
-        padding: "12px 16px",
-        border: "1px dashed var(--rule-strong)",
-        fontFamily: "var(--f-mono)",
-        fontSize: 11,
-        color: "var(--fg-mute)",
-        letterSpacing: "0.1em",
-      }}
-    >
-      No Withings data yet. Run scripts/withings-auth.ts to connect.
-    </div>
   );
 }
 
@@ -918,9 +919,9 @@ function mergeLatest(
   return out;
 }
 
-function hydrationCaption(m: BodyMeasurement): React.ReactNode {
-  const icw = m.intracellularWaterKg;
-  const ecw = m.extracellularWaterKg;
+function hydrationCaption(m: BodyMeasurement | null): React.ReactNode {
+  const icw = m?.intracellularWaterKg ?? null;
+  const ecw = m?.extracellularWaterKg ?? null;
   if (icw == null && ecw == null) return "Total body water.";
   const parts: React.ReactNode[] = [];
   if (icw != null) {
