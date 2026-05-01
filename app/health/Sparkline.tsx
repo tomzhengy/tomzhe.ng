@@ -95,6 +95,13 @@ export default function Sparkline({
         ? "1 day ago"
         : `${daysAgo} days ago`;
 
+  // smooths the hover indicator's slide between snapped indices.
+  const HOVER_EASE = "cubic-bezier(.4, 0, .2, 1)";
+  const HOVER_DUR = "130ms";
+  const slideTransition = `left ${HOVER_DUR} ${HOVER_EASE}, top ${HOVER_DUR} ${HOVER_EASE}`;
+  const showHover = hoverIdx != null && hoverValue != null;
+  const hoverLeftPct = `${(hoverX / width) * 100}%`;
+
   return (
     <div ref={wrapRef} style={{ position: "relative", marginTop: 14 }}>
       <svg
@@ -112,19 +119,6 @@ export default function Sparkline({
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
         />
-        {hoverIdx != null && hoverValue != null && (
-          <line
-            x1={hoverX}
-            x2={hoverX}
-            y1={padTop}
-            y2={height - padBottom}
-            stroke="var(--fg-mute)"
-            strokeWidth={1}
-            strokeDasharray="2 3"
-            pointerEvents="none"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
         <rect
           x={0}
           y={0}
@@ -154,32 +148,46 @@ export default function Sparkline({
         />
       )}
 
-      {/* hover dot as html overlay so it stays circular when the svg is
-          stretched. */}
-      {hoverIdx != null && hoverValue != null && (
-        <div
-          style={{
-            position: "absolute",
-            left: `${(hoverX / width) * 100}%`,
-            top: hoverY,
-            width: 7,
-            height: 7,
-            borderRadius: "50%",
-            background: dotColor,
-            border: "1.5px solid var(--background)",
-            transform: "translate(-50%, -50%)",
-            pointerEvents: "none",
-          }}
-        />
-      )}
+      {/* hover line as html overlay (was an svg <line>) so it can transition
+          smoothly between snapped indices. dashed via border-left. */}
+      <div
+        style={{
+          position: "absolute",
+          left: hoverLeftPct,
+          top: padTop,
+          height: height - padTop - padBottom,
+          width: 0,
+          borderLeft: "1px dashed var(--fg-mute)",
+          transform: "translateX(-0.5px)",
+          pointerEvents: "none",
+          opacity: showHover ? 1 : 0,
+          transition: `${slideTransition}, opacity 100ms linear`,
+        }}
+      />
 
-      {hoverIdx != null && hoverValue != null && (
+      {/* hover dot as html overlay — circular regardless of stretch. */}
+      <div
+        style={{
+          position: "absolute",
+          left: hoverLeftPct,
+          top: hoverY,
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          background: dotColor,
+          border: "1.5px solid var(--background)",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          opacity: showHover ? 1 : 0,
+          transition: `${slideTransition}, opacity 100ms linear`,
+        }}
+      />
+
+      {showHover && (
         <div
           style={{
             position: "absolute",
-            left:
-              (hoverX / width) *
-              (wrapRef.current?.getBoundingClientRect().width ?? width),
+            left: hoverLeftPct,
             top: -4,
             transform: "translate(-50%, -100%)",
             background: "var(--card-elev)",
@@ -193,6 +201,7 @@ export default function Sparkline({
             whiteSpace: "nowrap",
             zIndex: 10,
             lineHeight: 1.4,
+            transition: slideTransition,
           }}
         >
           <div>

@@ -81,6 +81,10 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 
   const active = hover ? data[hover.idx] : null;
   const activePx = hover != null ? xFor(hover.idx) : 0;
+  const activeLeftPct = `${(activePx / VIEW_W) * 100}%`;
+  const HOVER_EASE = "cubic-bezier(.4, 0, .2, 1)";
+  const HOVER_DUR = "140ms";
+  const slideTransition = `left ${HOVER_DUR} ${HOVER_EASE}, top ${HOVER_DUR} ${HOVER_EASE}`;
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
@@ -116,20 +120,6 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
           />
         ))}
 
-        {hover && (
-          <line
-            x1={activePx}
-            x2={activePx}
-            y1={PAD.t}
-            y2={PAD.t + innerH}
-            stroke="var(--fg-mute)"
-            strokeWidth={1}
-            strokeDasharray="2 3"
-            pointerEvents="none"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-
         <rect
           x={PAD.l}
           y={PAD.t}
@@ -145,39 +135,62 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
         />
       </svg>
 
-      {hover && active && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            height: VIEW_H,
-            pointerEvents: "none",
-          }}
-        >
-          {LINES.map((ln) => {
-            const raw = (
-              active as unknown as Record<string, number | string | null> | null
-            )?.[ln.key];
-            if (raw == null || typeof raw !== "number") return null;
-            return (
-              <div
-                key={`dot-${ln.key}`}
-                style={{
-                  position: "absolute",
-                  left: `${(activePx / VIEW_W) * 100}%`,
-                  top: yForNorm(raw, ln.min, ln.max),
-                  width: 9,
-                  height: 9,
-                  borderRadius: "50%",
-                  background: ln.color,
-                  border: "2px solid var(--background)",
-                  transform: "translate(-50%, -50%)",
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
+      {/* hover line as html overlay (was an svg <line>) so it can transition
+          smoothly between snapped indices. */}
+      <div
+        style={{
+          position: "absolute",
+          left: activeLeftPct,
+          top: PAD.t,
+          height: innerH,
+          width: 0,
+          borderLeft: "1px dashed var(--fg-mute)",
+          transform: "translateX(-0.5px)",
+          pointerEvents: "none",
+          opacity: hover ? 1 : 0,
+          transition: `${slideTransition}, opacity 100ms linear`,
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          height: VIEW_H,
+          pointerEvents: "none",
+        }}
+      >
+        {LINES.map((ln) => {
+          const raw =
+            active != null
+              ? (active as unknown as Record<string, number | string | null>)[
+                  ln.key
+                ]
+              : null;
+          const has = active != null && typeof raw === "number";
+          const top = has
+            ? yForNorm(raw as number, ln.min, ln.max)
+            : VIEW_H / 2;
+          return (
+            <div
+              key={`dot-${ln.key}`}
+              style={{
+                position: "absolute",
+                left: activeLeftPct,
+                top,
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                background: ln.color,
+                border: "2px solid var(--background)",
+                transform: "translate(-50%, -50%)",
+                opacity: has ? 1 : 0,
+                transition: `${slideTransition}, opacity 100ms linear`,
+              }}
+            />
+          );
+        })}
+      </div>
 
       <div
         style={{
@@ -199,9 +212,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
         <div
           style={{
             position: "absolute",
-            left:
-              (activePx / VIEW_W) *
-              (wrapRef.current?.getBoundingClientRect().width ?? VIEW_W),
+            left: activeLeftPct,
             top: 8,
             background: "var(--card-elev)",
             border: "1px solid var(--rule-strong)",
@@ -214,6 +225,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
             zIndex: 10,
             transform: "translate(-50%, 0)",
             minWidth: 140,
+            transition: slideTransition,
           }}
         >
           <div
