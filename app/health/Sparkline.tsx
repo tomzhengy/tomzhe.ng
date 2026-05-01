@@ -1,9 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 interface SparklineProps {
   values: number[];
+  // optional iso timestamps aligned with values. when provided, the hover
+  // label uses real days-ago and the chart renders month tick labels below
+  // for spans long enough to need them.
+  dates?: string[];
   color?: string;
   width?: number;
   height?: number;
@@ -16,6 +20,7 @@ interface SparklineProps {
 
 export default function Sparkline({
   values,
+  dates,
   color = "var(--fg-soft)",
   width = 200,
   height = 44,
@@ -87,13 +92,59 @@ export default function Sparkline({
   const hoverX = hoverIdx != null ? xFor(hoverIdx) : 0;
   const hoverY = hoverValue != null ? yFor(hoverValue) : 0;
 
-  const daysAgo = hoverIdx != null ? clean.length - 1 - hoverIdx : 0;
-  const dayLabel =
-    daysAgo === 0
-      ? "today"
-      : daysAgo === 1
-        ? "1 day ago"
-        : `${daysAgo} days ago`;
+  // hover labels: when real dates are provided, compute days-ago + format
+  // an absolute date so long-range views aren't ambiguous. otherwise fall
+  // back to array-index distance (works for daily series like whoop trend).
+  const hoverIso =
+    hoverIdx != null && dates && dates[hoverIdx] ? dates[hoverIdx] : null;
+  const dayLabel = (() => {
+    if (hoverIdx == null) return "";
+    if (hoverIso) {
+      const ms = new Date(hoverIso).getTime();
+      const days = Math.round((Date.now() - ms) / 86_400_000);
+      if (days <= 0) return "today";
+      if (days === 1) return "1 day ago";
+      return `${days} days ago`;
+    }
+    const idxAgo = clean.length - 1 - hoverIdx;
+    if (idxAgo === 0) return "today";
+    return idxAgo === 1 ? "1 day ago" : `${idxAgo} days ago`;
+  })();
+  const dateLabel = hoverIso
+    ? new Date(hoverIso).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
+
+  // month ticks under the chart for spans long enough that points alone
+  // don't reveal the timeline. only renders when `dates` is supplied.
+  const monthTicks = useMemo(() => {
+    if (!dates || dates.length < 2) return [];
+    const startMs = new Date(dates[0]).getTime();
+    const endMs = new Date(dates[dates.length - 1]).getTime();
+    const totalDays = (endMs - startMs) / 86_400_000;
+    if (totalDays < 60) return [];
+    const span = endMs - startMs;
+    const ticks: Array<{ pct: number; label: string }> = [];
+    const cur = new Date(startMs);
+    cur.setUTCDate(1);
+    cur.setUTCMonth(cur.getUTCMonth() + 1);
+    while (cur.getTime() <= endMs) {
+      ticks.push({
+        pct: ((cur.getTime() - startMs) / span) * 100,
+        label: cur.toLocaleDateString(undefined, {
+          month: "short",
+          year: totalDays > 365 ? "2-digit" : undefined,
+        }),
+      });
+      cur.setUTCMonth(cur.getUTCMonth() + 1);
+    }
+    if (ticks.length <= 6) return ticks;
+    const step = Math.ceil(ticks.length / 6);
+    return ticks.filter((_, i) => i % step === 0);
+  }, [dates]);
 
   // smooths the hover indicator's slide between snapped indices.
   const HOVER_EASE = "linear";
@@ -212,7 +263,40 @@ export default function Sparkline({
               </span>
             )}
           </div>
+          {dateLabel && (
+            <div style={{ color: "var(--fg-mute)" }}>{dateLabel}</div>
+          )}
           <div style={{ color: "var(--fg-mute)" }}>{dayLabel}</div>
+        </div>
+      )}
+
+      {monthTicks.length > 0 && (
+        <div
+          style={{
+            position: "relative",
+            height: 14,
+            marginTop: 6,
+            fontFamily: "var(--f-mono)",
+            fontSize: 9,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "var(--fg-mute)",
+          }}
+        >
+          {monthTicks.map((t) => (
+            <span
+              key={`${t.label}-${t.pct}`}
+              style={{
+                position: "absolute",
+                left: `${t.pct}%`,
+                top: 0,
+                transform: "translateX(-50%)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {t.label}
+            </span>
+          ))}
         </div>
       )}
     </div>

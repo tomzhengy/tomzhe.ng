@@ -32,11 +32,19 @@ export default function BodyCard({ body }: BodyCardProps) {
     return trend.filter((p) => new Date(p.measuredAt).getTime() >= cutoff);
   }, [trend, windowKey]);
 
-  const weightSeries = useMemo(
+  // pair dates with weights so the sparkline can label hovered points by
+  // real date, not array-index distance from "today".
+  const weightPoints = useMemo(
     () =>
-      displayTrend.map((p) => p.weightKg).filter((v): v is number => v != null),
+      displayTrend
+        .map((p) =>
+          p.weightKg != null ? { value: p.weightKg, date: p.measuredAt } : null,
+        )
+        .filter((v): v is { value: number; date: string } => v != null),
     [displayTrend],
   );
+  const weightSeries = weightPoints.map((p) => p.value);
+  const weightDates = weightPoints.map((p) => p.date);
 
   // count of weight datapoints visible per window — surfaced in the dropdown
   // so it's obvious when 2w / 1m / 3m all clip to the same recent burst.
@@ -156,6 +164,7 @@ export default function BodyCard({ body }: BodyCardProps) {
               {weightSeries.length > 1 ? (
                 <Sparkline
                   values={weightSeries}
+                  dates={weightDates}
                   unit="kg"
                   digits={1}
                   height={64}
