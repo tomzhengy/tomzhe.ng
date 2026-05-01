@@ -329,7 +329,7 @@ async function generateCopy(
     "Wrap exactly one key word in <em>...</em> for headline, strainCopy, sleepCopy.",
     "Wrap one number in <b>...</b> inside sub, strainCopy, and sleepCopy when it helps anchor the sentence.",
     "Use plain text (no <em>/<b>) inside the journal fields.",
-    "Hard limits: headline ≤ 8 words; sub ≤ 14 words and 1 sentence; strainCopy and sleepCopy ≤ 14 words and 1 sentence each; each journal field ≤ 14 words.",
+    "Hard limits: headline ≤ 8 words; sub ≤ 22 words and 2 short sentences; strainCopy and sleepCopy ≤ 22 words and 2 short sentences each; each journal field ≤ 18 words.",
     "No filler like 'indicating', 'showing a', 'suggesting'. Cut weak verbs. Imperatives are fine.",
   ].join(" ");
 
