@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { BodyData, BodyMeasurement } from "./types";
 import { CardHead } from "./StrainCard";
 import { formatClockTime, formatDateShort } from "./format";
@@ -31,6 +31,7 @@ interface ChartSeries {
   key: "weight" | OverlayKey;
   label: string;
   color: string;
+  visible: boolean;
   points: Array<{ date: Date; value: number }>;
 }
 
@@ -80,33 +81,34 @@ export default function BodyCard({ body }: BodyCardProps) {
     [seriesPoints],
   );
 
-  const chartSeries = useMemo<ChartSeries[]>(() => {
-    const out: ChartSeries[] = [
+  // every series is always present in the chart so that toggling opacity
+  // can animate via CSS instead of unmounting/mounting the path nodes.
+  const chartSeries = useMemo<ChartSeries[]>(
+    () => [
       {
         key: "weight",
         label: "Weight",
         color: "var(--fg)",
+        visible: true,
         points: seriesPoints.weight,
       },
-    ];
-    if (overlays.muscle) {
-      out.push({
+      {
         key: "muscle",
         label: "Muscle",
         color: "var(--ok)",
+        visible: overlays.muscle,
         points: seriesPoints.muscle,
-      });
-    }
-    if (overlays.fat) {
-      out.push({
+      },
+      {
         key: "fat",
         label: "Fat",
         color: "var(--accent)",
+        visible: overlays.fat,
         points: seriesPoints.fat,
-      });
-    }
-    return out;
-  }, [seriesPoints, overlays]);
+      },
+    ],
+    [seriesPoints, overlays],
+  );
 
   // body fat delta vs prior measurement that has a body-fat reading
   const bfDelta = useMemo(() => {
@@ -558,15 +560,22 @@ function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
   // weight is the anchor: it sets the time domain and is always present.
   // y-axis spans every visible series so the toggled overlays share scale.
   const anchor = chartSeries[0];
-  const allValues = chartSeries.flatMap((s) => s.points.map((p) => p.value));
+  const visibleValues = chartSeries
+    .filter((s) => s.visible)
+    .flatMap((s) => s.points.map((p) => p.value));
   const allTimes = anchor?.points.map((p) => p.date.getTime()) ?? [];
 
-  const wMin =
-    allValues.length > 0 ? Math.floor(Math.min(...allValues) - 1) : 0;
-  const wMax = allValues.length > 0 ? Math.ceil(Math.max(...allValues) + 1) : 1;
+  const targetMin =
+    visibleValues.length > 0 ? Math.floor(Math.min(...visibleValues) - 1) : 0;
+  const targetMax =
+    visibleValues.length > 0 ? Math.ceil(Math.max(...visibleValues) + 1) : 1;
   const tMin = allTimes.length > 0 ? allTimes[0] : 0;
   const tMax = allTimes.length > 0 ? allTimes[allTimes.length - 1] : 1;
   const tSpan = Math.max(1, tMax - tMin);
+
+  // animate the y-axis scale toward the target whenever the visible series
+  // change so the lines and gridlines slide into place instead of jumping.
+  const { wMin, wMax } = useAnimatedRange(targetMin, targetMax);
 
   const xForTime = (t: number) => PAD.l + ((t - tMin) / tSpan) * innerW;
   const yFor = (v: number) =>
@@ -652,8 +661,8 @@ function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
   const hoveredPoints =
     hoverTime != null
       ? chartSeries
+          .filter((s) => s.visible && s.points.length > 0)
           .map((s) => {
-            if (s.points.length === 0) return null;
             let nearest = s.points[0];
             let nearestDist = Math.abs(nearest.date.getTime() - hoverTime);
             for (let i = 1; i < s.points.length; i++) {
@@ -665,14 +674,6 @@ function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
             }
             return { series: s, point: nearest };
           })
-          .filter(
-            (
-              h,
-            ): h is {
-              series: ChartSeries;
-              point: { date: Date; value: number };
-            } => h != null,
-          )
       : [];
 
   const hoverAnchor = hoveredPoints.find((h) => h.series.key === "weight");
@@ -729,6 +730,8 @@ function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
             strokeWidth={1.5}
             strokeLinejoin="miter"
             vectorEffect="non-scaling-stroke"
+            opacity={s.visible ? 1 : 0}
+            style={{ transition: "opacity 260ms ease" }}
           />
         ))}
 
@@ -1203,4 +1206,48 @@ function formatSpan(days: number): string {
   }
   const y = (days / 365).toFixed(1);
   return `${y} years`;
+}
+
+// drives a requestAnimationFrame loop that smoothly interpolates the
+// y-axis min/max toward a new target whenever it changes. lets the line
+// paths and gridlines re-render each frame so they slide into place.
+function useAnimatedRange(targetMin: number, targetMax: number) {
+  const [range, setRange] = useState({ wMin: targetMin, wMax: targetMax });
+  const fromRef = useRef({ wMin: targetMin, wMax: targetMax });
+  const startRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const targetRef = useRef({ wMin: targetMin, wMax: targetMax });
+
+  useEffect(() => {
+    const prevTarget = targetRef.current;
+    if (prevTarget.wMin === targetMin && prevTarget.wMax === targetMax) return;
+    targetRef.current = { wMin: targetMin, wMax: targetMax };
+    fromRef.current = { ...range };
+    startRef.current = null;
+
+    const DURATION = 320;
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const tick = (now: number) => {
+      if (startRef.current == null) startRef.current = now;
+      const elapsed = now - startRef.current;
+      const t = Math.min(1, elapsed / DURATION);
+      const eased = easeOutCubic(t);
+      const from = fromRef.current;
+      setRange({
+        wMin: from.wMin + (targetMin - from.wMin) * eased,
+        wMax: from.wMax + (targetMax - from.wMax) * eased,
+      });
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+    // intentionally omit `range` so each new target restarts from the live value
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetMin, targetMax]);
+
+  return range;
 }
