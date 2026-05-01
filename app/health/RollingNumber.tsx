@@ -42,7 +42,6 @@ export default function RollingNumber({
     <SlotCounter
       value={formatted}
       duration={duration / 1000}
-      useMonospaceWidth
       direction="bottom-up"
     />
   );
