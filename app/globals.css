@@ -212,6 +212,9 @@ button svg {
 
 /* ---------- health dashboard tokens ---------- */
 .health-page {
+  --fg: var(--foreground);
+  --bg: var(--background);
+
   --accent: var(--link-color);
   --select: var(--link-selection-color);
   --warn: #c9a24a;
@@ -350,25 +353,28 @@ button svg {
     gap: 28px !important;
   }
   .hp-body-tiles {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
-  .hp-body-tiles > button {
+  .hp-body-tile {
+    padding: 14px 18px !important;
     border-right: none !important;
-    border-top: 1px solid var(--rule) !important;
-    padding: 14px !important;
+    border-bottom: 1px solid var(--rule) !important;
+  }
+  .hp-body-tile:nth-child(odd) {
+    padding-left: 0 !important;
+  }
+  .hp-body-tile:nth-child(even) {
+    padding-right: 0 !important;
   }
 }
 
 @media (max-width: 680px) {
-  .hp-body-grid {
-    grid-template-columns: 1fr !important;
-    gap: 22px !important;
-  }
   .hp-body-weight {
     font-size: 88px !important;
   }
-  .hp-body-tiles {
-    grid-template-columns: 1fr !important;
+  .hp-body-cardio {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 18px !important;
   }
 }
 

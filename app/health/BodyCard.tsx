@@ -9,157 +9,89 @@ interface BodyCardProps {
   body: BodyData | null;
 }
 
-type RangeKey = "3m" | "6m" | "1y" | "all";
+type Range = "3m" | "6m" | "1y" | "all";
 
-const RANGE_OPTIONS: Array<{
-  key: RangeKey;
-  label: string;
-  days: number | null;
-}> = [
-  { key: "3m", label: "3M", days: 90 },
-  { key: "6m", label: "6M", days: 180 },
-  { key: "1y", label: "1Y", days: 365 },
-  { key: "all", label: "All", days: null },
-];
-
-type MetricKey =
-  | "weight"
-  | "muscle"
-  | "fat_mass"
-  | "hydration"
-  | "visceral"
-  | "bmr"
-  | "body_fat";
-
-interface MetricDef {
-  key: MetricKey;
-  label: string;
-  short: string;
-  accessor: (m: BodyMeasurement) => number | null;
-  unit: string;
-  digits: number;
-  invertDelta?: boolean; // true when "down is good"
-}
-
-const METRICS: Record<MetricKey, MetricDef> = {
-  weight: {
-    key: "weight",
-    label: "Weight",
-    short: "Weight",
-    accessor: (m) => m.weightKg,
-    unit: "kg",
-    digits: 1,
-  },
-  body_fat: {
-    key: "body_fat",
-    label: "Body Fat",
-    short: "Body Fat",
-    accessor: (m) => m.bodyFatPct,
-    unit: "%",
-    digits: 1,
-    invertDelta: true,
-  },
-  muscle: {
-    key: "muscle",
-    label: "Muscle Mass",
-    short: "Muscle Mass",
-    accessor: (m) => m.muscleMassKg,
-    unit: "kg",
-    digits: 1,
-  },
-  fat_mass: {
-    key: "fat_mass",
-    label: "Fat Mass",
-    short: "Fat Mass",
-    accessor: (m) => m.fatMassKg,
-    unit: "kg",
-    digits: 1,
-    invertDelta: true,
-  },
-  visceral: {
-    key: "visceral",
-    label: "Visceral Fat",
-    short: "Visceral Fat",
-    accessor: (m) => m.visceralFat,
-    unit: "",
-    digits: 1,
-    invertDelta: true,
-  },
-  bmr: {
-    key: "bmr",
-    label: "BMR",
-    short: "BMR",
-    accessor: (m) => m.basalMetabolicRateKcal,
-    unit: "kcal",
-    digits: 0,
-  },
-  hydration: {
-    key: "hydration",
-    label: "Hydration",
-    short: "Hydration",
-    accessor: (m) => m.hydrationKg,
-    unit: "kg",
-    digits: 1,
-  },
+const RANGE_DAYS: Record<Range, number | null> = {
+  "3m": 90,
+  "6m": 180,
+  "1y": 365,
+  all: null,
 };
 
-// the row of clickable tiles (offline html has 5 here, body-fat lives in the
-// portrait; weight is the implicit chart default).
-const TILE_METRICS: MetricKey[] = [
-  "muscle",
-  "fat_mass",
-  "visceral",
-  "bmr",
-  "hydration",
-];
+const RANGE_LABEL: Record<Range, string> = {
+  "3m": "3M",
+  "6m": "6M",
+  "1y": "1Y",
+  all: "All",
+};
 
 export default function BodyCard({ body }: BodyCardProps) {
-  const latest = body?.latest ?? null;
-  const trend = body?.trend ?? [];
+  const trend = useMemo(() => body?.trend ?? [], [body]);
+  const [range, setRange] = useState<Range>("1y");
 
-  // null = weight default; non-null = focused on that metric.
-  const [focusedKey, setFocusedKey] = useState<MetricKey | null>(null);
-  const [rangeKey, setRangeKey] = useState<RangeKey>("1y");
+  // withings often splits a single weigh-in across multiple rows (one for
+  // weight, one for pwv, etc.). build a composite "latest" by walking the
+  // sorted trend backward and keeping the first non-null value for each field.
+  const latest = useMemo<BodyMeasurement | null>(() => {
+    if (trend.length === 0) return body?.latest ?? null;
+    return mergeLatest(trend, body?.latest ?? null);
+  }, [trend, body]);
 
-  const activeMetric = focusedKey ? METRICS[focusedKey] : METRICS.weight;
+  // weight points filtered by range, sorted by time
+  const weightSeries = useMemo(() => {
+    const days = RANGE_DAYS[range];
+    const cutoff = days != null ? Date.now() - days * 86_400_000 : 0;
+    return trend
+      .filter((p) => p.weightKg != null)
+      .filter((p) => days == null || new Date(p.measuredAt).getTime() >= cutoff)
+      .map((p) => ({
+        date: new Date(p.measuredAt),
+        w: p.weightKg as number,
+      }))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [trend, range]);
 
-  const rangeDef =
-    RANGE_OPTIONS.find((r) => r.key === rangeKey) ?? RANGE_OPTIONS[2];
+  // body fat delta vs prior measurement that has a body-fat reading
+  const bfDelta = useMemo(() => {
+    if (!latest || latest.bodyFatPct == null) return null;
+    const sorted = [...trend].sort(
+      (a, b) =>
+        new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime(),
+    );
+    for (let i = sorted.length - 2; i >= 0; i--) {
+      const p = sorted[i];
+      if (p.bodyFatPct != null) {
+        return latest.bodyFatPct - p.bodyFatPct;
+      }
+    }
+    return null;
+  }, [latest, trend]);
 
-  const displayTrend = useMemo(() => {
-    if (rangeDef.days == null) return trend;
-    const cutoff = Date.now() - rangeDef.days * 24 * 60 * 60 * 1000;
-    return trend.filter((p) => new Date(p.measuredAt).getTime() >= cutoff);
-  }, [trend, rangeDef]);
+  // ~30 days ago measurement, used for "vs last month" deltas
+  const monthAgo = useMemo<BodyMeasurement | null>(() => {
+    const cutoff = Date.now() - 30 * 86_400_000;
+    const sorted = [...trend].sort(
+      (a, b) =>
+        new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime(),
+    );
+    let best: BodyMeasurement | null = null;
+    for (const p of sorted) {
+      if (new Date(p.measuredAt).getTime() <= cutoff) best = p;
+      else break;
+    }
+    return best;
+  }, [trend]);
 
-  const points = useMemo(
-    () =>
-      displayTrend
-        .map((p) => {
-          const v = activeMetric.accessor(p);
-          return v != null
-            ? { value: v, time: new Date(p.measuredAt).getTime() }
-            : null;
-        })
-        .filter((p): p is { value: number; time: number } => p != null),
-    [displayTrend, activeMetric],
-  );
-
-  // also need the latest body-fat delta for the portrait
-  const bodyFatPoints = useMemo(
-    () =>
-      displayTrend
-        .map((p) => p.bodyFatPct)
-        .filter((v): v is number => v != null),
-    [displayTrend],
-  );
-  const bodyFatDelta =
-    bodyFatPoints.length > 1
-      ? bodyFatPoints[bodyFatPoints.length - 1] - bodyFatPoints[0]
-      : null;
-
-  const onTileClick = (k: MetricKey) =>
-    setFocusedKey((cur) => (cur === k ? null : k));
+  const summary = useMemo(() => {
+    if (weightSeries.length < 2) return null;
+    const first = weightSeries[0];
+    const last = weightSeries[weightSeries.length - 1];
+    const days = Math.max(
+      1,
+      Math.round((last.date.getTime() - first.date.getTime()) / 86_400_000),
+    );
+    return { from: first.w, to: last.w, days };
+  }, [weightSeries]);
 
   return (
     <article
@@ -186,27 +118,21 @@ export default function BodyCard({ body }: BodyCardProps) {
             className="hp-body-top"
             style={{
               display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.6fr)",
+              gridTemplateColumns: "1fr 1.6fr",
               gap: 40,
-              marginTop: 16,
-              alignItems: "stretch",
+              paddingTop: 6,
             }}
           >
-            <Portrait latest={latest} bodyFatDelta={bodyFatDelta} />
+            <Portrait latest={latest} bfDelta={bfDelta} />
             <TrendPanel
-              metric={activeMetric}
-              points={points}
-              rangeKey={rangeKey}
-              onRangeChange={setRangeKey}
+              series={weightSeries}
+              range={range}
+              onRangeChange={setRange}
+              summary={summary}
             />
           </div>
 
-          <Tiles
-            latest={latest}
-            displayTrend={displayTrend}
-            focused={focusedKey}
-            onSelect={onTileClick}
-          />
+          <Tiles latest={latest} monthAgo={monthAgo} />
         </>
       )}
     </article>
@@ -215,53 +141,31 @@ export default function BodyCard({ body }: BodyCardProps) {
 
 function Portrait({
   latest,
-  bodyFatDelta,
+  bfDelta,
 }: {
   latest: BodyMeasurement;
-  bodyFatDelta: number | null;
+  bfDelta: number | null;
 }) {
-  const fat = latest.fatMassKg ?? 0;
+  const weight = latest.weightKg;
+  const bf = latest.bodyFatPct;
   const muscle = latest.muscleMassKg ?? 0;
+  const fat = latest.fatMassKg ?? 0;
   const bone = latest.boneMassKg ?? 0;
-  const total = fat + muscle + bone;
-
-  const segments =
-    total > 0
-      ? [
-          {
-            key: "muscle",
-            label: "Muscle",
-            value: muscle,
-            color: "var(--fg)",
-          },
-          {
-            key: "fat",
-            label: "Fat",
-            value: fat,
-            color: "var(--accent)",
-          },
-          {
-            key: "bone",
-            label: "Bone",
-            value: bone,
-            color: "var(--fg-mute)",
-          },
-        ]
-      : [];
+  const total = weight ?? muscle + fat + bone;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div
+        className="hp-body-weight"
         style={{
           fontFamily: "var(--f-serif)",
           fontSize: 96,
           lineHeight: 0.9,
           letterSpacing: "-0.03em",
-          margin: 0,
         }}
       >
-        <span className="skel">
-          {latest.weightKg != null ? latest.weightKg.toFixed(1) : "—"}
+        <span style={{ fontWeight: 400 }} className="skel">
+          {weight != null ? weight.toFixed(1) : "—"}
         </span>
         <span
           style={{
@@ -274,17 +178,17 @@ function Portrait({
           kg
         </span>
       </div>
-      {latest.bodyFatPct != null && (
+
+      {bf != null && (
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
             fontFamily: "var(--f-serif)",
-            gap: 14,
           }}
         >
-          <span style={{ fontSize: 32, color: "var(--fg)" }}>
-            {latest.bodyFatPct.toFixed(1)}
+          <span style={{ fontSize: 32, color: "var(--fg)", marginRight: 8 }}>
+            {bf.toFixed(1)}
           </span>
           <span
             style={{
@@ -295,134 +199,103 @@ function Portrait({
           >
             % body fat
           </span>
-          <DeltaPill delta={bodyFatDelta} digits={1} invertDelta />
+          {bfDelta != null && Math.abs(bfDelta) >= 0.05 && (
+            <DeltaTag value={bfDelta} digits={1} style={{ marginLeft: 14 }} />
+          )}
         </div>
       )}
 
       {total > 0 && (
-        <>
-          <div
-            style={{
-              display: "flex",
-              height: 14,
-              width: "100%",
-              marginTop: 10,
-              border: "1px solid var(--rule-strong)",
-            }}
-          >
-            {segments.map((s) => (
-              <span
-                key={s.key}
-                title={`${s.label} ${s.value.toFixed(1)} kg · ${((s.value / total) * 100).toFixed(1)}%`}
-                style={{
-                  width: `${(s.value / total) * 100}%`,
-                  height: "100%",
-                  background: s.color,
-                  display: "block",
-                  transition: "width 240ms cubic-bezier(.4,0,.2,1)",
-                }}
-              />
-            ))}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 22,
-              fontFamily: "var(--f-mono)",
-              fontSize: 10.5,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              color: "var(--fg-mute)",
-              flexWrap: "wrap",
-            }}
-          >
-            {segments.map((s) => (
-              <span
-                key={`leg-${s.key}`}
-                style={{ display: "inline-flex", alignItems: "center" }}
-              >
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 10,
-                    height: 10,
-                    background: s.color,
-                    marginRight: 6,
-                    verticalAlign: "-1px",
-                  }}
-                />
-                {s.label} {s.value.toFixed(1)}
-              </span>
-            ))}
-          </div>
-        </>
+        <CompositionBar muscle={muscle} fat={fat} bone={bone} total={total} />
       )}
     </div>
   );
 }
 
-function DeltaPill({
-  delta,
-  digits,
-  invertDelta = false,
+function CompositionBar({
+  muscle,
+  fat,
+  bone,
+  total,
 }: {
-  delta: number | null;
-  digits: number;
-  invertDelta?: boolean;
+  muscle: number;
+  fat: number;
+  bone: number;
+  total: number;
 }) {
-  if (delta == null) return null;
-  const sign = delta === 0 ? 0 : delta > 0 ? 1 : -1;
-  const scored = invertDelta ? -sign : sign;
-  const color =
-    scored > 0 ? "var(--ok)" : scored < 0 ? "var(--danger)" : "var(--fg-mute)";
-  const arrow = sign > 0 ? "▲" : sign < 0 ? "▼" : "◆";
+  const segments = [
+    { key: "muscle", label: "Muscle", value: muscle, color: "var(--fg)" },
+    { key: "fat", label: "Fat", value: fat, color: "var(--accent)" },
+    { key: "bone", label: "Bone", value: bone, color: "var(--fg-mute)" },
+  ];
+
   return (
-    <span
-      style={{
-        fontFamily: "var(--f-mono)",
-        fontSize: 11,
-        letterSpacing: "0.06em",
-        color,
-        marginLeft: 4,
-      }}
-    >
-      {arrow} {Math.abs(delta).toFixed(digits)}
-    </span>
+    <>
+      <div
+        aria-label="Body composition"
+        style={{
+          display: "flex",
+          height: 14,
+          width: "100%",
+          marginTop: 10,
+          border: "1px solid var(--rule-strong)",
+        }}
+      >
+        {segments.map((s) => (
+          <span
+            key={s.key}
+            style={{
+              display: "block",
+              height: "100%",
+              width: `${(s.value / total) * 100}%`,
+              background: s.color,
+            }}
+          />
+        ))}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: 22,
+          fontFamily: "var(--f-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: "var(--fg-mute)",
+          flexWrap: "wrap",
+        }}
+      >
+        {segments.map((s) => (
+          <span key={s.key}>
+            <i
+              style={{
+                display: "inline-block",
+                width: 10,
+                height: 10,
+                marginRight: 6,
+                verticalAlign: -1,
+                background: s.color,
+              }}
+            />
+            {s.label} {s.value.toFixed(1)}
+          </span>
+        ))}
+      </div>
+    </>
   );
 }
 
 function TrendPanel({
-  metric,
-  points,
-  rangeKey,
+  series,
+  range,
   onRangeChange,
+  summary,
 }: {
-  metric: MetricDef;
-  points: Array<{ value: number; time: number }>;
-  rangeKey: RangeKey;
-  onRangeChange: (k: RangeKey) => void;
+  series: Array<{ date: Date; w: number }>;
+  range: Range;
+  onRangeChange: (r: Range) => void;
+  summary: { from: number; to: number; days: number } | null;
 }) {
-  const summary = useMemo(() => {
-    if (points.length < 2) return null;
-    const first = points[0];
-    const last = points[points.length - 1];
-    const spanDays = (last.time - first.time) / 86_400_000;
-    let spanLabel: string;
-    if (spanDays >= 365) {
-      const years = spanDays / 365;
-      spanLabel = `${years >= 1.5 ? years.toFixed(1) : Math.round(years)} ${years >= 1.5 || years < 1 ? "years" : "year"}`;
-    } else if (spanDays >= 60) {
-      spanLabel = `${Math.round(spanDays / 30)} months`;
-    } else {
-      spanLabel = `${Math.round(spanDays)} days`;
-    }
-    return {
-      from: first.value,
-      to: last.value,
-      spanLabel,
-    };
-  }, [points]);
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div
@@ -434,7 +307,7 @@ function TrendPanel({
           flexWrap: "wrap",
         }}
       >
-        <RangeSelector value={rangeKey} onChange={onRangeChange} />
+        <RangeTabs value={range} onChange={onRangeChange} />
         {summary && (
           <div
             style={{
@@ -444,41 +317,40 @@ function TrendPanel({
             }}
           >
             <span style={{ color: "var(--fg-mute)" }}>
-              {summary.from.toFixed(metric.digits)}
+              {summary.from.toFixed(1)}
             </span>
-            <span style={{ color: "var(--fg-mute)", margin: "0 6px" }}>→</span>
-            <span>
-              {summary.to.toFixed(metric.digits)}
-              {metric.unit ? ` ${metric.unit}` : ""}
-            </span>
+            <span style={{ color: "var(--fg-mute)", margin: "0 4px" }}>→</span>
+            <span>{summary.to.toFixed(1)} kg</span>
             <span
               style={{
+                fontFamily: "var(--f-serif)",
                 fontStyle: "italic",
-                color: "var(--fg-mute)",
-                fontSize: 15,
+                color: "var(--fg-soft)",
                 marginLeft: 10,
+                fontSize: 15,
               }}
             >
-              over <em>{summary.spanLabel}</em>.
+              over <em>{formatSpan(summary.days)}</em>.
             </span>
           </div>
         )}
       </div>
-
-      <ChartSvg metric={metric} points={points} />
+      <WeightChart series={series} />
     </div>
   );
 }
 
-function RangeSelector({
+function RangeTabs({
   value,
   onChange,
 }: {
-  value: RangeKey;
-  onChange: (v: RangeKey) => void;
+  value: Range;
+  onChange: (v: Range) => void;
 }) {
+  const ranges: Range[] = ["3m", "6m", "1y", "all"];
   return (
     <div
+      role="tablist"
       style={{
         display: "inline-flex",
         border: "1px solid var(--rule-strong)",
@@ -488,30 +360,29 @@ function RangeSelector({
         textTransform: "uppercase",
       }}
     >
-      {RANGE_OPTIONS.map((o, i) => {
-        const active = o.key === value;
+      {ranges.map((r, i) => {
+        const active = r === value;
         return (
           <button
-            key={o.key}
+            key={r}
             type="button"
-            onClick={() => onChange(o.key)}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(r)}
             style={{
               background: active ? "var(--fg)" : "transparent",
-              color: active ? "var(--background)" : "var(--fg-mute)",
+              color: active ? "var(--bg)" : "var(--fg-mute)",
               border: "none",
+              borderRight:
+                i < ranges.length - 1 ? "1px solid var(--rule-strong)" : "none",
               padding: "6px 12px",
               cursor: "pointer",
               font: "inherit",
               letterSpacing: "inherit",
               textTransform: "inherit",
-              borderRight:
-                i < RANGE_OPTIONS.length - 1
-                  ? "1px solid var(--rule-strong)"
-                  : "none",
-              transition: "background 140ms ease, color 140ms ease",
             }}
           >
-            {o.label}
+            {RANGE_LABEL[r]}
           </button>
         );
       })}
@@ -519,63 +390,70 @@ function RangeSelector({
   );
 }
 
-const VIEW_W = 1000;
-const VIEW_H = 200;
-const PAD = { t: 18, r: 24, b: 24, l: 36 };
-const innerW = VIEW_W - PAD.l - PAD.r;
-const innerH = VIEW_H - PAD.t - PAD.b;
+function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
+  const W = 1000;
+  const H = 200;
+  const PAD = { t: 18, r: 24, b: 24, l: 36 };
+  const innerW = W - PAD.l - PAD.r;
+  const innerH = H - PAD.t - PAD.b;
 
-function ChartSvg({
-  metric,
-  points,
-}: {
-  metric: MetricDef;
-  points: Array<{ value: number; time: number }>;
-}) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  const chart = useMemo(() => {
-    if (points.length < 2) return null;
-    const values = points.map((p) => p.value);
-    let yMin = Math.min(...values);
-    let yMax = Math.max(...values);
-    if (yMin === yMax) {
-      yMin -= 1;
-      yMax += 1;
-    } else {
-      const pad = (yMax - yMin) * 0.1;
-      yMin = Math.floor(yMin - pad);
-      yMax = Math.ceil(yMax + pad);
-    }
-    const stepX = innerW / (points.length - 1);
-    const xFor = (i: number) => PAD.l + i * stepX;
-    const yFor = (v: number) =>
-      PAD.t + innerH - ((v - yMin) / (yMax - yMin)) * innerH;
-    let d = "";
-    points.forEach((p, i) => {
-      const x = xFor(i);
-      const y = yFor(p.value);
-      d +=
-        i === 0
-          ? `M ${x.toFixed(1)} ${y.toFixed(1)}`
-          : ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
-    });
-    return { yMin, yMax, stepX, xFor, yFor, d };
-  }, [points]);
+  const n = series.length;
+  const ws = series.map((d) => d.w);
+  const wMin = n > 0 ? Math.floor(Math.min(...ws) - 1) : 0;
+  const wMax = n > 0 ? Math.ceil(Math.max(...ws) + 1) : 1;
+  const stepX = n > 1 ? innerW / (n - 1) : 0;
+
+  const xFor = (i: number) => PAD.l + i * stepX;
+  const yFor = (w: number) =>
+    PAD.t + innerH - ((w - wMin) / (wMax - wMin || 1)) * innerH;
+
+  const gridLevels = [0, 0.25, 0.5, 0.75, 1];
+  const gridYs = gridLevels.map((g) => ({
+    g,
+    y: PAD.t + innerH * (1 - g),
+    label: (wMin + (wMax - wMin) * g).toFixed(0),
+  }));
+
+  let path = "";
+  for (let i = 0; i < n; i++) {
+    const x = xFor(i);
+    const y = yFor(series[i].w);
+    path += i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
+  }
+
+  const startY = n > 0 ? yFor(series[0].w) : 0;
+  const endX = n > 0 ? xFor(n - 1) : 0;
+  const endY = n > 0 ? yFor(series[n - 1].w) : 0;
+
+  const handleMove = (e: React.MouseEvent<SVGRectElement>) => {
+    if (n < 2) return;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const svgX = ((e.clientX - rect.left) / rect.width) * W;
+    let idx = Math.round((svgX - PAD.l) / stepX);
+    idx = Math.max(0, Math.min(n - 1, idx));
+    setHoverIdx(idx);
+  };
 
   const monthTicks = useMemo(() => {
-    if (points.length < 2) return [];
-    const startMs = points[0].time;
-    const endMs = points[points.length - 1].time;
-    const totalDays = (endMs - startMs) / 86_400_000;
+    if (n < 2) return [] as Array<{ pct: number; label: string }>;
+    const start = series[0].date.getTime();
+    const end = series[n - 1].date.getTime();
+    const span = end - start;
+    if (span <= 0) return [];
+    const totalDays = span / 86_400_000;
     const ticks: Array<{ pct: number; label: string }> = [];
-    const cur = new Date(startMs);
+    const cur = new Date(start);
     cur.setUTCDate(1);
     cur.setUTCMonth(cur.getUTCMonth() + 1);
-    while (cur.getTime() <= endMs) {
+    while (cur.getTime() <= end) {
       ticks.push({
-        pct: ((cur.getTime() - startMs) / (endMs - startMs)) * 100,
+        pct: ((cur.getTime() - start) / span) * 100,
         label: cur.toLocaleDateString(undefined, {
           month: "short",
           year: totalDays > 365 ? "2-digit" : undefined,
@@ -586,15 +464,16 @@ function ChartSvg({
     if (ticks.length <= 6) return ticks;
     const step = Math.ceil(ticks.length / 6);
     return ticks.filter((_, i) => i % step === 0);
-  }, [points]);
+  }, [series, n]);
 
-  if (!chart) {
+  if (n < 2) {
     return (
       <div
         style={{
-          height: VIEW_H,
+          height: H,
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
           fontFamily: "var(--f-mono)",
           fontSize: 11,
           letterSpacing: "0.1em",
@@ -606,88 +485,59 @@ function ChartSvg({
     );
   }
 
-  const handleMove = (e: React.MouseEvent<SVGRectElement>) => {
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-    const rect = wrap.getBoundingClientRect();
-    if (rect.width <= 0) return;
-    const svgX = ((e.clientX - rect.left) / rect.width) * VIEW_W;
-    let idx = Math.round((svgX - PAD.l) / chart.stepX);
-    idx = Math.max(0, Math.min(points.length - 1, idx));
-    setHoverIdx(idx);
-  };
-
-  const startY = chart.yFor(points[0].value);
-  const lastIdx = points.length - 1;
-  const endX = chart.xFor(lastIdx);
-  const endY = chart.yFor(points[lastIdx].value);
-
-  const hoverPoint = hoverIdx != null ? points[hoverIdx] : null;
-  const hoverX = hoverIdx != null ? chart.xFor(hoverIdx) : 0;
-  const hoverY = hoverPoint ? chart.yFor(hoverPoint.value) : 0;
-
-  // five y-axis ticks at 0/25/50/75/100% of the value range
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((g) => ({
-    y: PAD.t + innerH * (1 - g),
-    label: (chart.yMin + (chart.yMax - chart.yMin) * g).toFixed(metric.digits),
-  }));
+  const hovered = hoverIdx != null ? series[hoverIdx] : null;
+  const hoverPct = hovered ? (xFor(hoverIdx as number) / W) * 100 : 0;
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
       <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        style={{ width: "100%", height: VIEW_H, display: "block" }}
+        style={{ width: "100%", height: H, display: "block" }}
       >
-        {yTicks.map((t, i) => (
-          <g key={`yt-${i}`}>
+        {gridYs.map((g) => (
+          <g key={g.g}>
             <line
               x1={PAD.l}
-              x2={VIEW_W - PAD.r}
-              y1={t.y}
-              y2={t.y}
+              x2={W - PAD.r}
+              y1={g.y}
+              y2={g.y}
               stroke="var(--rule)"
               strokeWidth={1}
               strokeDasharray="2 4"
-              vectorEffect="non-scaling-stroke"
             />
             <text
               x={PAD.l - 8}
-              y={t.y + 3}
+              y={g.y + 3}
               textAnchor="end"
               fill="var(--fg-mute)"
               fontFamily="var(--f-mono)"
               fontSize={10}
             >
-              {t.label}
+              {g.label}
             </text>
           </g>
         ))}
 
-        {/* baseline at the starting value */}
         <line
           x1={PAD.l}
-          x2={VIEW_W - PAD.r}
+          x2={W - PAD.r}
           y1={startY}
           y2={startY}
           stroke="var(--fg-mute)"
           strokeWidth={1}
           strokeDasharray="1 6"
-          vectorEffect="non-scaling-stroke"
         />
 
         <path
-          d={chart.d}
+          d={path}
           fill="none"
           stroke="var(--fg)"
           strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          strokeLinejoin="miter"
           vectorEffect="non-scaling-stroke"
-          style={{ transition: "d 240ms cubic-bezier(.4,0,.2,1)" }}
         />
 
-        {/* end-of-line cap */}
         <rect
           x={endX - 4}
           y={endY - 4}
@@ -696,26 +546,27 @@ function ChartSvg({
           fill="var(--accent)"
         />
 
-        {hoverPoint && (
-          <line
-            x1={hoverX}
-            x2={hoverX}
-            y1={PAD.t}
-            y2={PAD.t + innerH}
-            stroke="var(--fg-mute)"
-            strokeWidth={1}
-            strokeDasharray="2 3"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-        {hoverPoint && (
-          <rect
-            x={hoverX - 4}
-            y={hoverY - 4}
-            width={8}
-            height={8}
-            fill="var(--fg)"
-          />
+        {hovered && (
+          <>
+            <line
+              x1={xFor(hoverIdx as number)}
+              x2={xFor(hoverIdx as number)}
+              y1={PAD.t}
+              y2={PAD.t + innerH}
+              stroke="var(--fg-mute)"
+              strokeWidth={1}
+              strokeDasharray="2 3"
+              pointerEvents="none"
+            />
+            <rect
+              x={xFor(hoverIdx as number) - 4}
+              y={yFor(hovered.w) - 4}
+              width={8}
+              height={8}
+              fill="var(--fg)"
+              pointerEvents="none"
+            />
+          </>
         )}
 
         <rect
@@ -730,73 +581,51 @@ function ChartSvg({
         />
       </svg>
 
-      {hoverPoint && (
+      {hovered && (
         <div
           style={{
             position: "absolute",
-            left: `${(hoverX / VIEW_W) * 100}%`,
-            top: -6,
+            left: `${hoverPct}%`,
+            top: -8,
             transform: "translate(-50%, -100%)",
             background: "var(--card-elev)",
             border: "1px solid var(--rule-strong)",
             padding: "8px 10px",
             fontFamily: "var(--f-mono)",
-            fontSize: 10.5,
+            fontSize: 10,
             letterSpacing: "0.06em",
             color: "var(--fg)",
             pointerEvents: "none",
             whiteSpace: "nowrap",
             zIndex: 10,
-            lineHeight: 1.45,
-            transition: "left 130ms linear",
+            lineHeight: 1.5,
           }}
         >
-          <div style={{ color: "var(--fg-mute)", marginBottom: 2 }}>
-            {new Date(hoverPoint.time).toLocaleDateString(undefined, {
+          <div style={{ color: "var(--fg-mute)", marginBottom: 4 }}>
+            {hovered.date.toLocaleDateString(undefined, {
               day: "numeric",
               month: "short",
               year: "numeric",
             })}
           </div>
-          <div>
-            <span style={{ color: "var(--fg-mute)" }}>{metric.short}</span>
-            <span style={{ marginLeft: 12 }}>
-              {hoverPoint.value.toFixed(metric.digits)}
-              {metric.unit ? (
-                <span style={{ color: "var(--fg-mute)", marginLeft: 3 }}>
-                  {metric.unit}
-                </span>
-              ) : null}
-            </span>
-          </div>
+          <div>{hovered.w.toFixed(1)} kg</div>
         </div>
       )}
 
       <div
         style={{
-          position: "relative",
-          height: 14,
-          marginTop: 6,
+          display: "flex",
+          justifyContent: "space-between",
           fontFamily: "var(--f-mono)",
           fontSize: 10,
           letterSpacing: "0.1em",
-          textTransform: "uppercase",
           color: "var(--fg-mute)",
+          marginTop: 4,
+          textTransform: "uppercase",
         }}
       >
         {monthTicks.map((t) => (
-          <span
-            key={`${t.label}-${t.pct}`}
-            style={{
-              position: "absolute",
-              left: `${t.pct}%`,
-              top: 0,
-              transform: "translateX(-50%)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {t.label}
-          </span>
+          <span key={`${t.label}-${t.pct}`}>{t.label}</span>
         ))}
       </div>
     </div>
@@ -805,138 +634,185 @@ function ChartSvg({
 
 function Tiles({
   latest,
-  displayTrend,
-  focused,
-  onSelect,
+  monthAgo,
 }: {
   latest: BodyMeasurement;
-  displayTrend: BodyMeasurement[];
-  focused: MetricKey | null;
-  onSelect: (k: MetricKey) => void;
+  monthAgo: BodyMeasurement | null;
 }) {
-  // delta vs first value in current window for each tile metric
-  const deltas = useMemo(() => {
-    const out: Partial<Record<MetricKey, number | null>> = {};
-    for (const k of TILE_METRICS) {
-      const m = METRICS[k];
-      const series = displayTrend
-        .map((p) => m.accessor(p))
-        .filter((v): v is number => v != null);
-      out[k] = series.length > 1 ? series[series.length - 1] - series[0] : null;
-    }
-    return out;
-  }, [displayTrend]);
+  const muscleDelta = delta(latest.muscleMassKg, monthAgo?.muscleMassKg);
+  const fatDelta = delta(latest.fatMassKg, monthAgo?.fatMassKg);
+  const hydrationCap = hydrationCaption(latest);
 
   return (
     <div
       className="hp-body-tiles"
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: 0,
         marginTop: 36,
         paddingTop: 24,
         borderTop: "1px solid var(--rule)",
       }}
     >
-      {TILE_METRICS.map((k, i) => {
-        const m = METRICS[k];
-        const v = m.accessor(latest);
-        const isActive = focused === k;
-        const delta = deltas[k] ?? null;
-        return (
-          <button
-            key={k}
-            type="button"
-            onClick={() => onSelect(k)}
-            style={{
-              appearance: "none",
-              background: isActive ? "var(--card-elev)" : "transparent",
-              border: "none",
-              borderLeft: isActive ? "1px solid var(--fg)" : "none",
-              borderRight:
-                i < TILE_METRICS.length - 1 ? "1px solid var(--rule)" : "none",
-              padding: "6px 22px",
-              paddingLeft: i === 0 ? (isActive ? 22 : 0) : 22,
-              paddingRight: i === TILE_METRICS.length - 1 ? 0 : 22,
-              cursor: "pointer",
-              textAlign: "left",
-              outline: "none",
-              fontFamily: "inherit",
-              color: "inherit",
-              transition: "background 160ms ease, transform 120ms ease",
-              minWidth: 0,
-            }}
-            onMouseDown={(e) =>
-              (e.currentTarget.style.transform = "scale(0.99)")
-            }
-            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          >
-            <div
-              style={{
-                fontFamily: "var(--f-mono)",
-                fontSize: 10.5,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: isActive ? "var(--fg)" : "var(--fg-mute)",
-                marginBottom: 8,
-              }}
-            >
-              {m.label}
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--f-serif)",
-                fontSize: 38,
-                lineHeight: 1,
-                letterSpacing: "-0.01em",
-                color: "var(--fg)",
-              }}
-            >
-              <span>{v != null ? v.toFixed(m.digits) : "—"}</span>
-              {m.unit && (
-                <span
-                  style={{
-                    fontStyle: "italic",
-                    fontSize: 16,
-                    color: "var(--fg-mute)",
-                    marginLeft: 6,
-                  }}
-                >
-                  {m.unit}
-                </span>
-              )}
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--f-serif)",
-                fontStyle: "italic",
-                fontSize: 14,
-                color: "var(--fg-mute)",
-                marginTop: 10,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                flexWrap: "wrap",
-              }}
-            >
-              {delta != null ? (
-                <>
-                  <DeltaPill
-                    delta={delta}
-                    digits={m.digits}
-                    invertDelta={m.invertDelta}
-                  />
-                  <span>vs window start</span>
-                </>
-              ) : (
-                <span>—</span>
-              )}
-            </div>
-          </button>
-        );
-      })}
+      <Tile
+        label="Muscle Mass"
+        value={latest.muscleMassKg}
+        unit="kg"
+        digits={1}
+        cap={
+          muscleDelta != null ? (
+            <>
+              <DeltaTag value={muscleDelta} digits={1} inline /> vs last month
+            </>
+          ) : null
+        }
+      />
+      <Tile
+        label="Fat Mass"
+        value={latest.fatMassKg}
+        unit="kg"
+        digits={1}
+        cap={
+          fatDelta != null ? (
+            <>
+              <DeltaTag value={fatDelta} digits={1} inline invert /> vs last
+              month
+            </>
+          ) : null
+        }
+      />
+      <Tile
+        label="Visceral Fat"
+        value={latest.visceralFat}
+        digits={1}
+        cap={
+          <>
+            In the <em style={{ color: "var(--fg)" }}>healthy</em> 1–9 range.
+          </>
+        }
+      />
+      <Tile
+        label="BMR"
+        value={latest.basalMetabolicRateKcal}
+        unit="kcal"
+        digits={0}
+        cap={<>Resting daily burn.</>}
+      />
+      <Tile
+        label="Hydration"
+        value={latest.hydrationKg}
+        unit="kg"
+        digits={1}
+        cap={hydrationCap}
+      />
     </div>
+  );
+}
+
+function Tile({
+  label,
+  value,
+  unit,
+  digits,
+  cap,
+}: {
+  label: string;
+  value: number | null;
+  unit?: string;
+  digits: number;
+  cap: React.ReactNode;
+}) {
+  return (
+    <div
+      className="hp-body-tile"
+      style={{
+        padding: "0 22px",
+        borderRight: "1px solid var(--rule)",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "var(--f-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "var(--fg-mute)",
+          marginBottom: 8,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--f-serif)",
+          fontSize: 38,
+          lineHeight: 1,
+          letterSpacing: "-0.01em",
+          color: "var(--fg)",
+        }}
+      >
+        <span>{value != null ? formatTileNumber(value, digits) : "—"}</span>
+        {unit && (
+          <span
+            style={{
+              fontStyle: "italic",
+              fontSize: 16,
+              color: "var(--fg-mute)",
+              marginLeft: 6,
+            }}
+          >
+            {unit}
+          </span>
+        )}
+      </div>
+      {cap && (
+        <div
+          style={{
+            fontFamily: "var(--f-serif)",
+            fontStyle: "italic",
+            fontSize: 14,
+            color: "var(--fg-mute)",
+            marginTop: 10,
+          }}
+        >
+          {cap}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DeltaTag({
+  value,
+  digits,
+  inline,
+  invert,
+  style,
+}: {
+  value: number;
+  digits: number;
+  inline?: boolean;
+  invert?: boolean;
+  style?: React.CSSProperties;
+}) {
+  const sign = value === 0 ? 0 : value > 0 ? 1 : -1;
+  const scored = invert ? -sign : sign;
+  const color =
+    scored > 0 ? "var(--ok)" : scored < 0 ? "var(--danger)" : "var(--fg-mute)";
+  const arrow = sign > 0 ? "▲" : sign < 0 ? "▼" : "◆";
+  return (
+    <span
+      style={{
+        color,
+        fontFamily: inline ? "var(--f-mono)" : undefined,
+        fontSize: inline ? 11 : 14,
+        letterSpacing: inline ? "0.06em" : undefined,
+        ...style,
+      }}
+    >
+      {arrow} {Math.abs(value).toFixed(digits)}
+    </span>
   );
 }
 
@@ -972,4 +848,129 @@ function EmptyBanner() {
       No Withings data yet. Run scripts/withings-auth.ts to connect.
     </div>
   );
+}
+
+function delta(a: number | null, b: number | null | undefined): number | null {
+  if (a == null || b == null || !Number.isFinite(b)) return null;
+  return a - b;
+}
+
+const COMPOSITE_FIELDS: Array<keyof BodyMeasurement> = [
+  "weightKg",
+  "bodyFatPct",
+  "fatMassKg",
+  "fatFreeMassKg",
+  "muscleMassKg",
+  "hydrationKg",
+  "boneMassKg",
+  "heightM",
+  "heartRateBpm",
+  "pulseWaveVelocityMs",
+  "vascularAgeYears",
+  "extracellularWaterKg",
+  "intracellularWaterKg",
+  "visceralFat",
+  "basalMetabolicRateKcal",
+];
+
+// Withings sometimes splits a single weigh-in across rows. Walk the
+// time-sorted trend backward and keep the first non-null value for each
+// field so the card has a populated "latest" snapshot.
+function mergeLatest(
+  trend: BodyMeasurement[],
+  fallback: BodyMeasurement | null,
+): BodyMeasurement | null {
+  if (trend.length === 0) return fallback;
+  const sorted = [...trend].sort(
+    (a, b) =>
+      new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime(),
+  );
+  const out: BodyMeasurement = {
+    measuredAt: sorted[0].measuredAt,
+    weightKg: null,
+    bodyFatPct: null,
+    fatMassKg: null,
+    fatFreeMassKg: null,
+    muscleMassKg: null,
+    hydrationKg: null,
+    boneMassKg: null,
+    heightM: null,
+    heartRateBpm: null,
+    pulseWaveVelocityMs: null,
+    vascularAgeYears: null,
+    extracellularWaterKg: null,
+    intracellularWaterKg: null,
+    visceralFat: null,
+    basalMetabolicRateKcal: null,
+  };
+  let measuredAtForWeight: string | null = null;
+  for (const m of sorted) {
+    for (const f of COMPOSITE_FIELDS) {
+      if (out[f] == null && m[f] != null) {
+        (out[f] as number | null) = m[f] as number | null;
+        if (f === "weightKg") measuredAtForWeight = m.measuredAt;
+      }
+    }
+  }
+  // anchor the displayed timestamp to the most recent weigh-in if available,
+  // otherwise the most recent row.
+  if (measuredAtForWeight) out.measuredAt = measuredAtForWeight;
+  return out;
+}
+
+function hydrationCaption(m: BodyMeasurement): React.ReactNode {
+  const icw = m.intracellularWaterKg;
+  const ecw = m.extracellularWaterKg;
+  if (icw == null && ecw == null) return "Total body water.";
+  const parts: React.ReactNode[] = [];
+  if (icw != null) {
+    parts.push(
+      <span key="icw">
+        ICW{" "}
+        <b style={{ fontStyle: "normal", color: "var(--fg)" }}>
+          {icw.toFixed(1)}
+        </b>
+      </span>,
+    );
+  }
+  if (ecw != null) {
+    parts.push(
+      <span key="ecw">
+        ECW{" "}
+        <b style={{ fontStyle: "normal", color: "var(--fg)" }}>
+          {ecw.toFixed(1)}
+        </b>
+      </span>,
+    );
+  }
+  return parts.reduce<React.ReactNode[]>((acc, node, i) => {
+    if (i > 0) acc.push(<span key={`sep-${i}`}> · </span>);
+    acc.push(node);
+    return acc;
+  }, []);
+}
+
+function formatTileNumber(value: number, digits: number): string {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
+function formatSpan(days: number): string {
+  if (days < 14) return `${days} days`;
+  if (days < 60) {
+    const w = Math.round(days / 7);
+    return `${w} week${w === 1 ? "" : "s"}`;
+  }
+  if (days < 365) {
+    const m = Math.round(days / 30);
+    return `${m} month${m === 1 ? "" : "s"}`;
+  }
+  if (days < 730) {
+    const m = Math.round(days / 30);
+    return `${m} months`;
+  }
+  const y = (days / 365).toFixed(1);
+  return `${y} years`;
 }
