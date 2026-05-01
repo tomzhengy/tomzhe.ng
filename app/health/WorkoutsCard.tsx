@@ -20,7 +20,7 @@ const ZONES: Array<{
     key: "zone_zero_milli",
     label: "Zone 0",
     range: "0–50% max HR",
-    bg: "color-mix(in oklab, var(--fg) 45%, transparent)",
+    bg: "var(--fg-mute)",
   },
   {
     key: "zone_one_milli",
