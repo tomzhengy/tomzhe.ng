@@ -33,7 +33,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
         background: "var(--card)",
         border: "1px solid transparent",
         padding: "22px 24px 24px",
-        gridColumn: "span 5",
+        gridColumn: "span 4",
         position: "relative",
       }}
     >

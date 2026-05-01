@@ -51,6 +51,8 @@ export default function RecoveryHero({
         padding: "22px 24px 24px",
         gridColumn: "span 4",
         position: "relative",
+        display: "flex",
+        flexDirection: "column",
         ["--recovery-hue" as string]: recoveryHue(score),
       }}
     >
@@ -97,33 +99,49 @@ export default function RecoveryHero({
         }}
       />
 
-      <RecoveryStat
-        label="Heart Rate Variability"
-        value={hrv != null ? `${Math.round(hrv)}` : "—"}
-        unit="ms"
-        delta={hrv != null ? hrvDelta : null}
-        caption={
-          avgHrv > 0 ? `7-day avg ${Math.round(avgHrv)}` : "Baseline pending"
-        }
-        series={hrvSeries}
-        seriesDigits={0}
-        hoverIdx={hoverIdx}
-        onHoverChange={setHoverIdx}
-      />
-      <RecoveryStat
-        label="Resting Heart Rate"
-        value={rhr != null ? `${Math.round(rhr)}` : "—"}
-        unit="bpm"
-        delta={rhr != null ? rhrDelta : null}
-        invertDelta
-        caption={
-          avgRhr > 0 ? `7-day avg ${Math.round(avgRhr)}` : "Baseline pending"
-        }
-        series={rhrSeries}
-        seriesDigits={0}
-        hoverIdx={hoverIdx}
-        onHoverChange={setHoverIdx}
-      />
+      {/* push the hrv/rhr strip to the bottom so the card matches the
+          taller strain/sleep cards in row 1 without dead space at the top. */}
+      <div style={{ flex: 1, minHeight: 14 }} />
+
+      <div
+        className="hp-recovery-stats"
+        style={{
+          marginTop: 24,
+          paddingTop: 18,
+          borderTop: "1px solid var(--rule)",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 22,
+        }}
+      >
+        <RecoveryStat
+          label="HRV"
+          value={hrv != null ? `${Math.round(hrv)}` : "—"}
+          unit="ms"
+          delta={hrv != null ? hrvDelta : null}
+          caption={
+            avgHrv > 0 ? `7-day avg ${Math.round(avgHrv)}` : "Baseline pending"
+          }
+          series={hrvSeries}
+          seriesDigits={0}
+          hoverIdx={hoverIdx}
+          onHoverChange={setHoverIdx}
+        />
+        <RecoveryStat
+          label="RHR"
+          value={rhr != null ? `${Math.round(rhr)}` : "—"}
+          unit="bpm"
+          delta={rhr != null ? rhrDelta : null}
+          invertDelta
+          caption={
+            avgRhr > 0 ? `7-day avg ${Math.round(avgRhr)}` : "Baseline pending"
+          }
+          series={rhrSeries}
+          seriesDigits={0}
+          hoverIdx={hoverIdx}
+          onHoverChange={setHoverIdx}
+        />
+      </div>
     </article>
   );
 }
@@ -168,13 +186,7 @@ function RecoveryStat({
   }
 
   return (
-    <div
-      style={{
-        marginTop: 24,
-        paddingTop: 18,
-        borderTop: "1px solid var(--rule)",
-      }}
-    >
+    <div style={{ minWidth: 0 }}>
       <div
         style={{
           fontFamily: "var(--f-mono)",
@@ -194,7 +206,7 @@ function RecoveryStat({
       <div
         style={{
           fontFamily: "var(--f-serif)",
-          fontSize: 36,
+          fontSize: 32,
           lineHeight: 1,
           letterSpacing: "-0.02em",
           margin: "8px 0 2px",
@@ -208,7 +220,7 @@ function RecoveryStat({
           style={{
             fontFamily: "var(--f-serif)",
             fontStyle: "italic",
-            fontSize: 14,
+            fontSize: 13,
             color: "var(--fg-mute)",
           }}
         >
@@ -218,7 +230,7 @@ function RecoveryStat({
       <div
         style={{
           fontFamily: "var(--f-sans)",
-          fontSize: 11.5,
+          fontSize: 11,
           color: "var(--fg-mute)",
         }}
       >
@@ -230,7 +242,7 @@ function RecoveryStat({
         digits={seriesDigits}
         sharedHoverIdx={hoverIdx}
         onHoverChange={onHoverChange}
-        height={32}
+        height={28}
       />
     </div>
   );

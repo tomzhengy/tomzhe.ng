@@ -45,7 +45,7 @@ export default function SleepCard({
       style={{
         border: "1px solid var(--rule)",
         padding: "22px 24px 24px",
-        gridColumn: "span 7",
+        gridColumn: "span 4",
         position: "relative",
       }}
     >
