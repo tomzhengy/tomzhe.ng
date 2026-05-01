@@ -63,6 +63,8 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
         padding: "22px 24px 14px",
         gridColumn: "span 4",
         position: "relative",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <CardHead title="Sleep" />
@@ -128,6 +130,8 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
           }}
         />
       </div>
+
+      <div style={{ flex: 1, minHeight: 14 }} />
 
       <div
         className="hp-sleep-stats"

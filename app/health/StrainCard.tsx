@@ -36,6 +36,8 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
         padding: "22px 24px 14px",
         gridColumn: "span 4",
         position: "relative",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <CardHead title="Strain" subtitle="0–21 scale" />
@@ -117,6 +119,8 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
         <span>18</span>
         <span>21</span>
       </div>
+
+      <div style={{ flex: 1, minHeight: 14 }} />
 
       <div
         style={{
