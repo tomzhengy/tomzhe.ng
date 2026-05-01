@@ -84,7 +84,7 @@ export default function RecoveryHero({
           }}
         >
           <span className="skel">
-            <RollingNumber value={score} digits={0} />
+            <RollingNumber value={score} digits={0} intDigits={2} />
           </span>
           <span
             style={{
@@ -229,7 +229,7 @@ function RecoveryStat({
         }}
       >
         <span className="skel">
-          <RollingNumber value={value} digits={0} />
+          <RollingNumber value={value} digits={0} intDigits={2} />
         </span>
         <span
           style={{

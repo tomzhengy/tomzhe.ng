@@ -64,7 +64,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
           }}
         >
           <span className="skel">
-            <RollingNumber value={strain} digits={1} />
+            <RollingNumber value={strain} digits={1} intDigits={2} />
           </span>
         </div>
         <p
@@ -141,6 +141,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
             <RollingNumber
               value={avgHr != null ? Math.round(avgHr) : null}
               digits={0}
+              intDigits={3}
             />
           </span>
           <span
@@ -169,6 +170,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
           <RollingNumber
             value={maxHr != null ? Math.round(maxHr) : null}
             digits={0}
+            intDigits={3}
           />
         </div>
       </div>
@@ -206,7 +208,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
             }}
           >
             <span className="skel">
-              <RollingNumber value={kj} digits={0} grouping />
+              <RollingNumber value={kj} digits={0} grouping intDigits={4} />
             </span>
             <span
               style={{
@@ -241,7 +243,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
             }}
           >
             <span className="skel">
-              <RollingNumber value={cals} digits={0} grouping />
+              <RollingNumber value={cals} digits={0} grouping intDigits={4} />
             </span>
             <span
               style={{

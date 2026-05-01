@@ -262,8 +262,7 @@ button svg {
   background: var(--rule);
   display: inline-block;
   border-radius: 2px;
-  min-width: 1.4em;
-  min-height: 0.8em;
+  min-height: 0.6em;
   vertical-align: baseline;
 }
 .health-page[data-state="loading"] .skel > * {

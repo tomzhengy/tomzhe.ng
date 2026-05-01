@@ -223,7 +223,7 @@ function Portrait({
         }}
       >
         <span style={{ fontWeight: 400 }} className="skel">
-          <RollingNumber value={weight} digits={1} />
+          <RollingNumber value={weight} digits={1} intDigits={2} />
         </span>
         <span
           style={{
@@ -248,7 +248,7 @@ function Portrait({
           className="skel"
           style={{ fontSize: 32, color: "var(--fg)", marginRight: 8 }}
         >
-          <RollingNumber value={bf} digits={1} />
+          <RollingNumber value={bf} digits={1} intDigits={2} />
         </span>
         <span
           style={{
@@ -357,7 +357,11 @@ function CompositionBar({
             />
             {s.label}{" "}
             <span className="skel">
-              {empty ? "—" : <RollingNumber value={s.value} digits={1} />}
+              {empty ? (
+                "—"
+              ) : (
+                <RollingNumber value={s.value} digits={1} intDigits={2} />
+              )}
             </span>
           </span>
         ))}
@@ -411,11 +415,20 @@ function TrendPanel({
           }}
         >
           <span className="skel" style={{ color: "var(--fg-mute)" }}>
-            <RollingNumber value={summary?.from ?? null} digits={1} />
+            <RollingNumber
+              value={summary?.from ?? null}
+              digits={1}
+              intDigits={2}
+            />
           </span>
           <span style={{ color: "var(--fg-mute)", margin: "0 4px" }}>→</span>
           <span className="skel">
-            <RollingNumber value={summary?.to ?? null} digits={1} /> kg
+            <RollingNumber
+              value={summary?.to ?? null}
+              digits={1}
+              intDigits={2}
+            />{" "}
+            kg
           </span>
           {summary && (
             <span
@@ -901,6 +914,7 @@ function Tiles({
         value={latest?.muscleMassKg ?? null}
         unit="kg"
         digits={1}
+        intDigits={2}
         cap={
           muscleDelta != null ? (
             <>
@@ -914,6 +928,7 @@ function Tiles({
         value={latest?.fatMassKg ?? null}
         unit="kg"
         digits={1}
+        intDigits={2}
         cap={
           fatDelta != null ? (
             <>
@@ -927,6 +942,7 @@ function Tiles({
         label="Visceral Fat"
         value={latest?.visceralFat ?? null}
         digits={1}
+        intDigits={1}
         cap={
           <>
             In the <em style={{ color: "var(--fg)" }}>healthy</em> 1–9 range.
@@ -938,6 +954,7 @@ function Tiles({
         value={latest?.basalMetabolicRateKcal ?? null}
         unit="kcal"
         digits={0}
+        intDigits={4}
         cap={
           bmrDelta != null ? (
             <>
@@ -953,6 +970,7 @@ function Tiles({
         value={latest?.hydrationKg ?? null}
         unit="kg"
         digits={1}
+        intDigits={2}
         cap={hydrationCap}
       />
     </div>
@@ -964,12 +982,14 @@ function Tile({
   value,
   unit,
   digits,
+  intDigits,
   cap,
 }: {
   label: string;
   value: number | null;
   unit?: string;
   digits: number;
+  intDigits?: number;
   cap: React.ReactNode;
 }) {
   return (
@@ -1002,7 +1022,12 @@ function Tile({
         }}
       >
         <span className="skel">
-          <RollingNumber value={value} digits={digits} grouping />
+          <RollingNumber
+            value={value}
+            digits={digits}
+            grouping
+            intDigits={intDigits}
+          />
         </span>
         {unit && (
           <span

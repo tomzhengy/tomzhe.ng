@@ -93,7 +93,7 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
           }}
         >
           <span className="skel">
-            <RollingNumber value={sleepH} digits={0} />
+            <RollingNumber value={sleepH} digits={0} intDigits={1} />
           </span>
           <span
             style={{
@@ -148,16 +148,30 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
           label="Performance"
           value={perf != null ? Math.round(perf) : null}
           digits={0}
+          intDigits={2}
           unit="%"
         />
         <Stat
           label="Efficiency"
           value={eff != null ? Math.round(eff) : null}
           digits={0}
+          intDigits={2}
           unit="%"
         />
-        <Stat label="Respiratory" value={resp} digits={1} unit="rpm" />
-        <Stat label="Disturbances" value={dist} digits={0} unit="" />
+        <Stat
+          label="Respiratory"
+          value={resp}
+          digits={1}
+          intDigits={2}
+          unit="rpm"
+        />
+        <Stat
+          label="Disturbances"
+          value={dist}
+          digits={0}
+          intDigits={2}
+          unit=""
+        />
       </div>
 
       <div
@@ -218,11 +232,13 @@ function Stat({
   label,
   value,
   digits,
+  intDigits,
   unit,
 }: {
   label: string;
   value: number | null;
   digits: number;
+  intDigits?: number;
   unit: string;
 }) {
   return (
@@ -248,7 +264,7 @@ function Stat({
         }}
       >
         <span className="skel">
-          <RollingNumber value={value} digits={digits} />
+          <RollingNumber value={value} digits={digits} intDigits={intDigits} />
         </span>
         {unit && (
           <span
