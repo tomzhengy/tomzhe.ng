@@ -83,9 +83,11 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
         />
       </div>
 
+      <div style={{ flex: 1, minHeight: 14 }} />
+
       <div
         style={{
-          marginTop: 20,
+          marginTop: 24,
           height: 6,
           background: "var(--rule-strong)",
           position: "relative",
@@ -119,8 +121,6 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
         <span>18</span>
         <span>21</span>
       </div>
-
-      <div style={{ flex: 1, minHeight: 14 }} />
 
       <div
         style={{
