@@ -104,6 +104,10 @@ export default function Dashboard() {
           sleepCopyHtml={payload?.copy?.sleepCopy ?? null}
         />
 
+        <BodyCard body={payload?.body ?? null} />
+
+        <WorkoutsCard workouts={payload?.workouts ?? []} />
+
         <article
           className="health-card filled"
           style={{
@@ -120,10 +124,6 @@ export default function Dashboard() {
           />
           <TrendChart data={trend} onPointClick={setDrillIdx} />
         </article>
-
-        <WorkoutsCard workouts={payload?.workouts ?? []} />
-
-        <BodyCard body={payload?.body ?? null} />
       </section>
 
       <JournalFooter
