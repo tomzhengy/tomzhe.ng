@@ -9,18 +9,18 @@ interface BodyCardProps {
   body: BodyData | null;
 }
 
-type Range = "3m" | "6m" | "1y" | "all";
+type Range = "1m" | "3m" | "1y" | "all";
 
 const RANGE_DAYS: Record<Range, number | null> = {
+  "1m": 30,
   "3m": 90,
-  "6m": 180,
   "1y": 365,
   all: null,
 };
 
 const RANGE_LABEL: Record<Range, string> = {
+  "1m": "1M",
   "3m": "3M",
-  "6m": "6M",
   "1y": "1Y",
   all: "All",
 };
@@ -502,7 +502,7 @@ function RangeTabs({
   value: Range;
   onChange: (v: Range) => void;
 }) {
-  const ranges: Range[] = ["3m", "6m", "1y", "all"];
+  const ranges: Range[] = ["1m", "3m", "1y", "all"];
   return (
     <div
       role="tablist"
