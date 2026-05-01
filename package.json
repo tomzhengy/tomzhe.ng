@@ -18,7 +18,6 @@
     "next-mdx-remote": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-slot-counter": "^3.3.3",
     "reading-time": "^1.5.0"
   },
   "devDependencies": {
