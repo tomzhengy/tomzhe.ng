@@ -48,13 +48,14 @@ export interface BodyMeasurementOut {
   muscleMassKg: number | null;
   hydrationKg: number | null;
   boneMassKg: number | null;
+  heightM: number | null;
   heartRateBpm: number | null;
-  pulseWaveVelocity: number | null;
-  vascularAge: number | null;
+  pulseWaveVelocityMs: number | null;
+  vascularAgeYears: number | null;
   extracellularWaterKg: number | null;
   intracellularWaterKg: number | null;
   visceralFat: number | null;
-  basalMetabolicRate: number | null;
+  basalMetabolicRateKcal: number | null;
 }
 
 export interface BodyData {
@@ -160,13 +161,14 @@ function rowToBody(row: BodyMeasurementRow): BodyMeasurementOut {
     muscleMassKg: row.muscle_mass_kg,
     hydrationKg: row.hydration_kg,
     boneMassKg: row.bone_mass_kg,
+    heightM: row.height_m,
     heartRateBpm: row.heart_rate_bpm,
-    pulseWaveVelocity: row.pulse_wave_velocity,
-    vascularAge: row.vascular_age,
+    pulseWaveVelocityMs: row.pulse_wave_velocity_ms,
+    vascularAgeYears: row.vascular_age_years,
     extracellularWaterKg: row.extracellular_water_kg,
     intracellularWaterKg: row.intracellular_water_kg,
     visceralFat: row.visceral_fat,
-    basalMetabolicRate: row.basal_metabolic_rate,
+    basalMetabolicRateKcal: row.basal_metabolic_rate_kcal,
   };
 }
 
@@ -180,7 +182,7 @@ async function fetchBodyData(env: HealthEnv): Promise<BodyData | null> {
     const accessToken = await exchangeWithingsRefreshToken(env);
     const startMs = Date.now() - BODY_TREND_DAYS * 24 * 60 * 60 * 1000;
     const page = await withingsGetMeas(accessToken, {
-      meastype: "1,5,6,8,11,76,77,88,91,155,168,169,170,226",
+      meastype: "1,4,5,6,8,11,76,77,88,91,155,168,169,170,226",
       category: "1",
       startdate: String(Math.floor(startMs / 1000)),
     });
