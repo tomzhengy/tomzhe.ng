@@ -99,6 +99,13 @@ export interface BodyMeasurement {
   muscleMassKg: number | null;
   hydrationKg: number | null;
   boneMassKg: number | null;
+  heartRateBpm: number | null;
+  pulseWaveVelocity: number | null;
+  vascularAge: number | null;
+  extracellularWaterKg: number | null;
+  intracellularWaterKg: number | null;
+  visceralFat: number | null;
+  basalMetabolicRate: number | null;
 }
 
 export interface BodyData {

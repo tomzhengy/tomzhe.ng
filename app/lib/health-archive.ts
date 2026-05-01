@@ -149,9 +149,16 @@ const WITHINGS_TYPE_TO_COLUMN: Record<number, string> = {
   5: "fat_free_mass_kg",
   6: "body_fat_pct",
   8: "fat_mass_kg",
+  11: "heart_rate_bpm",
   76: "muscle_mass_kg",
   77: "hydration_kg",
   88: "bone_mass_kg",
+  91: "pulse_wave_velocity",
+  155: "vascular_age",
+  168: "extracellular_water_kg",
+  169: "intracellular_water_kg",
+  170: "visceral_fat",
+  226: "basal_metabolic_rate",
 };
 
 const BODY_FIELDS = [
@@ -162,6 +169,13 @@ const BODY_FIELDS = [
   "muscle_mass_kg",
   "hydration_kg",
   "bone_mass_kg",
+  "heart_rate_bpm",
+  "pulse_wave_velocity",
+  "vascular_age",
+  "extracellular_water_kg",
+  "intracellular_water_kg",
+  "visceral_fat",
+  "basal_metabolic_rate",
 ] as const;
 
 function toBodyMeasurementRow(
@@ -230,10 +244,17 @@ export interface BodyMeasurementRow {
   muscle_mass_kg: number | null;
   hydration_kg: number | null;
   bone_mass_kg: number | null;
+  heart_rate_bpm: number | null;
+  pulse_wave_velocity: number | null;
+  vascular_age: number | null;
+  extracellular_water_kg: number | null;
+  intracellular_water_kg: number | null;
+  visceral_fat: number | null;
+  basal_metabolic_rate: number | null;
 }
 
 const BODY_SELECT =
-  "external_id,measured_at,weight_kg,body_fat_pct,fat_mass_kg,fat_free_mass_kg,muscle_mass_kg,hydration_kg,bone_mass_kg";
+  "external_id,measured_at,weight_kg,body_fat_pct,fat_mass_kg,fat_free_mass_kg,muscle_mass_kg,hydration_kg,bone_mass_kg,heart_rate_bpm,pulse_wave_velocity,vascular_age,extracellular_water_kg,intracellular_water_kg,visceral_fat,basal_metabolic_rate";
 
 export async function readBodyMeasurementsSince(
   env: ArchiveEnv,

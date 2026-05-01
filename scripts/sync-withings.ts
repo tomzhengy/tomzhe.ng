@@ -32,10 +32,15 @@ import {
 
 const SOURCE = "withings";
 
-// the meastype codes we care about: weight, fat free mass, fat ratio, fat
-// mass, muscle mass, hydration, bone mass. matches the columns on
-// health_body_measurements.
-const MEASTYPES = "1,5,6,8,76,77,88";
+// meastype codes we care about — the typed columns on
+// health_body_measurements. raw `measuregrp` is also stored as jsonb so
+// segmental composition / undocumented types remain accessible later.
+//   1  weight                5  fat-free mass        6  body fat %
+//   8  fat mass              11 heart pulse          76 muscle mass
+//   77 hydration             88 bone mass            91 pulse wave velocity
+//   155 vascular age         168 extracellular water 169 intracellular water
+//   170 visceral fat         226 basal metabolic rate
+const MEASTYPES = "1,5,6,8,11,76,77,88,91,155,168,169,170,226";
 
 async function loadEnvFile(path: string): Promise<Record<string, string>> {
   try {
