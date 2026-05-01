@@ -356,6 +356,9 @@ button svg {
     grid-template-columns: 1fr 1fr !important;
     gap: 18px !important;
   }
+  .hp-body-tiles {
+    grid-template-columns: 1fr 1fr !important;
+  }
 }
 
 @media (max-width: 480px) {
