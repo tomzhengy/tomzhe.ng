@@ -41,12 +41,19 @@ async function upsert(
   env: ArchiveEnv,
   table: string,
   rows: UpsertRow[],
+  onConflict?: string,
 ): Promise<void> {
   if (rows.length === 0) return;
   const cfg = supaConfig(env);
   if (!cfg) return;
   try {
-    const r = await fetch(`${cfg.base}/rest/v1/${table}`, {
+    // when the conflict target isn't the primary key, postgrest needs an
+    // explicit on_conflict query param or it defaults to the pk and the
+    // unique constraint fires as a hard 409.
+    const url =
+      `${cfg.base}/rest/v1/${table}` +
+      (onConflict ? `?on_conflict=${encodeURIComponent(onConflict)}` : "");
+    const r = await fetch(url, {
       method: "POST",
       headers: {
         apikey: cfg.key,
@@ -233,7 +240,7 @@ export async function upsertBodyMeasurements(
   const rows = grps
     .map((g) => toBodyMeasurementRow(source, g))
     .filter((v): v is UpsertRow => v != null);
-  await upsert(env, "health_body_measurements", rows);
+  await upsert(env, "health_body_measurements", rows, "source,external_id");
 }
 
 export interface BodyMeasurementRow {
