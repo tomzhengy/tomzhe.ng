@@ -103,36 +103,27 @@ export default function Sparkline({
         preserveAspectRatio="none"
         style={{ width: "100%", height, display: "block" }}
       >
-        <path d={d} fill="none" stroke={color} strokeWidth={1.25} />
-        <rect
-          x={lastX - 3}
-          y={lastY - 3}
-          width={6}
-          height={6}
-          fill={dotColor}
+        <path
+          d={d}
+          fill="none"
+          stroke={color}
+          strokeWidth={1.25}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
         />
         {hoverIdx != null && hoverValue != null && (
-          <>
-            <line
-              x1={hoverX}
-              x2={hoverX}
-              y1={padTop}
-              y2={height - padBottom}
-              stroke="var(--fg-mute)"
-              strokeWidth={1}
-              strokeDasharray="2 3"
-              pointerEvents="none"
-            />
-            <circle
-              cx={hoverX}
-              cy={hoverY}
-              r={3}
-              fill={dotColor}
-              stroke="var(--background)"
-              strokeWidth={1.5}
-              pointerEvents="none"
-            />
-          </>
+          <line
+            x1={hoverX}
+            x2={hoverX}
+            y1={padTop}
+            y2={height - padBottom}
+            stroke="var(--fg-mute)"
+            strokeWidth={1}
+            strokeDasharray="2 3"
+            pointerEvents="none"
+            vectorEffect="non-scaling-stroke"
+          />
         )}
         <rect
           x={0}
@@ -145,6 +136,42 @@ export default function Sparkline({
           onMouseLeave={handleLeave}
         />
       </svg>
+
+      {/* end-of-series marker as html overlay so it stays a perfect square
+          regardless of how the svg is stretched horizontally. */}
+      {clean.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${(lastX / width) * 100}%`,
+            top: lastY,
+            width: 6,
+            height: 6,
+            background: dotColor,
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
+      {/* hover dot as html overlay so it stays circular when the svg is
+          stretched. */}
+      {hoverIdx != null && hoverValue != null && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${(hoverX / width) * 100}%`,
+            top: hoverY,
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: dotColor,
+            border: "1.5px solid var(--background)",
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
 
       {hoverIdx != null && hoverValue != null && (
         <div

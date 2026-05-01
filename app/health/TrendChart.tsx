@@ -99,6 +99,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
             stroke="var(--rule)"
             strokeWidth={1}
             strokeDasharray="2 4"
+            vectorEffect="non-scaling-stroke"
           />
         ))}
 
@@ -111,6 +112,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
             strokeWidth={1.75}
             strokeLinecap="round"
             strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
           />
         ))}
 
@@ -124,6 +126,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
             strokeWidth={1}
             strokeDasharray="2 3"
             pointerEvents="none"
+            vectorEffect="non-scaling-stroke"
           />
         )}
 

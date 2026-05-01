@@ -232,6 +232,7 @@ export default function Hypnogram({
                 stroke="var(--rule)"
                 strokeWidth={1}
                 strokeDasharray="2 4"
+                vectorEffect="non-scaling-stroke"
               />
             );
           })}
@@ -282,6 +283,7 @@ export default function Hypnogram({
               strokeWidth={1}
               strokeDasharray="2 3"
               pointerEvents="none"
+              vectorEffect="non-scaling-stroke"
             />
           )}
         </svg>
