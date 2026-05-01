@@ -11,11 +11,70 @@ interface TrendChartProps {
 const VIEW_W = 1000;
 const VIEW_H = 260;
 const PAD = { t: 20, r: 20, b: 30, l: 40 };
-const LINES = [
-  { key: "recovery", color: "var(--ok)", min: 0, max: 100 },
-  { key: "strain", color: "var(--accent)", min: 0, max: 21 },
-  { key: "sleep", color: "var(--select)", min: 0, max: 10 },
-] as const;
+
+type MetricKey = "recovery" | "strain" | "sleep" | "hrv" | "rhr";
+
+interface Metric {
+  key: MetricKey;
+  label: string;
+  color: string;
+  // semantic vertical range — each line gets normalized to its own min/max
+  // so units (% / ms / bpm / hours) all share the same chart space.
+  min: number;
+  max: number;
+  format: (v: number) => string;
+}
+
+const METRICS: Metric[] = [
+  {
+    key: "recovery",
+    label: "Recovery",
+    color: "var(--ok)",
+    min: 0,
+    max: 100,
+    format: (v) => `${Math.round(v)}%`,
+  },
+  {
+    key: "strain",
+    label: "Strain",
+    color: "var(--accent)",
+    min: 0,
+    max: 21,
+    format: (v) => v.toFixed(1),
+  },
+  {
+    key: "sleep",
+    label: "Sleep",
+    color: "var(--select)",
+    min: 0,
+    max: 10,
+    format: (v) => `${v.toFixed(1)}h`,
+  },
+  {
+    key: "hrv",
+    label: "HRV",
+    color: "var(--warn)",
+    min: 20,
+    max: 120,
+    format: (v) => `${Math.round(v)}ms`,
+  },
+  {
+    key: "rhr",
+    label: "RHR",
+    color: "var(--danger)",
+    min: 40,
+    max: 80,
+    format: (v) => `${Math.round(v)}bpm`,
+  },
+];
+
+const DEFAULT_VISIBLE: Record<MetricKey, boolean> = {
+  recovery: true,
+  strain: true,
+  sleep: true,
+  hrv: false,
+  rhr: false,
+};
 
 export default function TrendChart({ data, onPointClick }: TrendChartProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -23,6 +82,8 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
     idx: number;
     clientX: number;
   } | null>(null);
+  const [visible, setVisible] =
+    useState<Record<MetricKey, boolean>>(DEFAULT_VISIBLE);
 
   const innerW = VIEW_W - PAD.l - PAD.r;
   const innerH = VIEW_H - PAD.t - PAD.b;
@@ -34,18 +95,16 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
     PAD.t + innerH - ((v - min) / (max - min)) * innerH;
 
   const paths = useMemo(() => {
-    return LINES.map((ln) => {
+    return METRICS.map((m) => {
       const points: Array<{ x: number; y: number }> = [];
       data.forEach((dp, i) => {
         const raw = (dp as unknown as Record<string, number | string | null>)[
-          ln.key
+          m.key
         ];
         if (raw == null || typeof raw !== "number" || !Number.isFinite(raw))
           return;
-        points.push({ x: xFor(i), y: yForNorm(raw, ln.min, ln.max) });
+        points.push({ x: xFor(i), y: yForNorm(raw, m.min, m.max) });
       });
-      // single point: draw a flat horizontal line so the value is visible.
-      // multi-point: connect them.
       let d = "";
       if (points.length === 1) {
         d = `M ${PAD.l} ${points[0].y.toFixed(1)} L ${(VIEW_W - PAD.r).toFixed(1)} ${points[0].y.toFixed(1)}`;
@@ -57,7 +116,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
               : ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
         });
       }
-      return { ...ln, d };
+      return { metric: m, d };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
@@ -95,191 +154,288 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
   const HOVER_DUR = "140ms";
   const slideTransition = `left ${HOVER_DUR} ${HOVER_EASE}, top ${HOVER_DUR} ${HOVER_EASE}`;
 
+  const onToggle = (k: MetricKey) =>
+    setVisible((cur) => ({ ...cur, [k]: !cur[k] }));
+
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
-      <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        preserveAspectRatio="none"
-        style={{ width: "100%", height: 260, display: "block" }}
-      >
-        {gridYs.map((y, i) => (
-          <line
-            key={`g-${i}`}
-            x1={PAD.l}
-            x2={VIEW_W - PAD.r}
-            y1={y}
-            y2={y}
-            stroke="var(--rule)"
-            strokeWidth={1}
-            strokeDasharray="2 4"
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <MetricToggles visible={visible} onToggle={onToggle} />
 
-        {paths.map((ln) => (
-          <path
-            key={ln.key}
-            d={ln.d}
-            fill="none"
-            stroke={ln.color}
-            strokeWidth={1.75}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
-
-        <rect
-          x={PAD.l}
-          y={PAD.t}
-          width={innerW}
-          height={innerH}
-          fill="transparent"
-          style={{ cursor: onPointClick ? "pointer" : "default" }}
-          onMouseMove={handleMove}
-          onMouseLeave={() => setHover(null)}
-          onClick={() => {
-            if (hover && onPointClick) onPointClick(hover.idx);
-          }}
-        />
-      </svg>
-
-      {/* hover line as html overlay (was an svg <line>) so it can transition
-          smoothly between snapped indices. */}
-      <div
-        style={{
-          position: "absolute",
-          left: activeLeftPct,
-          top: PAD.t,
-          height: innerH,
-          width: 0,
-          borderLeft: "1px dashed var(--fg-mute)",
-          transform: "translateX(-0.5px)",
-          pointerEvents: "none",
-          opacity: hover ? 1 : 0,
-          transition: `${slideTransition}, opacity 100ms linear`,
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          height: VIEW_H,
-          pointerEvents: "none",
-        }}
-      >
-        {LINES.map((ln) => {
-          const raw =
-            active != null
-              ? (active as unknown as Record<string, number | string | null>)[
-                  ln.key
-                ]
-              : null;
-          const has = active != null && typeof raw === "number";
-          const top = has
-            ? yForNorm(raw as number, ln.min, ln.max)
-            : VIEW_H / 2;
-          return (
-            <div
-              key={`dot-${ln.key}`}
-              style={{
-                position: "absolute",
-                left: activeLeftPct,
-                top,
-                width: 9,
-                height: 9,
-                borderRadius: "50%",
-                background: ln.color,
-                border: "2px solid var(--background)",
-                transform: "translate(-50%, -50%)",
-                opacity: has ? 1 : 0,
-                transition: `${slideTransition}, opacity 100ms linear`,
-              }}
+      <div ref={wrapRef} style={{ position: "relative" }}>
+        <svg
+          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+          preserveAspectRatio="none"
+          style={{ width: "100%", height: VIEW_H, display: "block" }}
+        >
+          {gridYs.map((y, i) => (
+            <line
+              key={`g-${i}`}
+              x1={PAD.l}
+              x2={VIEW_W - PAD.r}
+              y1={y}
+              y2={y}
+              stroke="var(--rule)"
+              strokeWidth={1}
+              strokeDasharray="2 4"
+              vectorEffect="non-scaling-stroke"
             />
-          );
-        })}
-      </div>
+          ))}
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontFamily: "var(--f-mono)",
-          fontSize: 10,
-          color: "var(--fg-mute)",
-          letterSpacing: "0.08em",
-          marginTop: 6,
-        }}
-      >
-        {axisTicks.map((t, i) => (
-          <span key={i}>{t}</span>
-        ))}
-      </div>
+          {paths.map((p) => {
+            const isVisible = visible[p.metric.key];
+            return (
+              <path
+                key={p.metric.key}
+                d={p.d}
+                fill="none"
+                stroke={p.metric.color}
+                strokeWidth={1.75}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+                opacity={isVisible ? 1 : 0}
+                style={{ transition: "opacity 260ms ease" }}
+              />
+            );
+          })}
 
-      {hover && active && (
+          <rect
+            x={PAD.l}
+            y={PAD.t}
+            width={innerW}
+            height={innerH}
+            fill="transparent"
+            style={{ cursor: onPointClick ? "pointer" : "default" }}
+            onMouseMove={handleMove}
+            onMouseLeave={() => setHover(null)}
+            onClick={() => {
+              if (hover && onPointClick) onPointClick(hover.idx);
+            }}
+          />
+        </svg>
+
         <div
           style={{
             position: "absolute",
             left: activeLeftPct,
-            top: 8,
-            background: "var(--card-elev)",
-            border: "1px solid var(--rule-strong)",
-            padding: "10px 12px",
-            fontFamily: "var(--f-mono)",
-            fontSize: 11,
-            color: "var(--fg)",
+            top: PAD.t,
+            height: innerH,
+            width: 0,
+            borderLeft: "1px dashed var(--fg-mute)",
+            transform: "translateX(-0.5px)",
             pointerEvents: "none",
-            whiteSpace: "nowrap",
-            zIndex: 10,
-            transform: "translate(-50%, 0)",
-            minWidth: 140,
-            transition: slideTransition,
+            opacity: hover ? 1 : 0,
+            transition: `${slideTransition}, opacity 100ms linear`,
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            height: VIEW_H,
+            pointerEvents: "none",
           }}
         >
+          {METRICS.map((m) => {
+            const isVisible = visible[m.key];
+            const raw =
+              active != null
+                ? (active as unknown as Record<string, number | string | null>)[
+                    m.key
+                  ]
+                : null;
+            const has = active != null && typeof raw === "number";
+            const top = has
+              ? yForNorm(raw as number, m.min, m.max)
+              : VIEW_H / 2;
+            return (
+              <div
+                key={`dot-${m.key}`}
+                style={{
+                  position: "absolute",
+                  left: activeLeftPct,
+                  top,
+                  width: 9,
+                  height: 9,
+                  borderRadius: "50%",
+                  background: m.color,
+                  border: "2px solid var(--background)",
+                  transform: "translate(-50%, -50%)",
+                  opacity: has && isVisible ? 1 : 0,
+                  transition: `${slideTransition}, opacity 200ms ease`,
+                }}
+              />
+            );
+          })}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            color: "var(--fg-mute)",
+            letterSpacing: "0.08em",
+            marginTop: 6,
+          }}
+        >
+          {axisTicks.map((t, i) => (
+            <span key={i}>{t}</span>
+          ))}
+        </div>
+
+        {hover && active && (
           <div
             style={{
-              fontFamily: "var(--f-serif)",
-              fontSize: 14,
-              fontStyle: "italic",
-              marginBottom: 4,
-              borderBottom: "1px solid var(--rule)",
-              paddingBottom: 4,
-              letterSpacing: 0,
+              position: "absolute",
+              left: activeLeftPct,
+              top: 8,
+              background: "var(--card-elev)",
+              border: "1px solid var(--rule-strong)",
+              padding: "10px 12px",
+              fontFamily: "var(--f-mono)",
+              fontSize: 11,
+              color: "var(--fg)",
+              pointerEvents: "none",
+              whiteSpace: "nowrap",
+              zIndex: 10,
+              transform: "translate(-50%, 0)",
+              minWidth: 160,
+              transition: slideTransition,
             }}
           >
-            {new Date(active.date).toLocaleDateString(undefined, {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
+            <div
+              style={{
+                fontFamily: "var(--f-serif)",
+                fontSize: 14,
+                fontStyle: "italic",
+                marginBottom: 4,
+                borderBottom: "1px solid var(--rule)",
+                paddingBottom: 4,
+                letterSpacing: 0,
+              }}
+            >
+              {new Date(active.date).toLocaleDateString(undefined, {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+              })}
+            </div>
+            {METRICS.filter((m) => visible[m.key]).map((m) => {
+              const raw = (
+                active as unknown as Record<string, number | string | null>
+              )[m.key];
+              const value =
+                typeof raw === "number" && Number.isFinite(raw)
+                  ? m.format(raw)
+                  : "—";
+              return (
+                <Row
+                  key={m.key}
+                  label={m.label}
+                  value={value}
+                  color={m.color}
+                />
+              );
             })}
           </div>
-          <Row
-            label="Recovery"
-            value={active.recovery != null ? `${active.recovery}%` : "—"}
-          />
-          <Row
-            label="Strain"
-            value={active.strain != null ? `${active.strain.toFixed(1)}` : "—"}
-          />
-          <Row
-            label="Sleep"
-            value={active.sleep != null ? `${active.sleep.toFixed(1)}h` : "—"}
-          />
-          <Row
-            label="HRV"
-            value={active.hrv != null ? `${active.hrv}ms` : "—"}
-          />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function MetricToggles({
+  visible,
+  onToggle,
+}: {
+  visible: Record<MetricKey, boolean>;
+  onToggle: (k: MetricKey) => void;
+}) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 18 }}>
-      <span style={{ color: "var(--fg-mute)" }}>{label}</span>
+    <div
+      style={{
+        display: "flex",
+        gap: 6,
+        flexWrap: "wrap",
+        fontFamily: "var(--f-mono)",
+        fontSize: 10.5,
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+      }}
+    >
+      {METRICS.map((m) => {
+        const active = visible[m.key];
+        return (
+          <button
+            key={m.key}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onToggle(m.key)}
+            style={{
+              background: active
+                ? `color-mix(in oklab, ${m.color} 18%, transparent)`
+                : "transparent",
+              color: active ? m.color : "var(--fg-mute)",
+              border: `1px solid ${active ? m.color : "var(--rule-strong)"}`,
+              padding: "6px 10px",
+              cursor: "pointer",
+              font: "inherit",
+              letterSpacing: "inherit",
+              textTransform: "inherit",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                background: m.color,
+                opacity: active ? 1 : 0.45,
+              }}
+            />
+            {m.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 18,
+      }}
+    >
+      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span
+          style={{
+            display: "inline-block",
+            width: 6,
+            height: 6,
+            background: color,
+          }}
+        />
+        <span style={{ color: "var(--fg-mute)" }}>{label}</span>
+      </span>
       <span>{value}</span>
     </div>
   );

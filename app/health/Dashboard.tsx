@@ -118,10 +118,7 @@ export default function Dashboard() {
             position: "relative",
           }}
         >
-          <CardHead
-            title="Trends"
-            subtitleAccent="recovery, strain & sleep over time."
-          />
+          <CardHead title="Trends" subtitleAccent="every signal over time." />
           <TrendChart data={trend} onPointClick={setDrillIdx} />
         </article>
       </section>
