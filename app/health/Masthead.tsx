@@ -18,13 +18,14 @@ export default function Masthead({ syncedAt, syncing, onSync }: MastheadProps) {
     return () => clearInterval(t);
   }, []);
 
+  // keep the label stable on hover — swapping text on hover changes the
+  // button's width, which can pull the cursor out of the button and cause
+  // a flicker between the two states.
   const syncLabel = syncing
     ? "Syncing…"
     : syncedAt == null
       ? "Sync now"
-      : hover
-        ? "Sync now"
-        : `Synced · ${formatRelativeTime(syncedAt, now)}`;
+      : `Synced · ${formatRelativeTime(syncedAt, now)}`;
 
   return (
     <header
