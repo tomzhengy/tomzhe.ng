@@ -49,9 +49,10 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
         }}
       >
         <div
+          className="hp-hero-score"
           style={{
             fontFamily: "var(--f-serif)",
-            fontSize: 110,
+            fontSize: 144,
             lineHeight: 0.9,
             letterSpacing: "-0.03em",
             display: "flex",

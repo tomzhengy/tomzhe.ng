@@ -349,7 +349,7 @@ button svg {
 
 @media (max-width: 900px) {
   .hp-hero-score {
-    font-size: 96px !important;
+    font-size: 120px !important;
   }
 }
 
@@ -386,7 +386,7 @@ button svg {
 
 @media (max-width: 480px) {
   .hp-hero-score {
-    font-size: 84px !important;
+    font-size: 96px !important;
   }
   .hp-strain-energy {
     grid-template-columns: 1fr !important;

@@ -73,7 +73,7 @@ export default function RecoveryHero({
           className="hp-hero-score"
           style={{
             fontFamily: "var(--f-serif)",
-            fontSize: 110,
+            fontSize: 144,
             lineHeight: 0.9,
             letterSpacing: "-0.03em",
             display: "flex",
@@ -90,7 +90,7 @@ export default function RecoveryHero({
             style={{
               fontFamily: "var(--f-serif)",
               fontStyle: "italic",
-              fontSize: 22,
+              fontSize: 28,
               color: "var(--fg-mute)",
             }}
           >

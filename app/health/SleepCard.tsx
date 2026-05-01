@@ -78,9 +78,10 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
         }}
       >
         <div
+          className="hp-hero-score"
           style={{
             fontFamily: "var(--f-serif)",
-            fontSize: 96,
+            fontSize: 124,
             lineHeight: 0.95,
             letterSpacing: "-0.03em",
             display: "flex",
@@ -95,7 +96,7 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
           <span
             style={{
               fontStyle: "italic",
-              fontSize: 26,
+              fontSize: 32,
               color: "var(--fg-mute)",
             }}
           >
@@ -107,7 +108,7 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
           <span
             style={{
               fontStyle: "italic",
-              fontSize: 26,
+              fontSize: 32,
               color: "var(--fg-mute)",
             }}
           >
