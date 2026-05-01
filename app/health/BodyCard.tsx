@@ -25,9 +25,22 @@ const RANGE_LABEL: Record<Range, string> = {
   all: "All",
 };
 
+type OverlayKey = "muscle" | "fat";
+
+interface ChartSeries {
+  key: "weight" | OverlayKey;
+  label: string;
+  color: string;
+  points: Array<{ date: Date; value: number }>;
+}
+
 export default function BodyCard({ body }: BodyCardProps) {
   const trend = useMemo(() => body?.trend ?? [], [body]);
   const [range, setRange] = useState<Range>("1y");
+  const [overlays, setOverlays] = useState<Record<OverlayKey, boolean>>({
+    muscle: false,
+    fat: false,
+  });
 
   // withings often splits a single weigh-in across multiple rows (one for
   // weight, one for pwv, etc.). build a composite "latest" by walking the
@@ -37,19 +50,63 @@ export default function BodyCard({ body }: BodyCardProps) {
     return mergeLatest(trend, body?.latest ?? null);
   }, [trend, body]);
 
-  // weight points filtered by range, sorted by time
-  const weightSeries = useMemo(() => {
+  // shared range filter used to slice each series.
+  const seriesPoints = useMemo(() => {
     const days = RANGE_DAYS[range];
     const cutoff = days != null ? Date.now() - days * 86_400_000 : 0;
-    return trend
-      .filter((p) => p.weightKg != null)
-      .filter((p) => days == null || new Date(p.measuredAt).getTime() >= cutoff)
-      .map((p) => ({
-        date: new Date(p.measuredAt),
-        w: p.weightKg as number,
-      }))
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
+    const inRange = (iso: string) =>
+      days == null || new Date(iso).getTime() >= cutoff;
+
+    const collect = (
+      pick: (m: BodyMeasurement) => number | null,
+    ): Array<{ date: Date; value: number }> =>
+      trend
+        .filter((p) => inRange(p.measuredAt) && pick(p) != null)
+        .map((p) => ({
+          date: new Date(p.measuredAt),
+          value: pick(p) as number,
+        }))
+        .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    return {
+      weight: collect((m) => m.weightKg),
+      muscle: collect((m) => m.muscleMassKg),
+      fat: collect((m) => m.fatMassKg),
+    };
   }, [trend, range]);
+
+  const weightSeries = useMemo(
+    () => seriesPoints.weight.map((p) => ({ date: p.date, w: p.value })),
+    [seriesPoints],
+  );
+
+  const chartSeries = useMemo<ChartSeries[]>(() => {
+    const out: ChartSeries[] = [
+      {
+        key: "weight",
+        label: "Weight",
+        color: "var(--fg)",
+        points: seriesPoints.weight,
+      },
+    ];
+    if (overlays.muscle) {
+      out.push({
+        key: "muscle",
+        label: "Muscle",
+        color: "var(--ok)",
+        points: seriesPoints.muscle,
+      });
+    }
+    if (overlays.fat) {
+      out.push({
+        key: "fat",
+        label: "Fat",
+        color: "var(--accent)",
+        points: seriesPoints.fat,
+      });
+    }
+    return out;
+  }, [seriesPoints, overlays]);
 
   // body fat delta vs prior measurement that has a body-fat reading
   const bfDelta = useMemo(() => {
@@ -121,10 +178,14 @@ export default function BodyCard({ body }: BodyCardProps) {
       >
         <Portrait latest={latest} bfDelta={bfDelta} />
         <TrendPanel
-          series={weightSeries}
+          chartSeries={chartSeries}
           range={range}
           onRangeChange={setRange}
           summary={summary}
+          overlays={overlays}
+          onOverlayToggle={(k) =>
+            setOverlays((cur) => ({ ...cur, [k]: !cur[k] }))
+          }
         />
       </div>
 
@@ -301,15 +362,19 @@ function CompositionBar({
 }
 
 function TrendPanel({
-  series,
+  chartSeries,
   range,
   onRangeChange,
   summary,
+  overlays,
+  onOverlayToggle,
 }: {
-  series: Array<{ date: Date; w: number }>;
+  chartSeries: ChartSeries[];
   range: Range;
   onRangeChange: (r: Range) => void;
   summary: { from: number; to: number; days: number } | null;
+  overlays: Record<OverlayKey, boolean>;
+  onOverlayToggle: (k: OverlayKey) => void;
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -322,7 +387,17 @@ function TrendPanel({
           flexWrap: "wrap",
         }}
       >
-        <RangeTabs value={range} onChange={onRangeChange} />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <RangeTabs value={range} onChange={onRangeChange} />
+          <OverlayToggles overlays={overlays} onToggle={onOverlayToggle} />
+        </div>
         <div
           style={{
             fontFamily: "var(--f-serif)",
@@ -352,7 +427,70 @@ function TrendPanel({
           )}
         </div>
       </div>
-      <WeightChart series={series} />
+      <TrendChart chartSeries={chartSeries} />
+    </div>
+  );
+}
+
+function OverlayToggles({
+  overlays,
+  onToggle,
+}: {
+  overlays: Record<OverlayKey, boolean>;
+  onToggle: (k: OverlayKey) => void;
+}) {
+  const items: Array<{ key: OverlayKey; label: string; color: string }> = [
+    { key: "muscle", label: "Muscle", color: "var(--ok)" },
+    { key: "fat", label: "Fat", color: "var(--accent)" },
+  ];
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        gap: 6,
+        fontFamily: "var(--f-mono)",
+        fontSize: 10.5,
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+      }}
+    >
+      {items.map((it) => {
+        const active = overlays[it.key];
+        return (
+          <button
+            key={it.key}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onToggle(it.key)}
+            style={{
+              background: active
+                ? `color-mix(in oklab, ${it.color} 18%, transparent)`
+                : "transparent",
+              color: active ? it.color : "var(--fg-mute)",
+              border: `1px solid ${active ? it.color : "var(--rule-strong)"}`,
+              padding: "6px 10px",
+              cursor: "pointer",
+              font: "inherit",
+              letterSpacing: "inherit",
+              textTransform: "inherit",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                background: it.color,
+                opacity: active ? 1 : 0.45,
+              }}
+            />
+            {it.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -407,7 +545,7 @@ function RangeTabs({
   );
 }
 
-function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
+function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
   const W = 1000;
   const H = 200;
   const PAD = { t: 18, r: 24, b: 24, l: 36 };
@@ -415,22 +553,24 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
   const innerH = H - PAD.t - PAD.b;
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
 
-  const n = series.length;
-  const ws = series.map((d) => d.w);
-  const wMin = n > 0 ? Math.floor(Math.min(...ws) - 1) : 0;
-  const wMax = n > 0 ? Math.ceil(Math.max(...ws) + 1) : 1;
+  // weight is the anchor: it sets the time domain and is always present.
+  // y-axis spans every visible series so the toggled overlays share scale.
+  const anchor = chartSeries[0];
+  const allValues = chartSeries.flatMap((s) => s.points.map((p) => p.value));
+  const allTimes = anchor?.points.map((p) => p.date.getTime()) ?? [];
 
-  // x is positioned by actual time, not by index, so gaps in measurements
-  // render as longer connecting lines instead of being smoothed out.
-  const tMin = n > 0 ? series[0].date.getTime() : 0;
-  const tMax = n > 0 ? series[n - 1].date.getTime() : 1;
+  const wMin =
+    allValues.length > 0 ? Math.floor(Math.min(...allValues) - 1) : 0;
+  const wMax = allValues.length > 0 ? Math.ceil(Math.max(...allValues) + 1) : 1;
+  const tMin = allTimes.length > 0 ? allTimes[0] : 0;
+  const tMax = allTimes.length > 0 ? allTimes[allTimes.length - 1] : 1;
   const tSpan = Math.max(1, tMax - tMin);
 
   const xForTime = (t: number) => PAD.l + ((t - tMin) / tSpan) * innerW;
-  const yFor = (w: number) =>
-    PAD.t + innerH - ((w - wMin) / (wMax - wMin || 1)) * innerH;
+  const yFor = (v: number) =>
+    PAD.t + innerH - ((v - wMin) / (wMax - wMin || 1)) * innerH;
 
   const gridLevels = [0, 0.25, 0.5, 0.75, 1];
   const gridYs = gridLevels.map((g) => ({
@@ -439,42 +579,40 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
     label: (wMin + (wMax - wMin) * g).toFixed(0),
   }));
 
-  let path = "";
-  for (let i = 0; i < n; i++) {
-    const x = xForTime(series[i].date.getTime());
-    const y = yFor(series[i].w);
-    path += i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
-  }
+  const buildPath = (pts: Array<{ date: Date; value: number }>) => {
+    let d = "";
+    for (let i = 0; i < pts.length; i++) {
+      const x = xForTime(pts[i].date.getTime());
+      const y = yFor(pts[i].value);
+      d += i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
+    }
+    return d;
+  };
 
-  const startY = n > 0 ? yFor(series[0].w) : 0;
-  const endX = n > 0 ? xForTime(tMax) : 0;
-  const endY = n > 0 ? yFor(series[n - 1].w) : 0;
+  const startY =
+    anchor && anchor.points.length > 0 ? yFor(anchor.points[0].value) : 0;
+  const endX = anchor && anchor.points.length > 0 ? xForTime(tMax) : 0;
+  const endY =
+    anchor && anchor.points.length > 0
+      ? yFor(anchor.points[anchor.points.length - 1].value)
+      : 0;
 
   const handleMove = (e: React.MouseEvent<SVGRectElement>) => {
-    if (n < 2) return;
+    if (!anchor || anchor.points.length < 2) return;
     const wrap = wrapRef.current;
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width <= 0) return;
-    // map cursor x → time → nearest point by time
     const svgX = ((e.clientX - rect.left) / rect.width) * W;
-    const tCursor = tMin + ((svgX - PAD.l) / innerW) * tSpan;
-    let nearest = 0;
-    let nearestDist = Math.abs(series[0].date.getTime() - tCursor);
-    for (let i = 1; i < n; i++) {
-      const d = Math.abs(series[i].date.getTime() - tCursor);
-      if (d < nearestDist) {
-        nearestDist = d;
-        nearest = i;
-      }
-    }
-    setHoverIdx(nearest);
+    const t = tMin + ((svgX - PAD.l) / innerW) * tSpan;
+    setHoverTime(Math.max(tMin, Math.min(tMax, t)));
   };
 
   const monthTicks = useMemo(() => {
-    if (n < 2) return [] as Array<{ pct: number; label: string }>;
-    const start = series[0].date.getTime();
-    const end = series[n - 1].date.getTime();
+    if (!anchor || anchor.points.length < 2)
+      return [] as Array<{ pct: number; label: string }>;
+    const start = anchor.points[0].date.getTime();
+    const end = anchor.points[anchor.points.length - 1].date.getTime();
     const span = end - start;
     if (span <= 0) return [];
     const totalDays = span / 86_400_000;
@@ -495,9 +633,9 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
     if (ticks.length <= 6) return ticks;
     const step = Math.ceil(ticks.length / 6);
     return ticks.filter((_, i) => i % step === 0);
-  }, [series, n]);
+  }, [anchor]);
 
-  if (n < 2) {
+  if (!anchor || anchor.points.length < 2) {
     return (
       <div
         className="skel hp-skel-block"
@@ -510,9 +648,36 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
     );
   }
 
-  const hovered = hoverIdx != null ? series[hoverIdx] : null;
-  const hoverX = hovered ? xForTime(hovered.date.getTime()) : 0;
-  const hoverPct = hovered ? (hoverX / W) * 100 : 0;
+  // for each visible series, pick the point closest in time to hoverTime.
+  const hoveredPoints =
+    hoverTime != null
+      ? chartSeries
+          .map((s) => {
+            if (s.points.length === 0) return null;
+            let nearest = s.points[0];
+            let nearestDist = Math.abs(nearest.date.getTime() - hoverTime);
+            for (let i = 1; i < s.points.length; i++) {
+              const d = Math.abs(s.points[i].date.getTime() - hoverTime);
+              if (d < nearestDist) {
+                nearestDist = d;
+                nearest = s.points[i];
+              }
+            }
+            return { series: s, point: nearest };
+          })
+          .filter(
+            (
+              h,
+            ): h is {
+              series: ChartSeries;
+              point: { date: Date; value: number };
+            } => h != null,
+          )
+      : [];
+
+  const hoverAnchor = hoveredPoints.find((h) => h.series.key === "weight");
+  const hoverX = hoverAnchor ? xForTime(hoverAnchor.point.date.getTime()) : 0;
+  const hoverPct = hoverAnchor ? (hoverX / W) * 100 : 0;
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
@@ -555,14 +720,17 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
           strokeDasharray="1 6"
         />
 
-        <path
-          d={path}
-          fill="none"
-          stroke="var(--fg)"
-          strokeWidth={1.5}
-          strokeLinejoin="miter"
-          vectorEffect="non-scaling-stroke"
-        />
+        {chartSeries.map((s) => (
+          <path
+            key={s.key}
+            d={buildPath(s.points)}
+            fill="none"
+            stroke={s.color}
+            strokeWidth={1.5}
+            strokeLinejoin="miter"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
 
         <rect
           x={endX - 4}
@@ -572,7 +740,7 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
           fill="var(--accent)"
         />
 
-        {hovered && (
+        {hoverAnchor && (
           <>
             <line
               x1={hoverX}
@@ -584,14 +752,17 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
               strokeDasharray="2 3"
               pointerEvents="none"
             />
-            <rect
-              x={hoverX - 4}
-              y={yFor(hovered.w) - 4}
-              width={8}
-              height={8}
-              fill="var(--fg)"
-              pointerEvents="none"
-            />
+            {hoveredPoints.map((h) => (
+              <rect
+                key={`dot-${h.series.key}`}
+                x={xForTime(h.point.date.getTime()) - 4}
+                y={yFor(h.point.value) - 4}
+                width={8}
+                height={8}
+                fill={h.series.color}
+                pointerEvents="none"
+              />
+            ))}
           </>
         )}
 
@@ -603,11 +774,11 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
           fill="transparent"
           style={{ cursor: "crosshair" }}
           onMouseMove={handleMove}
-          onMouseLeave={() => setHoverIdx(null)}
+          onMouseLeave={() => setHoverTime(null)}
         />
       </svg>
 
-      {hovered && (
+      {hoverAnchor && (
         <div
           style={{
             position: "absolute",
@@ -628,13 +799,31 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
           }}
         >
           <div style={{ color: "var(--fg-mute)", marginBottom: 4 }}>
-            {hovered.date.toLocaleDateString(undefined, {
+            {hoverAnchor.point.date.toLocaleDateString(undefined, {
               day: "numeric",
               month: "short",
               year: "numeric",
             })}
           </div>
-          <div>{hovered.w.toFixed(1)} kg</div>
+          {hoveredPoints.map((h) => (
+            <div
+              key={`tt-${h.series.key}`}
+              style={{ display: "flex", alignItems: "center", gap: 6 }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 6,
+                  height: 6,
+                  background: h.series.color,
+                }}
+              />
+              <span style={{ color: "var(--fg-mute)" }}>{h.series.label}</span>
+              <span style={{ marginLeft: "auto" }}>
+                {h.point.value.toFixed(1)} kg
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
@@ -651,9 +840,6 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
         }}
       >
         {monthTicks.map((t) => {
-          // tick.pct is the percent within the data span (0-100% across innerW).
-          // convert to wrapper-relative percent so labels align with the
-          // svg's inner coordinate system.
           const wrapperPct = ((PAD.l + (t.pct / 100) * innerW) / W) * 100;
           return (
             <span
