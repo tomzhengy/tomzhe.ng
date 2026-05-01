@@ -5,6 +5,7 @@ import type { Recovery, TrendPoint } from "./types";
 import { recoveryHue, sanitizeCopyHtml } from "./format";
 import { CardHead } from "./StrainCard";
 import Sparkline from "./Sparkline";
+import RollingNumber from "./RollingNumber";
 
 interface RecoveryHeroProps {
   recovery: Recovery | null;
@@ -82,7 +83,9 @@ export default function RecoveryHero({
             margin: 0,
           }}
         >
-          <span className="skel">{score ?? "—"}</span>
+          <span className="skel">
+            <RollingNumber value={score} digits={0} />
+          </span>
           <span
             style={{
               fontFamily: "var(--f-serif)",
@@ -126,7 +129,7 @@ export default function RecoveryHero({
       >
         <RecoveryStat
           label="Heart Rate Variability"
-          value={hrv != null ? `${Math.round(hrv)}` : "—"}
+          value={hrv != null ? Math.round(hrv) : null}
           unit="ms"
           delta={hrv != null ? hrvDelta : null}
           caption={
@@ -139,7 +142,7 @@ export default function RecoveryHero({
         />
         <RecoveryStat
           label="Resting Heart Rate"
-          value={rhr != null ? `${Math.round(rhr)}` : "—"}
+          value={rhr != null ? Math.round(rhr) : null}
           unit="bpm"
           delta={rhr != null ? rhrDelta : null}
           invertDelta
@@ -169,7 +172,7 @@ function RecoveryStat({
   onHoverChange,
 }: {
   label: string;
-  value: string;
+  value: number | null;
   unit: string;
   delta: number | null;
   invertDelta?: boolean;
@@ -225,7 +228,9 @@ function RecoveryStat({
           gap: 4,
         }}
       >
-        <span className="skel">{value}</span>
+        <span className="skel">
+          <RollingNumber value={value} digits={0} />
+        </span>
         <span
           style={{
             fontFamily: "var(--f-serif)",

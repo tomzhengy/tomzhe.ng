@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { Workout } from "./types";
 import { CardHead } from "./StrainCard";
+import RollingNumber from "./RollingNumber";
 
 const ZONES: Array<{
   key:
@@ -142,11 +143,13 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
     isDistanceSport(workout.sport_name) && distanceKm != null;
   const leadStat = showDistance
     ? {
-        value: (distanceKm as number).toFixed(1),
+        value: distanceKm as number,
+        digits: 1,
         label: "km distance",
       }
     : {
-        value: avgWatts != null ? String(avgWatts) : "—",
+        value: avgWatts,
+        digits: 0,
         label: "watts avg",
       };
 
@@ -198,14 +201,19 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
           letterSpacing: "0.08em",
         }}
       >
-        <WStat value={leadStat.value} label={leadStat.label} />
-        <WStat value={kcal != null ? String(kcal) : "—"} label="kcal burned" />
+        <WStat
+          value={leadStat.value}
+          digits={leadStat.digits}
+          label={leadStat.label}
+        />
+        <WStat value={kcal} digits={0} label="kcal burned" />
         <WStat
           value={
             score?.average_heart_rate
-              ? String(Math.round(score.average_heart_rate))
-              : "—"
+              ? Math.round(score.average_heart_rate)
+              : null
           }
+          digits={0}
           label="bpm avg"
         />
       </div>
@@ -219,13 +227,21 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
           minWidth: 60,
         }}
       >
-        {score ? score.strain.toFixed(1) : "—"}
+        <RollingNumber value={score?.strain ?? null} digits={1} />
       </div>
     </div>
   );
 }
 
-function WStat({ value, label }: { value: string; label: string }) {
+function WStat({
+  value,
+  digits,
+  label,
+}: {
+  value: number | null;
+  digits: number;
+  label: string;
+}) {
   return (
     <div>
       <b
@@ -239,7 +255,7 @@ function WStat({ value, label }: { value: string; label: string }) {
           marginBottom: 2,
         }}
       >
-        {value}
+        <RollingNumber value={value} digits={digits} />
       </b>
       {label}
     </div>

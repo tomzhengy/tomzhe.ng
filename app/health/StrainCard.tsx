@@ -1,7 +1,8 @@
 "use client";
 
 import type { Cycle } from "./types";
-import { formatNumber, kjToCalories, sanitizeCopyHtml } from "./format";
+import { kjToCalories, sanitizeCopyHtml } from "./format";
+import RollingNumber from "./RollingNumber";
 
 interface StrainCardProps {
   cycle: Cycle | null;
@@ -60,7 +61,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
           }}
         >
           <span className="skel">
-            {strain != null ? strain.toFixed(1) : "—"}
+            <RollingNumber value={strain} digits={1} />
           </span>
         </div>
         <p
@@ -132,7 +133,10 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
           }}
         >
           <span className="skel">
-            {avgHr != null ? Math.round(avgHr) : "—"}
+            <RollingNumber
+              value={avgHr != null ? Math.round(avgHr) : null}
+              digits={0}
+            />
           </span>
           <span
             style={{
@@ -156,7 +160,11 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
             marginTop: 4,
           }}
         >
-          Avg today · max {maxHr != null ? Math.round(maxHr) : "—"}
+          Avg today · max{" "}
+          <RollingNumber
+            value={maxHr != null ? Math.round(maxHr) : null}
+            digits={0}
+          />
         </div>
       </div>
 
@@ -192,7 +200,9 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
               marginTop: 4,
             }}
           >
-            <span className="skel">{formatNumber(kj)}</span>
+            <span className="skel">
+              <RollingNumber value={kj} digits={0} grouping />
+            </span>
             <span
               style={{
                 fontStyle: "italic",
@@ -225,7 +235,9 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
               marginTop: 4,
             }}
           >
-            <span className="skel">{formatNumber(cals)}</span>
+            <span className="skel">
+              <RollingNumber value={cals} digits={0} grouping />
+            </span>
             <span
               style={{
                 fontStyle: "italic",

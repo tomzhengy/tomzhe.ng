@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { BodyData, BodyMeasurement } from "./types";
 import { CardHead } from "./StrainCard";
 import { formatClockTime, formatDateShort } from "./format";
+import RollingNumber from "./RollingNumber";
 
 interface BodyCardProps {
   body: BodyData | null;
@@ -222,7 +223,7 @@ function Portrait({
         }}
       >
         <span style={{ fontWeight: 400 }} className="skel">
-          {weight != null ? weight.toFixed(1) : "—"}
+          <RollingNumber value={weight} digits={1} />
         </span>
         <span
           style={{
@@ -247,7 +248,7 @@ function Portrait({
           className="skel"
           style={{ fontSize: 32, color: "var(--fg)", marginRight: 8 }}
         >
-          {bf != null ? bf.toFixed(1) : "—"}
+          <RollingNumber value={bf} digits={1} />
         </span>
         <span
           style={{
@@ -355,7 +356,9 @@ function CompositionBar({
               }}
             />
             {s.label}{" "}
-            <span className="skel">{empty ? "—" : s.value.toFixed(1)}</span>
+            <span className="skel">
+              {empty ? "—" : <RollingNumber value={s.value} digits={1} />}
+            </span>
           </span>
         ))}
       </div>
@@ -408,11 +411,11 @@ function TrendPanel({
           }}
         >
           <span className="skel" style={{ color: "var(--fg-mute)" }}>
-            {summary ? summary.from.toFixed(1) : "—"}
+            <RollingNumber value={summary?.from ?? null} digits={1} />
           </span>
           <span style={{ color: "var(--fg-mute)", margin: "0 4px" }}>→</span>
           <span className="skel">
-            {summary ? `${summary.to.toFixed(1)} kg` : "—"}
+            <RollingNumber value={summary?.to ?? null} digits={1} /> kg
           </span>
           {summary && (
             <span
@@ -999,7 +1002,7 @@ function Tile({
         }}
       >
         <span className="skel">
-          {value != null ? formatTileNumber(value, digits) : "—"}
+          <RollingNumber value={value} digits={digits} grouping />
         </span>
         {unit && (
           <span
@@ -1059,7 +1062,7 @@ function DeltaTag({
         ...style,
       }}
     >
-      {arrow} {Math.abs(value).toFixed(digits)}
+      {arrow} <RollingNumber value={Math.abs(value)} digits={digits} />
     </span>
   );
 }
@@ -1161,7 +1164,7 @@ function hydrationCaption(m: BodyMeasurement | null): React.ReactNode {
       <span key="icw">
         ICW{" "}
         <b style={{ fontStyle: "normal", color: "var(--fg)" }}>
-          {icw.toFixed(1)}
+          <RollingNumber value={icw} digits={1} />
         </b>
       </span>,
     );
@@ -1171,7 +1174,7 @@ function hydrationCaption(m: BodyMeasurement | null): React.ReactNode {
       <span key="ecw">
         ECW{" "}
         <b style={{ fontStyle: "normal", color: "var(--fg)" }}>
-          {ecw.toFixed(1)}
+          <RollingNumber value={ecw} digits={1} />
         </b>
       </span>,
     );
