@@ -35,6 +35,35 @@ export default function Sparkline({
   const shared = onHoverChange != null;
   const hoverIdx = shared ? (sharedHoverIdx ?? null) : localIdx;
 
+  // month ticks under the chart for spans long enough that points alone
+  // don't reveal the timeline. only renders when `dates` is supplied.
+  // hook order requires this to live above any early returns.
+  const monthTicks = useMemo(() => {
+    if (!dates || dates.length < 2) return [];
+    const startMs = new Date(dates[0]).getTime();
+    const endMs = new Date(dates[dates.length - 1]).getTime();
+    const totalDays = (endMs - startMs) / 86_400_000;
+    if (totalDays < 60) return [];
+    const tickSpan = endMs - startMs;
+    const ticks: Array<{ pct: number; label: string }> = [];
+    const cur = new Date(startMs);
+    cur.setUTCDate(1);
+    cur.setUTCMonth(cur.getUTCMonth() + 1);
+    while (cur.getTime() <= endMs) {
+      ticks.push({
+        pct: ((cur.getTime() - startMs) / tickSpan) * 100,
+        label: cur.toLocaleDateString(undefined, {
+          month: "short",
+          year: totalDays > 365 ? "2-digit" : undefined,
+        }),
+      });
+      cur.setUTCMonth(cur.getUTCMonth() + 1);
+    }
+    if (ticks.length <= 6) return ticks;
+    const step = Math.ceil(ticks.length / 6);
+    return ticks.filter((_, i) => i % step === 0);
+  }, [dates]);
+
   if (!values.length) {
     return (
       <div style={{ position: "relative", marginTop: 14 }}>
@@ -117,34 +146,6 @@ export default function Sparkline({
         year: "numeric",
       })
     : null;
-
-  // month ticks under the chart for spans long enough that points alone
-  // don't reveal the timeline. only renders when `dates` is supplied.
-  const monthTicks = useMemo(() => {
-    if (!dates || dates.length < 2) return [];
-    const startMs = new Date(dates[0]).getTime();
-    const endMs = new Date(dates[dates.length - 1]).getTime();
-    const totalDays = (endMs - startMs) / 86_400_000;
-    if (totalDays < 60) return [];
-    const span = endMs - startMs;
-    const ticks: Array<{ pct: number; label: string }> = [];
-    const cur = new Date(startMs);
-    cur.setUTCDate(1);
-    cur.setUTCMonth(cur.getUTCMonth() + 1);
-    while (cur.getTime() <= endMs) {
-      ticks.push({
-        pct: ((cur.getTime() - startMs) / span) * 100,
-        label: cur.toLocaleDateString(undefined, {
-          month: "short",
-          year: totalDays > 365 ? "2-digit" : undefined,
-        }),
-      });
-      cur.setUTCMonth(cur.getUTCMonth() + 1);
-    }
-    if (ticks.length <= 6) return ticks;
-    const step = Math.ceil(ticks.length / 6);
-    return ticks.filter((_, i) => i % step === 0);
-  }, [dates]);
 
   // smooths the hover indicator's slide between snapped indices.
   const HOVER_EASE = "linear";
