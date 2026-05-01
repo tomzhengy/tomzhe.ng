@@ -38,6 +38,27 @@ export default function BodyCard({ body }: BodyCardProps) {
     [displayTrend],
   );
 
+  // count of weight datapoints visible per window — surfaced in the dropdown
+  // so it's obvious when 2w / 1m / 3m all clip to the same recent burst.
+  const windowCounts = useMemo(() => {
+    const now = Date.now();
+    const out: Record<WindowKey, number> = {
+      "14": 0,
+      "30": 0,
+      "90": 0,
+      all: 0,
+    };
+    for (const p of trend) {
+      if (p.weightKg == null) continue;
+      const t = new Date(p.measuredAt).getTime();
+      out.all++;
+      if (t >= now - 14 * 24 * 60 * 60 * 1000) out["14"]++;
+      if (t >= now - 30 * 24 * 60 * 60 * 1000) out["30"]++;
+      if (t >= now - 90 * 24 * 60 * 60 * 1000) out["90"]++;
+    }
+    return out;
+  }, [trend]);
+
   return (
     <article
       className="health-card filled"
@@ -111,7 +132,11 @@ export default function BodyCard({ body }: BodyCardProps) {
                   >
                     Weight trend
                   </span>
-                  <WindowSelect value={windowKey} onChange={setWindowKey} />
+                  <WindowSelect
+                    value={windowKey}
+                    onChange={setWindowKey}
+                    counts={windowCounts}
+                  />
                 </div>
                 {weightSeries.length > 1 && (
                   <span
@@ -162,9 +187,11 @@ export default function BodyCard({ body }: BodyCardProps) {
 function WindowSelect({
   value,
   onChange,
+  counts,
 }: {
   value: WindowKey;
   onChange: (v: WindowKey) => void;
+  counts: Record<WindowKey, number>;
 }) {
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
@@ -191,7 +218,7 @@ function WindowSelect({
       >
         {WINDOW_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
-            {o.label}
+            {o.label} ({counts[o.value]})
           </option>
         ))}
       </select>
