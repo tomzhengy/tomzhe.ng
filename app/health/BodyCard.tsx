@@ -686,6 +686,10 @@ function Tiles({
     monthAgo?.muscleMassKg,
   );
   const fatDelta = delta(latest?.fatMassKg ?? null, monthAgo?.fatMassKg);
+  const bmrDelta = delta(
+    latest?.basalMetabolicRateKcal ?? null,
+    monthAgo?.basalMetabolicRateKcal,
+  );
   const hydrationCap = hydrationCaption(latest);
 
   return (
@@ -742,7 +746,15 @@ function Tiles({
         value={latest?.basalMetabolicRateKcal ?? null}
         unit="kcal"
         digits={0}
-        cap={<>Resting daily burn.</>}
+        cap={
+          bmrDelta != null ? (
+            <>
+              <DeltaTag value={bmrDelta} digits={0} inline /> vs last month
+            </>
+          ) : (
+            <>Resting daily burn.</>
+          )
+        }
       />
       <Tile
         label="Hydration"
