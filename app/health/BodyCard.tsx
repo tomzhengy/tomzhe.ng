@@ -252,10 +252,7 @@ function Stat({
 
 function CardioMetrics({ latest }: { latest: BodyMeasurement }) {
   const hasMain =
-    latest.heartRateBpm != null ||
-    latest.basalMetabolicRateKcal != null ||
-    latest.visceralFat != null ||
-    latest.vascularAgeYears != null;
+    latest.basalMetabolicRateKcal != null || latest.visceralFat != null;
   const tertiary: Array<[string, string]> = [];
   if (latest.pulseWaveVelocityMs != null) {
     tertiary.push(["PWV", `${latest.pulseWaveVelocityMs.toFixed(1)} m/s`]);
@@ -297,16 +294,10 @@ function CardioMetrics({ latest }: { latest: BodyMeasurement }) {
           className="hp-body-cardio"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
             gap: 28,
           }}
         >
-          <Stat
-            label="Heart Rate"
-            value={latest.heartRateBpm}
-            unit="bpm"
-            digits={0}
-          />
           <Stat
             label="BMR"
             value={latest.basalMetabolicRateKcal}
@@ -318,12 +309,6 @@ function CardioMetrics({ latest }: { latest: BodyMeasurement }) {
             value={latest.visceralFat}
             unit=""
             digits={1}
-          />
-          <Stat
-            label="Vascular Age"
-            value={latest.vascularAgeYears}
-            unit="yrs"
-            digits={0}
           />
         </div>
       )}
