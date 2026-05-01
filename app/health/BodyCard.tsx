@@ -421,9 +421,14 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
   const ws = series.map((d) => d.w);
   const wMin = n > 0 ? Math.floor(Math.min(...ws) - 1) : 0;
   const wMax = n > 0 ? Math.ceil(Math.max(...ws) + 1) : 1;
-  const stepX = n > 1 ? innerW / (n - 1) : 0;
 
-  const xFor = (i: number) => PAD.l + i * stepX;
+  // x is positioned by actual time, not by index, so gaps in measurements
+  // render as longer connecting lines instead of being smoothed out.
+  const tMin = n > 0 ? series[0].date.getTime() : 0;
+  const tMax = n > 0 ? series[n - 1].date.getTime() : 1;
+  const tSpan = Math.max(1, tMax - tMin);
+
+  const xForTime = (t: number) => PAD.l + ((t - tMin) / tSpan) * innerW;
   const yFor = (w: number) =>
     PAD.t + innerH - ((w - wMin) / (wMax - wMin || 1)) * innerH;
 
@@ -436,13 +441,13 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
 
   let path = "";
   for (let i = 0; i < n; i++) {
-    const x = xFor(i);
+    const x = xForTime(series[i].date.getTime());
     const y = yFor(series[i].w);
     path += i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
   }
 
   const startY = n > 0 ? yFor(series[0].w) : 0;
-  const endX = n > 0 ? xFor(n - 1) : 0;
+  const endX = n > 0 ? xForTime(tMax) : 0;
   const endY = n > 0 ? yFor(series[n - 1].w) : 0;
 
   const handleMove = (e: React.MouseEvent<SVGRectElement>) => {
@@ -451,10 +456,19 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width <= 0) return;
+    // map cursor x → time → nearest point by time
     const svgX = ((e.clientX - rect.left) / rect.width) * W;
-    let idx = Math.round((svgX - PAD.l) / stepX);
-    idx = Math.max(0, Math.min(n - 1, idx));
-    setHoverIdx(idx);
+    const tCursor = tMin + ((svgX - PAD.l) / innerW) * tSpan;
+    let nearest = 0;
+    let nearestDist = Math.abs(series[0].date.getTime() - tCursor);
+    for (let i = 1; i < n; i++) {
+      const d = Math.abs(series[i].date.getTime() - tCursor);
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearest = i;
+      }
+    }
+    setHoverIdx(nearest);
   };
 
   const monthTicks = useMemo(() => {
@@ -497,7 +511,8 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
   }
 
   const hovered = hoverIdx != null ? series[hoverIdx] : null;
-  const hoverPct = hovered ? (xFor(hoverIdx as number) / W) * 100 : 0;
+  const hoverX = hovered ? xForTime(hovered.date.getTime()) : 0;
+  const hoverPct = hovered ? (hoverX / W) * 100 : 0;
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
@@ -560,8 +575,8 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
         {hovered && (
           <>
             <line
-              x1={xFor(hoverIdx as number)}
-              x2={xFor(hoverIdx as number)}
+              x1={hoverX}
+              x2={hoverX}
               y1={PAD.t}
               y2={PAD.t + innerH}
               stroke="var(--fg-mute)"
@@ -570,7 +585,7 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
               pointerEvents="none"
             />
             <rect
-              x={xFor(hoverIdx as number) - 4}
+              x={hoverX - 4}
               y={yFor(hovered.w) - 4}
               width={8}
               height={8}
@@ -625,8 +640,8 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
 
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
+          position: "relative",
+          height: 14,
           fontFamily: "var(--f-mono)",
           fontSize: 10,
           letterSpacing: "0.1em",
@@ -635,9 +650,25 @@ function WeightChart({ series }: { series: Array<{ date: Date; w: number }> }) {
           textTransform: "uppercase",
         }}
       >
-        {monthTicks.map((t) => (
-          <span key={`${t.label}-${t.pct}`}>{t.label}</span>
-        ))}
+        {monthTicks.map((t) => {
+          // tick.pct is the percent within the data span (0-100% across innerW).
+          // convert to wrapper-relative percent so labels align with the
+          // svg's inner coordinate system.
+          const wrapperPct = ((PAD.l + (t.pct / 100) * innerW) / W) * 100;
+          return (
+            <span
+              key={`${t.label}-${t.pct}`}
+              style={{
+                position: "absolute",
+                left: `${wrapperPct}%`,
+                transform: "translateX(-50%)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {t.label}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
