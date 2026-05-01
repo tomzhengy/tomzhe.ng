@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import type { BodyData, BodyMeasurement } from "./types";
 import { CardHead } from "./StrainCard";
 import Sparkline from "./Sparkline";
@@ -9,12 +10,33 @@ interface BodyCardProps {
   body: BodyData | null;
 }
 
+type WindowKey = "14" | "30" | "90" | "all";
+
+const WINDOW_OPTIONS: Array<{ value: WindowKey; label: string }> = [
+  { value: "14", label: "2 weeks" },
+  { value: "30", label: "1 month" },
+  { value: "90", label: "3 months" },
+  { value: "all", label: "all time" },
+];
+
 export default function BodyCard({ body }: BodyCardProps) {
   const latest = body?.latest ?? null;
   const trend = body?.trend ?? [];
-  const weightSeries = trend
-    .map((p) => p.weightKg)
-    .filter((v): v is number => v != null);
+
+  const [windowKey, setWindowKey] = useState<WindowKey>("30");
+
+  const displayTrend = useMemo(() => {
+    if (windowKey === "all") return trend;
+    const days = Number.parseInt(windowKey, 10);
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return trend.filter((p) => new Date(p.measuredAt).getTime() >= cutoff);
+  }, [trend, windowKey]);
+
+  const weightSeries = useMemo(
+    () =>
+      displayTrend.map((p) => p.weightKg).filter((v): v is number => v != null),
+    [displayTrend],
+  );
 
   return (
     <article
@@ -53,7 +75,7 @@ export default function BodyCard({ body }: BodyCardProps) {
 
           <CardioMetrics latest={latest} />
 
-          {weightSeries.length > 1 && (
+          {trend.length > 1 && (
             <div
               style={{
                 marginTop: 28,
@@ -65,45 +87,129 @@ export default function BodyCard({ body }: BodyCardProps) {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "baseline",
+                  alignItems: "center",
+                  gap: 16,
                   marginBottom: 4,
+                  flexWrap: "wrap",
                 }}
               >
-                <span
+                <div
                   style={{
-                    fontFamily: "var(--f-mono)",
-                    fontSize: 10.5,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "var(--fg-mute)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
                   }}
                 >
-                  Weight trend
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--f-mono)",
-                    fontSize: 10.5,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: "var(--fg-mute)",
-                  }}
-                >
-                  {weightSeries[0].toFixed(1)} →{" "}
-                  {weightSeries[weightSeries.length - 1].toFixed(1)} kg
-                </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--f-mono)",
+                      fontSize: 10.5,
+                      letterSpacing: "0.22em",
+                      textTransform: "uppercase",
+                      color: "var(--fg-mute)",
+                    }}
+                  >
+                    Weight trend
+                  </span>
+                  <WindowSelect value={windowKey} onChange={setWindowKey} />
+                </div>
+                {weightSeries.length > 1 && (
+                  <span
+                    style={{
+                      fontFamily: "var(--f-mono)",
+                      fontSize: 10.5,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      color: "var(--fg-mute)",
+                    }}
+                  >
+                    {weightSeries[0].toFixed(1)} →{" "}
+                    {weightSeries[weightSeries.length - 1].toFixed(1)} kg
+                  </span>
+                )}
               </div>
-              <Sparkline
-                values={weightSeries}
-                unit="kg"
-                digits={1}
-                height={64}
-              />
+              {weightSeries.length > 1 ? (
+                <Sparkline
+                  values={weightSeries}
+                  unit="kg"
+                  digits={1}
+                  height={64}
+                />
+              ) : (
+                <div
+                  style={{
+                    height: 64,
+                    marginTop: 14,
+                    display: "flex",
+                    alignItems: "center",
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 11,
+                    letterSpacing: "0.1em",
+                    color: "var(--fg-mute)",
+                  }}
+                >
+                  Not enough data in this window.
+                </div>
+              )}
             </div>
           )}
         </>
       )}
     </article>
+  );
+}
+
+function WindowSelect({
+  value,
+  onChange,
+}: {
+  value: WindowKey;
+  onChange: (v: WindowKey) => void;
+}) {
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as WindowKey)}
+        style={{
+          appearance: "none",
+          WebkitAppearance: "none",
+          MozAppearance: "none",
+          fontFamily: "var(--f-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "var(--fg-soft)",
+          background: "transparent",
+          border: "1px solid var(--rule-strong)",
+          padding: "4px 22px 4px 8px",
+          margin: 0,
+          cursor: "pointer",
+          outline: "none",
+          lineHeight: 1.2,
+        }}
+      >
+        {WINDOW_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          right: 8,
+          top: "50%",
+          transform: "translateY(-55%)",
+          pointerEvents: "none",
+          fontSize: 9,
+          color: "var(--fg-mute)",
+        }}
+      >
+        ▾
+      </span>
+    </div>
   );
 }
 

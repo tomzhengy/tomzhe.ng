@@ -79,7 +79,10 @@ export interface HealthPayload {
 const SOURCE = "whoop";
 const WITHINGS_SOURCE = "withings";
 const TREND_DAYS = 30;
-const BODY_TREND_DAYS = 90;
+// window for live ingest of new measurements only — the archive read returns
+// all-time data so the client can slice it on demand.
+const BODY_LIVE_DAYS = 90;
+const BODY_ARCHIVE_EPOCH = "1970-01-01T00:00:00.000Z";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "google/gemini-2.5-flash-lite";
 
@@ -180,7 +183,7 @@ async function fetchBodyData(env: HealthEnv): Promise<BodyData | null> {
   }
   try {
     const accessToken = await exchangeWithingsRefreshToken(env);
-    const startMs = Date.now() - BODY_TREND_DAYS * 24 * 60 * 60 * 1000;
+    const startMs = Date.now() - BODY_LIVE_DAYS * 24 * 60 * 60 * 1000;
     const page = await withingsGetMeas(accessToken, {
       meastype: "1,4,5,6,8,11,76,77,88,91,155,168,169,170,226",
       category: "1",
@@ -195,11 +198,12 @@ async function fetchBodyData(env: HealthEnv): Promise<BodyData | null> {
       );
     }
 
-    const sinceIso = new Date(startMs).toISOString();
+    // read the full archive — the client slices into 2w / 1m / 3m / all-time
+    // windows from a single payload.
     const archiveRows = await readBodyMeasurementsSince(
       env,
       WITHINGS_SOURCE,
-      sinceIso,
+      BODY_ARCHIVE_EPOCH,
     );
     const trend = archiveRows.map(rowToBody);
 
