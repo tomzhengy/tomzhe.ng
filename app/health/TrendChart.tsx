@@ -82,7 +82,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
   const active = hover ? data[hover.idx] : null;
   const activePx = hover != null ? xFor(hover.idx) : 0;
   const activeLeftPct = `${(activePx / VIEW_W) * 100}%`;
-  const HOVER_EASE = "cubic-bezier(.4, 0, .2, 1)";
+  const HOVER_EASE = "linear";
   const HOVER_DUR = "140ms";
   const slideTransition = `left ${HOVER_DUR} ${HOVER_EASE}, top ${HOVER_DUR} ${HOVER_EASE}`;
 

@@ -96,7 +96,7 @@ export default function Sparkline({
         : `${daysAgo} days ago`;
 
   // smooths the hover indicator's slide between snapped indices.
-  const HOVER_EASE = "cubic-bezier(.4, 0, .2, 1)";
+  const HOVER_EASE = "linear";
   const HOVER_DUR = "130ms";
   const slideTransition = `left ${HOVER_DUR} ${HOVER_EASE}, top ${HOVER_DUR} ${HOVER_EASE}`;
   const showHover = hoverIdx != null && hoverValue != null;
