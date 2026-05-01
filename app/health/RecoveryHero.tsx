@@ -90,7 +90,7 @@ export default function RecoveryHero({
             style={{
               fontFamily: "var(--f-serif)",
               fontStyle: "italic",
-              fontSize: 28,
+              fontSize: 32,
               color: "var(--fg-mute)",
             }}
           >

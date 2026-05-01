@@ -81,7 +81,7 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
           className="hp-hero-score"
           style={{
             fontFamily: "var(--f-serif)",
-            fontSize: 124,
+            fontSize: 144,
             lineHeight: 0.95,
             letterSpacing: "-0.03em",
             display: "flex",
