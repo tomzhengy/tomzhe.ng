@@ -25,13 +25,9 @@ export default function RecoveryHero({
   const score = recovery?.score?.recovery_score ?? null;
   const hrv = recovery?.score?.hrv_rmssd_milli ?? null;
   const rhr = recovery?.score?.resting_heart_rate ?? null;
-  const spo2 = recovery?.score?.spo2_percentage ?? null;
-  const skinTemp = recovery?.score?.skin_temp_celsius ?? null;
 
   const hrvSeries = trend.map((t) => t.hrv ?? 0).filter((_, _i, a) => a.length);
   const rhrSeries = trend.map((t) => t.rhr ?? 0);
-  const spo2Series = trend.map(() => spo2 ?? 0); // WHOOP returns per-day inside recovery loop; placeholder when absent
-  const tempSeries = trend.map(() => skinTemp ?? 0);
 
   const avgHrv =
     hrvSeries.length > 0
@@ -145,7 +141,7 @@ export default function RecoveryHero({
           position: "relative",
           zIndex: 1,
           display: "grid",
-          gridTemplateColumns: "1.1fr 0.9fr",
+          gridTemplateColumns: "1fr",
           gap: 0,
           alignContent: "start",
           height: "100%",
@@ -161,7 +157,7 @@ export default function RecoveryHero({
           }
           series={hrvSeries}
           seriesDigits={0}
-          position="tl"
+          position="tr"
           hoverIdx={hoverIdx}
           onHoverChange={setHoverIdx}
         />
@@ -176,30 +172,6 @@ export default function RecoveryHero({
           }
           series={rhrSeries}
           seriesDigits={0}
-          position="tr"
-          hoverIdx={hoverIdx}
-          onHoverChange={setHoverIdx}
-        />
-        <SubMetric
-          label="Blood Oxygen"
-          value={spo2 != null ? spo2.toFixed(1) : "—"}
-          unit="%"
-          delta={null}
-          caption="Typical 95–99% range"
-          series={spo2Series}
-          seriesDigits={1}
-          position="bl"
-          hoverIdx={hoverIdx}
-          onHoverChange={setHoverIdx}
-        />
-        <SubMetric
-          label="Skin Temperature"
-          value={skinTemp != null ? skinTemp.toFixed(1) : "—"}
-          unit="°C"
-          delta={null}
-          caption="Relative to baseline"
-          series={tempSeries}
-          seriesDigits={1}
           position="br"
           hoverIdx={hoverIdx}
           onHoverChange={setHoverIdx}
