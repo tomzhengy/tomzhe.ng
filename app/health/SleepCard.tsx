@@ -72,7 +72,7 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
           display: "grid",
           gridTemplateColumns: "auto minmax(0, 1fr)",
           gap: 24,
-          alignItems: "baseline",
+          alignItems: "start",
           marginTop: 14,
         }}
       >
