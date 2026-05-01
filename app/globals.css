@@ -344,6 +344,21 @@ button svg {
   }
 }
 
+@media (max-width: 900px) {
+  .hp-body-top {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+  .hp-body-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .hp-body-tiles > button {
+    border-right: none !important;
+    border-top: 1px solid var(--rule) !important;
+    padding: 14px !important;
+  }
+}
+
 @media (max-width: 680px) {
   .hp-body-grid {
     grid-template-columns: 1fr !important;
@@ -352,12 +367,8 @@ button svg {
   .hp-body-weight {
     font-size: 88px !important;
   }
-  .hp-body-cardio {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 18px !important;
-  }
   .hp-body-tiles {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
   }
 }
 
