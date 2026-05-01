@@ -2,29 +2,28 @@
 
 import type { Sleep } from "./types";
 import { formatDuration, sanitizeCopyHtml, splitHoursMinutes } from "./format";
-import Hypnogram, { HypnoSegment } from "./Hypnogram";
 import { CardHead } from "./StrainCard";
 
 interface SleepCardProps {
   sleep: Sleep | null;
-  segments: HypnoSegment[];
   sleepCopyHtml: string | null;
 }
 
-export default function SleepCard({
-  sleep,
-  segments,
-  sleepCopyHtml,
-}: SleepCardProps) {
+const STAGE_COLORS = {
+  awake: "color-mix(in oklab, var(--foreground) 22%, var(--background))",
+  light: "color-mix(in oklab, var(--foreground) 45%, var(--background))",
+  rem: "color-mix(in oklab, var(--foreground) 68%, var(--background))",
+  deep: "var(--foreground)",
+};
+
+export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
   const stage = sleep?.score?.stage_summary ?? null;
-  const inBedMs = stage?.total_in_bed_time_milli ?? 0;
   const awakeMs = stage?.total_awake_time_milli ?? 0;
-  const asleepMs = Math.max(0, inBedMs - awakeMs);
   const lightMs = stage?.total_light_sleep_time_milli ?? 0;
   const remMs = stage?.total_rem_sleep_time_milli ?? 0;
   const deepMs = stage?.total_slow_wave_sleep_time_milli ?? 0;
-  const pct = (ms: number) =>
-    inBedMs > 0 ? `${Math.round((ms / inBedMs) * 100)}%` : "—";
+  const totalMs = awakeMs + lightMs + remMs + deepMs;
+  const asleepMs = lightMs + remMs + deepMs;
   const { h: sleepH, m: sleepM } = splitHoursMinutes(asleepMs);
 
   const perf = sleep?.score?.sleep_performance_percentage ?? null;
@@ -38,6 +37,22 @@ export default function SleepCard({
       : perf != null
         ? `Hit <em>${Math.round(perf)}%</em> of your sleep need across the night.`
         : "A steady night across three cycles.";
+
+  const stages: Array<{
+    key: "awake" | "light" | "rem" | "deep";
+    label: string;
+    ms: number;
+    color: string;
+  }> = [
+    { key: "awake", label: "Awake", ms: awakeMs, color: STAGE_COLORS.awake },
+    { key: "light", label: "Light", ms: lightMs, color: STAGE_COLORS.light },
+    { key: "rem", label: "REM", ms: remMs, color: STAGE_COLORS.rem },
+    { key: "deep", label: "Deep", ms: deepMs, color: STAGE_COLORS.deep },
+  ];
+
+  const widthPct = (ms: number) => (totalMs > 0 ? (ms / totalMs) * 100 : 0);
+  const labelPct = (ms: number) =>
+    totalMs > 0 ? `${Math.round((ms / totalMs) * 100)}%` : "—";
 
   return (
     <article
@@ -55,136 +70,136 @@ export default function SleepCard({
         className="hp-sleep-top"
         style={{
           display: "grid",
-          gridTemplateColumns: "1.3fr 1fr",
-          gap: 32,
+          gridTemplateColumns: "auto minmax(0, 1fr)",
+          gap: 24,
+          alignItems: "baseline",
           marginTop: 14,
         }}
       >
-        <div>
-          <div
-            style={{
-              fontFamily: "var(--f-serif)",
-              fontSize: 96,
-              lineHeight: 0.95,
-              letterSpacing: "-0.03em",
-              display: "flex",
-              alignItems: "baseline",
-              gap: 6,
-              margin: "0 0 4px",
-            }}
-          >
-            <span className="skel">{sleepH}</span>
-            <span
-              style={{
-                fontStyle: "italic",
-                fontSize: 26,
-                color: "var(--fg-mute)",
-              }}
-            >
-              h
-            </span>
-            <span className="skel">{String(sleepM).padStart(2, "0")}</span>
-            <span
-              style={{
-                fontStyle: "italic",
-                fontSize: 26,
-                color: "var(--fg-mute)",
-              }}
-            >
-              m
-            </span>
-          </div>
-          <p
-            style={{
-              fontFamily: "var(--f-serif)",
-              fontSize: 22,
-              lineHeight: 1.3,
-              color: "var(--fg-soft)",
-              maxWidth: "28ch",
-            }}
-            dangerouslySetInnerHTML={{
-              __html: sleepCopyHtml
-                ? sanitizeCopyHtml(sleepCopyHtml)
-                : fallback,
-            }}
-          />
-        </div>
         <div
-          className="hp-sleep-stats"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "14px 28px",
-            alignContent: "center",
+            fontFamily: "var(--f-serif)",
+            fontSize: 96,
+            lineHeight: 0.95,
+            letterSpacing: "-0.03em",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 6,
+            margin: 0,
           }}
         >
-          <Stat
-            label="Performance"
-            value={perf != null ? Math.round(perf) : "—"}
-            unit="%"
-          />
-          <Stat
-            label="Efficiency"
-            value={eff != null ? Math.round(eff) : "—"}
-            unit="%"
-          />
-          <Stat
-            label="Respiratory"
-            value={resp != null ? resp.toFixed(1) : "—"}
-            unit="rpm"
-          />
-          <Stat label="Disturbances" value={dist ?? "—"} unit="" />
+          <span className="skel">{sleepH}</span>
+          <span
+            style={{
+              fontStyle: "italic",
+              fontSize: 26,
+              color: "var(--fg-mute)",
+            }}
+          >
+            h
+          </span>
+          <span className="skel">{String(sleepM).padStart(2, "0")}</span>
+          <span
+            style={{
+              fontStyle: "italic",
+              fontSize: 26,
+              color: "var(--fg-mute)",
+            }}
+          >
+            m
+          </span>
         </div>
+        <p
+          style={{
+            fontFamily: "var(--f-serif)",
+            fontSize: 18,
+            lineHeight: 1.3,
+            color: "var(--fg-soft)",
+            margin: 0,
+          }}
+          dangerouslySetInnerHTML={{
+            __html: sleepCopyHtml ? sanitizeCopyHtml(sleepCopyHtml) : fallback,
+          }}
+        />
+      </div>
+
+      <div
+        className="hp-sleep-stats"
+        style={{
+          marginTop: 24,
+          paddingTop: 20,
+          borderTop: "1px solid var(--rule)",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "18px 28px",
+        }}
+      >
+        <Stat
+          label="Performance"
+          value={perf != null ? Math.round(perf) : "—"}
+          unit="%"
+        />
+        <Stat
+          label="Efficiency"
+          value={eff != null ? Math.round(eff) : "—"}
+          unit="%"
+        />
+        <Stat
+          label="Respiratory"
+          value={resp != null ? resp.toFixed(1) : "—"}
+          unit="rpm"
+        />
+        <Stat label="Disturbances" value={dist ?? "—"} unit="" />
       </div>
 
       <div
         style={{
           marginTop: 24,
+          paddingTop: 20,
           borderTop: "1px solid var(--rule)",
-          paddingTop: 22,
         }}
       >
-        <Hypnogram
-          segments={segments}
-          startIso={sleep?.start ?? ""}
-          endIso={sleep?.end ?? ""}
-        />
+        <div
+          className="hp-sleep-bar"
+          style={{
+            display: "flex",
+            width: "100%",
+            height: 24,
+            gap: 2,
+          }}
+        >
+          {stages.map((s) => (
+            <span
+              key={s.key}
+              title={`${s.label} · ${formatDuration(s.ms)} · ${labelPct(s.ms)}`}
+              style={{
+                width: `${widthPct(s.ms)}%`,
+                height: "100%",
+                background: s.color,
+                display: "block",
+              }}
+            />
+          ))}
+        </div>
 
         <div
           className="hp-stage-totals"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 0,
-            marginTop: 18,
-            borderTop: "1px solid var(--rule)",
-            paddingTop: 14,
+            gap: 14,
+            marginTop: 14,
           }}
         >
-          <Total
-            color="color-mix(in oklab, var(--foreground) 22%, var(--background))"
-            label="Awake"
-            value={formatDuration(awakeMs)}
-            pct={pct(awakeMs)}
-          />
-          <Total
-            color="color-mix(in oklab, var(--foreground) 45%, var(--background))"
-            label="Light"
-            value={formatDuration(lightMs)}
-            pct={pct(lightMs)}
-          />
-          <Total
-            color="color-mix(in oklab, var(--foreground) 68%, var(--background))"
-            label="REM"
-            value={formatDuration(remMs)}
-            pct={pct(remMs)}
-          />
-          <Total
-            color="var(--foreground)"
-            label="Deep"
-            value={formatDuration(deepMs)}
-            pct={pct(deepMs)}
-          />
+          {stages.map((s) => (
+            <Total
+              key={s.key}
+              color={s.color}
+              label={s.label}
+              value={formatDuration(s.ms)}
+              pct={labelPct(s.ms)}
+            />
+          ))}
         </div>
       </div>
     </article>
@@ -257,6 +272,7 @@ function Total({
         display: "flex",
         flexDirection: "column",
         gap: 6,
+        minWidth: 0,
       }}
     >
       <div
@@ -272,6 +288,7 @@ function Total({
             width: 8,
             height: 8,
             background: color,
+            flexShrink: 0,
           }}
         />
         <span
@@ -289,17 +306,18 @@ function Total({
       <div
         style={{
           fontFamily: "var(--f-serif)",
-          fontSize: 22,
+          fontSize: 18,
           lineHeight: 1.1,
           display: "flex",
           alignItems: "baseline",
-          gap: 8,
+          gap: 6,
+          flexWrap: "wrap",
         }}
       >
         <span>{value}</span>
         <span
           style={{
-            fontSize: 14,
+            fontSize: 12,
             fontStyle: "italic",
             color: "var(--fg-mute)",
           }}

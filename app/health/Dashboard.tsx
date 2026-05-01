@@ -13,7 +13,6 @@ import JournalFooter from "./JournalFooter";
 import DrillModal from "./DrillModal";
 import TrendChart from "./TrendChart";
 import { CardHead } from "./StrainCard";
-import type { HypnoSegment, Stage } from "./Hypnogram";
 
 type UiState = "loading" | "ok" | "empty" | "error";
 
@@ -50,16 +49,6 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, []);
-
-  const hypnoSegments = useMemo<HypnoSegment[]>(() => {
-    const sleep = payload?.sleep;
-    if (!sleep?.score) return [];
-    return approximateHypnogram(
-      new Date(sleep.start).getTime(),
-      new Date(sleep.end).getTime(),
-      sleep.score.stage_summary,
-    );
-  }, [payload]);
 
   const nowIso = new Date().toISOString();
   const trend = useMemo<TrendPoint[]>(
@@ -112,7 +101,6 @@ export default function Dashboard() {
         />
         <SleepCard
           sleep={payload?.sleep ?? null}
-          segments={hypnoSegments}
           sleepCopyHtml={payload?.copy?.sleepCopy ?? null}
         />
 
@@ -168,61 +156,4 @@ function Banner({ text }: { text: string }) {
       {text}
     </div>
   );
-}
-
-/**
- * WHOOP v2's sleep summary gives us stage totals but not a minute-by-minute
- * segment list. We approximate a hypnogram by distributing the totals into
- * cyclical segments across the sleep window. Not ideal, but matches the
- * visual rhythm of the design until we wire into a higher-detail source.
- */
-function approximateHypnogram(
-  startMs: number,
-  endMs: number,
-  stages: {
-    total_awake_time_milli: number;
-    total_light_sleep_time_milli: number;
-    total_slow_wave_sleep_time_milli: number;
-    total_rem_sleep_time_milli: number;
-  },
-): HypnoSegment[] {
-  const total =
-    stages.total_awake_time_milli +
-    stages.total_light_sleep_time_milli +
-    stages.total_slow_wave_sleep_time_milli +
-    stages.total_rem_sleep_time_milli;
-  if (total <= 0 || endMs <= startMs) return [];
-  const windowMs = endMs - startMs;
-  // break into 4 cycles; each cycle cycles through awake-light-deep-light-rem-light
-  const cycles = 4;
-  const cycleMs = windowMs / cycles;
-  const shares = {
-    awake: stages.total_awake_time_milli / total,
-    light: stages.total_light_sleep_time_milli / total,
-    deep: stages.total_slow_wave_sleep_time_milli / total,
-    rem: stages.total_rem_sleep_time_milli / total,
-  };
-  const patternPerCycle: Array<{ stage: Stage; weight: number }> = [
-    { stage: "awake", weight: shares.awake / cycles },
-    { stage: "light", weight: (shares.light * 0.35) / 1 },
-    { stage: "deep", weight: shares.deep / cycles },
-    { stage: "light", weight: (shares.light * 0.35) / 1 },
-    { stage: "rem", weight: shares.rem / cycles },
-    { stage: "light", weight: (shares.light * 0.3) / 1 },
-  ];
-  const segs: HypnoSegment[] = [];
-  let t = startMs;
-  for (let c = 0; c < cycles; c++) {
-    const base = startMs + c * cycleMs;
-    const weightSum = patternPerCycle.reduce((s, p) => s + p.weight, 0) || 1;
-    for (const step of patternPerCycle) {
-      const dur = (step.weight / weightSum) * cycleMs;
-      if (dur <= 0) continue;
-      const s0 = Math.max(t, base);
-      const s1 = Math.min(endMs, s0 + dur);
-      if (s1 > s0) segs.push({ stage: step.stage, startMs: s0, endMs: s1 });
-      t = s1;
-    }
-  }
-  return segs;
 }
