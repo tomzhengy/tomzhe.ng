@@ -299,8 +299,15 @@ button svg {
   }
   .health-hero {
     grid-template-columns: 1fr !important;
-    padding: 26px 22px !important;
-    gap: 22px !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  .health-hero > .hp-hero-cell,
+  .health-hero > .hp-hero-recovery {
+    border-left: none !important;
+  }
+  .health-hero > .hp-hero-cell {
+    border-top: 1px solid var(--rule) !important;
   }
   .hp-workout-row {
     grid-template-columns: 1fr !important;
@@ -333,15 +340,6 @@ button svg {
   .hp-sleep-top {
     grid-template-columns: 1fr !important;
   }
-  .hp-hero-metrics {
-    grid-template-columns: 1fr !important;
-  }
-  .hp-hero-metrics > div {
-    border-right: none !important;
-  }
-  .hp-hero-metrics > div:not(:last-child) {
-    border-bottom: 1px solid var(--rule) !important;
-  }
   .hp-journal {
     grid-template-columns: 1fr !important;
     gap: 22px !important;
@@ -354,7 +352,7 @@ button svg {
 
 @media (max-width: 900px) {
   .hp-hero-score {
-    font-size: 128px !important;
+    font-size: 96px !important;
   }
 }
 
@@ -373,11 +371,8 @@ button svg {
 }
 
 @media (max-width: 480px) {
-  .health-hero h3 {
-    font-size: 26px !important;
-  }
   .hp-hero-score {
-    font-size: 104px !important;
+    font-size: 84px !important;
   }
   .hp-strain-energy {
     grid-template-columns: 1fr !important;

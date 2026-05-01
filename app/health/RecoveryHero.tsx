@@ -9,7 +9,6 @@ interface RecoveryHeroProps {
   recovery: Recovery | null;
   nowIso: string;
   trend: TrendPoint[];
-  headlineHtml: string | null;
   subHtml: string | null;
 }
 
@@ -17,7 +16,6 @@ export default function RecoveryHero({
   recovery,
   nowIso,
   trend,
-  headlineHtml,
   subHtml,
 }: RecoveryHeroProps) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -41,26 +39,18 @@ export default function RecoveryHero({
   const hrvDelta = hrv != null && avgHrv > 0 ? hrv - avgHrv : 0;
   const rhrDelta = rhr != null && avgRhr > 0 ? rhr - avgRhr : 0;
 
-  const fallbackHeadline = recovery
-    ? score != null && score >= 67
-      ? "Your body is <em>primed</em> to push."
-      : score != null && score >= 34
-        ? "A <em>moderate</em> day — hold steady."
-        : "Today is for <em>recovery</em>. Go gentle."
-    : "Awaiting your <em>next cycle</em>.";
-
   const fallbackSub = recovery
-    ? "HRV and recovery metrics are pulled from WHOOP."
+    ? "HRV and recovery metrics from WHOOP."
     : "No recovery score yet — check back after your next sleep.";
 
   return (
     <section
       style={{
         display: "grid",
-        gridTemplateColumns: "1.1fr 1fr",
-        gap: 36,
+        gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr)",
+        gap: 0,
         alignItems: "stretch",
-        padding: "34px 36px",
+        padding: 0,
         border: "1px solid var(--rule)",
         position: "relative",
         overflow: "hidden",
@@ -68,66 +58,67 @@ export default function RecoveryHero({
       }}
       className="health-hero"
     >
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <div
-          style={{
-            fontFamily: "var(--f-mono)",
-            fontSize: 10.5,
-            letterSpacing: "0.24em",
-            textTransform: "uppercase",
-            color: "var(--fg-mute)",
-          }}
-        >
-          Recovery · {formatDateShort(nowIso)}
-        </div>
-        <div
-          className="hp-hero-score"
-          style={{
-            fontFamily: "var(--f-serif)",
-            fontSize: 180,
-            lineHeight: 0.85,
-            letterSpacing: "-0.035em",
-            margin: "8px 0 10px",
-            display: "flex",
-            alignItems: "baseline",
-            gap: 4,
-            color: "var(--recovery-hue)",
-          }}
-        >
-          <span className="skel">{score ?? "—"}</span>
-          <span
+      {/* recovery cell */}
+      <div
+        className="hp-hero-recovery"
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "22px 26px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          minHeight: 0,
+        }}
+      >
+        <div>
+          <div
             style={{
-              fontSize: 40,
+              fontFamily: "var(--f-mono)",
+              fontSize: 10.5,
+              letterSpacing: "0.24em",
+              textTransform: "uppercase",
               color: "var(--fg-mute)",
-              fontStyle: "italic",
-              marginLeft: 4,
             }}
           >
-            %
-          </span>
+            Recovery · {formatDateShort(nowIso)}
+          </div>
+          <div
+            className="hp-hero-score"
+            style={{
+              fontFamily: "var(--f-serif)",
+              fontSize: 120,
+              lineHeight: 0.9,
+              letterSpacing: "-0.035em",
+              margin: "10px 0 0",
+              display: "flex",
+              alignItems: "baseline",
+              gap: 4,
+              color: "var(--recovery-hue)",
+            }}
+          >
+            <span className="skel">{score ?? "—"}</span>
+            <span
+              style={{
+                fontSize: 28,
+                color: "var(--fg-mute)",
+                fontStyle: "italic",
+                marginLeft: 4,
+              }}
+            >
+              %
+            </span>
+          </div>
         </div>
-        <h3
-          style={{
-            fontFamily: "var(--f-serif)",
-            fontSize: 32,
-            lineHeight: 1.1,
-            letterSpacing: "-0.01em",
-            margin: "0 0 14px",
-            maxWidth: "28ch",
-          }}
-          dangerouslySetInnerHTML={{
-            __html: headlineHtml
-              ? sanitizeCopyHtml(headlineHtml)
-              : fallbackHeadline,
-          }}
-        />
         <p
           style={{
-            fontFamily: "var(--f-sans)",
-            fontSize: 13.5,
+            fontFamily: "var(--f-serif)",
+            fontStyle: "italic",
+            fontSize: 16,
+            lineHeight: 1.35,
             color: "var(--fg-soft)",
-            maxWidth: "40ch",
-            lineHeight: 1.55,
+            maxWidth: "32ch",
+            margin: "12px 0 0",
           }}
           dangerouslySetInnerHTML={{
             __html: subHtml ? sanitizeCopyHtml(subHtml) : fallbackSub,
@@ -135,48 +126,36 @@ export default function RecoveryHero({
         />
       </div>
 
-      <div
-        className="hp-hero-metrics"
-        style={{
-          position: "relative",
-          zIndex: 1,
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: 0,
-          alignContent: "start",
-          height: "100%",
-        }}
-      >
-        <SubMetric
-          label="Heart Rate Variability"
-          value={hrv != null ? `${Math.round(hrv)}` : "—"}
-          unit="ms"
-          delta={hrv != null ? hrvDelta : null}
-          caption={
-            avgHrv > 0 ? `7-day avg ${Math.round(avgHrv)}` : "Baseline pending"
-          }
-          series={hrvSeries}
-          seriesDigits={0}
-          position="tr"
-          hoverIdx={hoverIdx}
-          onHoverChange={setHoverIdx}
-        />
-        <SubMetric
-          label="Resting Heart Rate"
-          value={rhr != null ? `${Math.round(rhr)}` : "—"}
-          unit="bpm"
-          delta={rhr != null ? rhrDelta : null}
-          invertDelta
-          caption={
-            avgRhr > 0 ? `7-day avg ${Math.round(avgRhr)}` : "Baseline pending"
-          }
-          series={rhrSeries}
-          seriesDigits={0}
-          position="br"
-          hoverIdx={hoverIdx}
-          onHoverChange={setHoverIdx}
-        />
-      </div>
+      {/* hrv cell */}
+      <SubMetric
+        label="Heart Rate Variability"
+        value={hrv != null ? `${Math.round(hrv)}` : "—"}
+        unit="ms"
+        delta={hrv != null ? hrvDelta : null}
+        caption={
+          avgHrv > 0 ? `7-day avg ${Math.round(avgHrv)}` : "Baseline pending"
+        }
+        series={hrvSeries}
+        seriesDigits={0}
+        hoverIdx={hoverIdx}
+        onHoverChange={setHoverIdx}
+      />
+
+      {/* rhr cell */}
+      <SubMetric
+        label="Resting Heart Rate"
+        value={rhr != null ? `${Math.round(rhr)}` : "—"}
+        unit="bpm"
+        delta={rhr != null ? rhrDelta : null}
+        invertDelta
+        caption={
+          avgRhr > 0 ? `7-day avg ${Math.round(avgRhr)}` : "Baseline pending"
+        }
+        series={rhrSeries}
+        seriesDigits={0}
+        hoverIdx={hoverIdx}
+        onHoverChange={setHoverIdx}
+      />
     </section>
   );
 }
@@ -190,7 +169,6 @@ function SubMetric({
   caption,
   series,
   seriesDigits = 0,
-  position,
   hoverIdx,
   onHoverChange,
 }: {
@@ -202,13 +180,9 @@ function SubMetric({
   caption: string;
   series: number[];
   seriesDigits?: number;
-  position: "tl" | "tr" | "bl" | "br";
   hoverIdx: number | null;
   onHoverChange: (idx: number | null) => void;
 }) {
-  const top = position === "tl" || position === "tr";
-  const left = position === "tl" || position === "bl";
-
   let deltaTxt = "◆ 0";
   let deltaColor: string = "var(--fg-soft)";
   if (delta != null) {
@@ -227,63 +201,67 @@ function SubMetric({
 
   return (
     <div
+      className="hp-hero-cell"
       style={{
-        padding: "14px 20px",
+        padding: "22px 26px",
         position: "relative",
-        borderRight: left ? "1px solid var(--rule)" : "none",
-        borderBottom: top ? "1px solid var(--rule)" : "none",
-        paddingTop: top ? 4 : 14,
-        paddingBottom: !top ? 4 : 14,
+        borderLeft: "1px solid var(--rule)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        minWidth: 0,
       }}
     >
-      <div
-        style={{
-          fontFamily: "var(--f-mono)",
-          fontSize: 10,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "var(--fg-mute)",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <span>{label}</span>
-        <span style={{ color: deltaColor, letterSpacing: "0.06em" }}>
-          {deltaTxt}
-        </span>
-      </div>
-      <div
-        style={{
-          fontFamily: "var(--f-serif)",
-          fontSize: 52,
-          lineHeight: 1,
-          letterSpacing: "-0.02em",
-          margin: "14px 0 2px",
-          display: "flex",
-          alignItems: "baseline",
-          gap: 4,
-        }}
-      >
-        <span className="skel">{value}</span>
-        <span
+      <div>
+        <div
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "var(--fg-mute)",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <span>{label}</span>
+          <span style={{ color: deltaColor, letterSpacing: "0.06em" }}>
+            {deltaTxt}
+          </span>
+        </div>
+        <div
           style={{
             fontFamily: "var(--f-serif)",
-            fontStyle: "italic",
-            fontSize: 18,
+            fontSize: 52,
+            lineHeight: 1,
+            letterSpacing: "-0.02em",
+            margin: "10px 0 2px",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 4,
+          }}
+        >
+          <span className="skel">{value}</span>
+          <span
+            style={{
+              fontFamily: "var(--f-serif)",
+              fontStyle: "italic",
+              fontSize: 18,
+              color: "var(--fg-mute)",
+            }}
+          >
+            {unit}
+          </span>
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--f-sans)",
+            fontSize: 12,
             color: "var(--fg-mute)",
           }}
         >
-          {unit}
-        </span>
-      </div>
-      <div
-        style={{
-          fontFamily: "var(--f-sans)",
-          fontSize: 12,
-          color: "var(--fg-mute)",
-        }}
-      >
-        {caption}
+          {caption}
+        </div>
       </div>
       <Sparkline
         values={series}
@@ -291,6 +269,7 @@ function SubMetric({
         digits={seriesDigits}
         sharedHoverIdx={hoverIdx}
         onHoverChange={onHoverChange}
+        height={36}
       />
     </div>
   );
