@@ -366,6 +366,10 @@ button svg {
   .hp-body-weight {
     font-size: 88px !important;
   }
+  .hp-body-cardio {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 18px !important;
+  }
 }
 
 @media (max-width: 480px) {

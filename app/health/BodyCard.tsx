@@ -51,6 +51,8 @@ export default function BodyCard({ body }: BodyCardProps) {
             <SubMetrics latest={latest} />
           </div>
 
+          <CardioMetrics latest={latest} />
+
           {weightSeries.length > 1 && (
             <div
               style={{
@@ -201,10 +203,12 @@ function Stat({
   label,
   value,
   unit,
+  digits = 1,
 }: {
   label: string;
   value: number | null;
   unit: string;
+  digits?: number;
 }) {
   return (
     <div>
@@ -228,7 +232,9 @@ function Stat({
           marginTop: 2,
         }}
       >
-        <span className="skel">{value != null ? value.toFixed(1) : "—"}</span>
+        <span className="skel">
+          {value != null ? value.toFixed(digits) : "—"}
+        </span>
         <span
           style={{
             fontStyle: "italic",
@@ -240,6 +246,109 @@ function Stat({
           {unit}
         </span>
       </div>
+    </div>
+  );
+}
+
+function CardioMetrics({ latest }: { latest: BodyMeasurement }) {
+  const hasMain =
+    latest.heartRateBpm != null ||
+    latest.basalMetabolicRateKcal != null ||
+    latest.visceralFat != null ||
+    latest.vascularAgeYears != null;
+  const tertiary: Array<[string, string]> = [];
+  if (latest.pulseWaveVelocityMs != null) {
+    tertiary.push(["PWV", `${latest.pulseWaveVelocityMs.toFixed(1)} m/s`]);
+  }
+  if (latest.intracellularWaterKg != null) {
+    tertiary.push(["ICW", `${latest.intracellularWaterKg.toFixed(1)} kg`]);
+  }
+  if (latest.extracellularWaterKg != null) {
+    tertiary.push(["ECW", `${latest.extracellularWaterKg.toFixed(1)} kg`]);
+  }
+  if (latest.heightM != null) {
+    tertiary.push(["Height", `${latest.heightM.toFixed(2)} m`]);
+  }
+
+  if (!hasMain && tertiary.length === 0) return null;
+
+  return (
+    <div
+      style={{
+        marginTop: 28,
+        paddingTop: 22,
+        borderTop: "1px solid var(--rule)",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "var(--f-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: "var(--fg-mute)",
+          marginBottom: 14,
+        }}
+      >
+        Cardio &amp; metabolic
+      </div>
+      {hasMain && (
+        <div
+          className="hp-body-cardio"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gap: 28,
+          }}
+        >
+          <Stat
+            label="Heart Rate"
+            value={latest.heartRateBpm}
+            unit="bpm"
+            digits={0}
+          />
+          <Stat
+            label="BMR"
+            value={latest.basalMetabolicRateKcal}
+            unit="kcal"
+            digits={0}
+          />
+          <Stat
+            label="Visceral Fat"
+            value={latest.visceralFat}
+            unit=""
+            digits={1}
+          />
+          <Stat
+            label="Vascular Age"
+            value={latest.vascularAgeYears}
+            unit="yrs"
+            digits={0}
+          />
+        </div>
+      )}
+      {tertiary.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0 22px",
+            rowGap: 6,
+            marginTop: hasMain ? 16 : 0,
+            fontFamily: "var(--f-mono)",
+            fontSize: 10.5,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "var(--fg-mute)",
+          }}
+        >
+          {tertiary.map(([label, value]) => (
+            <span key={label}>
+              {label}: <span style={{ color: "var(--fg-soft)" }}>{value}</span>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
