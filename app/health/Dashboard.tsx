@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { HealthPayload, TrendPoint } from "./types";
 import Masthead from "./Masthead";
 import Dateline from "./Dateline";
@@ -21,34 +21,34 @@ export default function Dashboard() {
   const [uiState, setUiState] = useState<UiState>("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [drillIdx, setDrillIdx] = useState<number | null>(null);
+  const [syncing, setSyncing] = useState(false);
+
+  const loadHealth = useCallback(async (opts: { manual: boolean }) => {
+    if (opts.manual) setSyncing(true);
+    try {
+      const r = await fetch("/api/health", { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const json = (await r.json()) as HealthPayload;
+      setPayload(json);
+      if (json.state === "error") {
+        setUiState("error");
+        setErrorMsg(json.message ?? "Unknown error");
+      } else if (!json.cycle && !json.recovery && !json.sleep) {
+        setUiState("empty");
+      } else {
+        setUiState("ok");
+      }
+    } catch (err) {
+      setUiState("error");
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      if (opts.manual) setSyncing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/health", { cache: "no-store" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const json = (await r.json()) as HealthPayload;
-        if (cancelled) return;
-        setPayload(json);
-        if (json.state === "error") {
-          setUiState("error");
-          setErrorMsg(json.message ?? "Unknown error");
-        } else if (!json.cycle && !json.recovery && !json.sleep) {
-          setUiState("empty");
-        } else {
-          setUiState("ok");
-        }
-      } catch (err) {
-        if (cancelled) return;
-        setUiState("error");
-        setErrorMsg(err instanceof Error ? err.message : String(err));
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void loadHealth({ manual: false });
+  }, [loadHealth]);
 
   const nowIso = new Date().toISOString();
   const trend = useMemo<TrendPoint[]>(
@@ -67,7 +67,11 @@ export default function Dashboard() {
         lineHeight: 1.5,
       }}
     >
-      <Masthead syncedAt={payload?.syncedAt ?? null} />
+      <Masthead
+        syncedAt={payload?.syncedAt ?? null}
+        syncing={syncing}
+        onSync={() => loadHealth({ manual: true })}
+      />
 
       <Dateline cycleStartIso={payload?.cycle?.start ?? null} nowIso={nowIso} />
 

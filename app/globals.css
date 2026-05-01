@@ -296,6 +296,11 @@ button svg {
     transform: translateX(100%);
   }
 }
+@keyframes hp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ---------- health dashboard responsive ---------- */
 @media (max-width: 900px) {
