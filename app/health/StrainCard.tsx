@@ -33,7 +33,7 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
       style={{
         background: "var(--card)",
         border: "1px solid transparent",
-        padding: "22px 24px 24px",
+        padding: "22px 24px 14px",
         gridColumn: "span 4",
         position: "relative",
       }}
@@ -120,8 +120,8 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
 
       <div
         style={{
-          marginTop: 28,
-          paddingTop: 20,
+          marginTop: 22,
+          paddingTop: 16,
           borderTop: "1px solid var(--rule)",
         }}
       >
@@ -172,8 +172,8 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
       <div
         className="hp-strain-energy"
         style={{
-          marginTop: 28,
-          paddingTop: 20,
+          marginTop: 22,
+          paddingTop: 16,
           borderTop: "1px solid var(--rule)",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",

@@ -60,7 +60,7 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
       className="health-card"
       style={{
         border: "1px solid var(--rule)",
-        padding: "22px 24px 24px",
+        padding: "22px 24px 14px",
         gridColumn: "span 4",
         position: "relative",
       }}
@@ -132,8 +132,8 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
       <div
         className="hp-sleep-stats"
         style={{
-          marginTop: 24,
-          paddingTop: 20,
+          marginTop: 18,
+          paddingTop: 16,
           borderTop: "1px solid var(--rule)",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
@@ -158,8 +158,8 @@ export default function SleepCard({ sleep, sleepCopyHtml }: SleepCardProps) {
 
       <div
         style={{
-          marginTop: 24,
-          paddingTop: 20,
+          marginTop: 18,
+          paddingTop: 16,
           borderTop: "1px solid var(--rule)",
         }}
       >

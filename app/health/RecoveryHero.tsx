@@ -49,7 +49,7 @@ export default function RecoveryHero({
       style={{
         background: "var(--card)",
         border: "1px solid transparent",
-        padding: "22px 24px 24px",
+        padding: "22px 24px 14px",
         gridColumn: "span 4",
         position: "relative",
         display: "flex",
