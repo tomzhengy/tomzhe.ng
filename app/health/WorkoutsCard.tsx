@@ -107,6 +107,16 @@ export default function WorkoutsCard({ workouts }: WorkoutsCardProps) {
   );
 }
 
+// foot-locomotion sports get distance in the lead slot; everything else
+// gets average power computed from kj over total session seconds.
+const DISTANCE_SPORTS = ["run", "walk", "hik", "jog", "backpack"];
+
+function isDistanceSport(name: string | null | undefined): boolean {
+  if (!name) return false;
+  const n = name.toLowerCase();
+  return DISTANCE_SPORTS.some((s) => n.includes(s));
+}
+
 function Row({ workout, first }: { workout: Workout; first: boolean }) {
   const start = new Date(workout.start);
   const end = new Date(workout.end);
@@ -123,6 +133,22 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
 
   const distanceKm = score?.distance_meter ? score.distance_meter / 1000 : null;
   const kcal = score ? Math.round(score.kilojoule * 0.239006) : null;
+  const sessionSec = (end.getTime() - start.getTime()) / 1000;
+  const avgWatts =
+    score && sessionSec > 0
+      ? Math.round((score.kilojoule * 1000) / sessionSec)
+      : null;
+  const showDistance =
+    isDistanceSport(workout.sport_name) && distanceKm != null;
+  const leadStat = showDistance
+    ? {
+        value: (distanceKm as number).toFixed(1),
+        label: "km distance",
+      }
+    : {
+        value: avgWatts != null ? String(avgWatts) : "—",
+        label: "watts avg",
+      };
 
   return (
     <div
@@ -172,10 +198,7 @@ function Row({ workout, first }: { workout: Workout; first: boolean }) {
           letterSpacing: "0.08em",
         }}
       >
-        <WStat
-          value={distanceKm != null ? distanceKm.toFixed(1) : "—"}
-          label="km distance"
-        />
+        <WStat value={leadStat.value} label={leadStat.label} />
         <WStat value={kcal != null ? String(kcal) : "—"} label="kcal burned" />
         <WStat
           value={
