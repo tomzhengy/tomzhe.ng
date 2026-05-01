@@ -110,12 +110,12 @@ export default function RecoveryHero({
           paddingTop: 18,
           borderTop: "1px solid var(--rule)",
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 22,
+          gridTemplateColumns: "1fr",
+          gap: 18,
         }}
       >
         <RecoveryStat
-          label="HRV"
+          label="Heart Rate Variability"
           value={hrv != null ? `${Math.round(hrv)}` : "—"}
           unit="ms"
           delta={hrv != null ? hrvDelta : null}
@@ -128,7 +128,7 @@ export default function RecoveryHero({
           onHoverChange={setHoverIdx}
         />
         <RecoveryStat
-          label="RHR"
+          label="Resting Heart Rate"
           value={rhr != null ? `${Math.round(rhr)}` : "—"}
           unit="bpm"
           delta={rhr != null ? rhrDelta : null}
@@ -242,7 +242,7 @@ function RecoveryStat({
         digits={seriesDigits}
         sharedHoverIdx={hoverIdx}
         onHoverChange={onHoverChange}
-        height={28}
+        height={40}
       />
     </div>
   );
