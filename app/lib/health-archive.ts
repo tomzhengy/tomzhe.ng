@@ -303,14 +303,21 @@ export async function readLatestBodyMeasurement(
   return rows[0] ?? null;
 }
 
-export async function writeHealthPayloadCache(
+export interface CopyCacheRow {
+  inputHash: string;
+  copy: Record<string, unknown>;
+  syncedAt: string;
+}
+
+export async function writeHealthCopyCache(
   env: ArchiveEnv,
-  payload: Record<string, unknown>,
+  inputHash: string,
+  copy: Record<string, unknown>,
 ): Promise<void> {
   const cfg = supaConfig(env);
   if (!cfg) return;
   try {
-    const url = `${cfg.base}/rest/v1/health_payload_cache?on_conflict=id`;
+    const url = `${cfg.base}/rest/v1/health_copy_cache?on_conflict=id`;
     const r = await fetch(url, {
       method: "POST",
       headers: {
@@ -319,35 +326,130 @@ export async function writeHealthPayloadCache(
         "content-type": "application/json",
         prefer: "resolution=merge-duplicates,return=minimal",
       },
-      body: JSON.stringify([{ id: 1, payload, generated_at: nowIso() }]),
+      body: JSON.stringify([
+        { id: 1, input_hash: inputHash, copy, synced_at: nowIso() },
+      ]),
     });
     if (!r.ok && r.status !== 404) {
       const body = await r.text();
       console.warn(
-        `supabase write health_payload_cache failed: ${r.status} ${body}`,
+        `supabase write health_copy_cache failed: ${r.status} ${body}`,
       );
     }
   } catch (err) {
-    console.warn("supabase write health_payload_cache error:", err);
+    console.warn("supabase write health_copy_cache error:", err);
   }
 }
 
-export async function readHealthPayloadCache(
+export async function readHealthCopyCache(
   env: ArchiveEnv,
-): Promise<Record<string, unknown> | null> {
+): Promise<CopyCacheRow | null> {
   const cfg = supaConfig(env);
   if (!cfg) return null;
   try {
-    const url = `${cfg.base}/rest/v1/health_payload_cache?id=eq.1&select=payload,generated_at&limit=1`;
+    const url = `${cfg.base}/rest/v1/health_copy_cache?id=eq.1&select=input_hash,copy,synced_at&limit=1`;
     const r = await fetch(url, {
       headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
     });
     if (!r.ok) return null;
     const rows = (await r.json()) as Array<{
-      payload: Record<string, unknown>;
-      generated_at: string;
+      input_hash: string;
+      copy: Record<string, unknown>;
+      synced_at: string;
     }>;
-    return rows[0]?.payload ?? null;
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      inputHash: row.input_hash,
+      copy: row.copy,
+      syncedAt: row.synced_at,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * read the most recent record from a health archive table, returning the
+ * raw whoop record stored in the `raw` column. used by the read path to
+ * assemble the dashboard payload without hitting whoop live.
+ */
+export async function readLatestRaw(
+  env: ArchiveEnv,
+  table: string,
+  source: string,
+  orderCol: string,
+): Promise<Record<string, unknown> | null> {
+  const cfg = supaConfig(env);
+  if (!cfg) return null;
+  try {
+    const url =
+      `${cfg.base}/rest/v1/${table}` +
+      `?source=eq.${encodeURIComponent(source)}` +
+      `&select=raw&order=${orderCol}.desc&limit=1`;
+    const r = await fetch(url, {
+      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+    });
+    if (!r.ok) return null;
+    const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
+    return rows[0]?.raw ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * read the N most recent records, returning the raw whoop records.
+ */
+export async function readRecentRaw(
+  env: ArchiveEnv,
+  table: string,
+  source: string,
+  orderCol: string,
+  limit: number,
+): Promise<Record<string, unknown>[]> {
+  const cfg = supaConfig(env);
+  if (!cfg) return [];
+  try {
+    const url =
+      `${cfg.base}/rest/v1/${table}` +
+      `?source=eq.${encodeURIComponent(source)}` +
+      `&select=raw&order=${orderCol}.desc&limit=${limit}`;
+    const r = await fetch(url, {
+      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+    });
+    if (!r.ok) return [];
+    const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
+    return rows.map((r) => r.raw);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * recoveries are keyed by cycle external_id (no start_at column), so the
+ * "latest" recovery is whichever one matches the latest cycle. caller
+ * passes the cycle id from a prior query.
+ */
+export async function readRecoveryByCycleId(
+  env: ArchiveEnv,
+  source: string,
+  cycleExternalId: string,
+): Promise<Record<string, unknown> | null> {
+  const cfg = supaConfig(env);
+  if (!cfg) return null;
+  try {
+    const url =
+      `${cfg.base}/rest/v1/health_recoveries` +
+      `?source=eq.${encodeURIComponent(source)}` +
+      `&external_id=eq.${encodeURIComponent(cycleExternalId)}` +
+      `&select=raw&limit=1`;
+    const r = await fetch(url, {
+      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+    });
+    if (!r.ok) return null;
+    const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
+    return rows[0]?.raw ?? null;
   } catch {
     return null;
   }

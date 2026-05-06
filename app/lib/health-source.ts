@@ -1,22 +1,18 @@
 /**
  * framework-neutral handler for the health dashboard data source.
  *
+ * supabase IS the source of truth. the per-record tables (cycles,
+ * recoveries, sleeps, workouts, body_measurements) are populated by
+ * the cron and the sync button — never by the request path.
+ *
  * two entry points:
- *   - fetchHealthData: read-only path used by GET /api/health. reads the
- *     precomputed payload from supabase. on cache miss (first deploy) it
- *     bootstraps by computing fresh, so users are never blocked.
+ *   - fetchHealthData: read-only path used by GET /api/health. assembles
+ *     the dashboard payload from the per-record tables in parallel.
+ *     never calls whoop/withings/openrouter.
  *   - computeAndCacheHealthPayload: live-fetch path used by the cron and
  *     by POST /api/health/sync. exchanges tokens, hits whoop/withings,
- *     archives raw records, generates copy, writes the cache row.
- *
- * compute flow:
- *   1. exchange rotating refresh token (via app/lib/whoop.ts)
- *   2. fetch today's cycle / recovery / sleep / recent workouts live
- *   3. upsert those records into supabase archive (best-effort)
- *   4. read the trend window (last 30 days) from supabase instead of calling
- *      whoop three more times
- *   5. generate varied editorial copy via openrouter
- *   6. write the assembled payload to health_payload_cache
+ *     upserts the per-record tables. only calls openrouter when the
+ *     hashed input summary differs from the last cached copy.
  */
 
 import { exchangeRefreshToken, whoopFetch, type WhoopEnv } from "./whoop";
@@ -32,8 +28,11 @@ import {
   upsertBodyMeasurements,
   readBodyMeasurementsSince,
   readLatestBodyMeasurement,
-  readHealthPayloadCache,
-  writeHealthPayloadCache,
+  readHealthCopyCache,
+  writeHealthCopyCache,
+  readLatestRaw,
+  readRecentRaw,
+  readRecoveryByCycleId,
   type BodyMeasurementRow,
   type TrendPoint,
 } from "./health-archive";
@@ -93,48 +92,79 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "google/gemini-2.5-flash-lite";
 
 /**
- * read-only entry point for GET /api/health. returns the cached payload
- * from supabase. on cache miss (first deploy, before cron has populated
- * it) we bootstrap by computing fresh once.
+ * read-only entry point for GET /api/health. assembles the dashboard
+ * payload by querying the per-record tables in parallel. never touches
+ * whoop, withings, or openrouter — those are the cron's job.
  */
 export async function fetchHealthData(env: HealthEnv): Promise<HealthPayload> {
-  const cached = await readHealthPayloadCache(env);
-  if (cached) return cached as unknown as HealthPayload;
-  return computeAndCacheHealthPayload(env);
+  try {
+    const sinceIso = new Date(
+      Date.now() - TREND_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const [cycle, sleep, workouts, trend, body, copyCache] = await Promise.all([
+      readLatestRaw(env, "health_cycles", SOURCE, "start_at"),
+      readLatestRaw(env, "health_sleeps", SOURCE, "start_at"),
+      readRecentRaw(env, "health_workouts", SOURCE, "start_at", 5),
+      readTrendSince(env, SOURCE, sinceIso),
+      readBodyArchive(env),
+      readHealthCopyCache(env),
+    ]);
+
+    // recovery is keyed by cycle external_id, so we need the cycle first.
+    // worst case this adds one round-trip on top of the parallel batch.
+    const recovery =
+      cycle && cycle.id != null
+        ? await readRecoveryByCycleId(env, SOURCE, String(cycle.id))
+        : null;
+
+    return {
+      state: "ok",
+      syncedAt: copyCache ? new Date(copyCache.syncedAt).getTime() : Date.now(),
+      cycle,
+      recovery,
+      sleep,
+      workouts,
+      trend,
+      body,
+      copy: copyCache?.copy ?? null,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      state: "error",
+      syncedAt: Date.now(),
+      cycle: null,
+      recovery: null,
+      sleep: null,
+      workouts: [],
+      trend: [],
+      body: null,
+      copy: null,
+      message,
+    };
+  }
 }
 
 /**
  * live-fetch entry point used by the cron and POST /api/health/sync.
- * always exchanges tokens, calls whoop + withings, generates copy, and
- * writes the cache row. returns the same payload it cached.
+ * exchanges tokens, hits whoop + withings, upserts the per-record
+ * tables, and regenerates editorial copy only when the hashed input
+ * summary differs from the last cached copy.
  */
 export async function computeAndCacheHealthPayload(
-  env: HealthEnv,
-): Promise<HealthPayload> {
-  const payload = await computeFreshHealthPayload(env);
-  if (payload.state === "ok") {
-    await writeHealthPayloadCache(
-      env,
-      payload as unknown as Record<string, unknown>,
-    );
-  }
-  return payload;
-}
-
-async function computeFreshHealthPayload(
   env: HealthEnv,
 ): Promise<HealthPayload> {
   try {
     ensureEnv(env);
     const accessToken = await exchangeRefreshToken(env);
 
-    const [latestCycle, latestRecovery, latestSleep, latestWorkouts, body] =
+    const [latestCycle, latestRecovery, latestSleep, latestWorkouts] =
       await Promise.all([
         whoopFetch(accessToken, "/cycle?limit=1"),
         whoopFetch(accessToken, "/recovery?limit=1"),
         whoopFetch(accessToken, "/activity/sleep?limit=1"),
         whoopFetch(accessToken, "/activity/workout?limit=25"),
-        fetchBodyData(env),
       ]);
 
     const cycle = firstRecord(latestCycle);
@@ -150,6 +180,10 @@ async function computeFreshHealthPayload(
       workouts,
     });
 
+    // withings: live fetch + upsert, then read the full archive for the
+    // dashboard. separated from the read path so /api/health stays pure.
+    const body = await syncBodyLive(env);
+
     const sinceIso = new Date(
       Date.now() - TREND_DAYS * 24 * 60 * 60 * 1000,
     ).toISOString();
@@ -161,7 +195,21 @@ async function computeFreshHealthPayload(
       trend = await fetchTrendLive(accessToken);
     }
 
-    const copy = await generateCopy(env, { cycle, recovery, sleep, trend });
+    // regen copy only when the summary inputs changed. otherwise reuse the
+    // existing cached copy and just bump synced_at so the dashboard's
+    // staleness indicator stays accurate.
+    const summary = buildCopySummary({ cycle, recovery, sleep, trend });
+    const inputHash = await hashSummary(summary);
+    const cached = await readHealthCopyCache(env);
+    let copy: Record<string, unknown> | null;
+    if (cached && cached.inputHash === inputHash) {
+      copy = cached.copy;
+    } else {
+      copy = await generateCopy(env, summary);
+    }
+    if (copy) {
+      await writeHealthCopyCache(env, inputHash, copy);
+    }
 
     return {
       state: "ok",
@@ -191,6 +239,14 @@ async function computeFreshHealthPayload(
   }
 }
 
+async function hashSummary(summary: Record<string, unknown>): Promise<string> {
+  const buf = new TextEncoder().encode(JSON.stringify(summary));
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 function rowToBody(row: BodyMeasurementRow): BodyMeasurementOut {
   return {
     measuredAt: row.measured_at,
@@ -212,11 +268,41 @@ function rowToBody(row: BodyMeasurementRow): BodyMeasurementOut {
   };
 }
 
-async function fetchBodyData(env: HealthEnv): Promise<BodyData | null> {
-  // withings is optional. when not configured, return null so the dashboard
-  // renders the empty state without breaking the rest of the payload.
-  if (!env.WITHINGS_CLIENT_ID || !env.WITHINGS_CLIENT_SECRET) {
+/**
+ * read body data straight from the supabase archive. used by the read
+ * path; never calls withings.
+ */
+async function readBodyArchive(env: HealthEnv): Promise<BodyData | null> {
+  try {
+    const archiveRows = await readBodyMeasurementsSince(
+      env,
+      WITHINGS_SOURCE,
+      BODY_ARCHIVE_EPOCH,
+    );
+    if (archiveRows.length === 0) {
+      // archive may be empty if no weigh-ins are recent — fall back to
+      // the all-time latest so the hero still has something to render.
+      const latestRow = await readLatestBodyMeasurement(env, WITHINGS_SOURCE);
+      if (!latestRow) return null;
+      return { latest: rowToBody(latestRow), trend: [] };
+    }
+    const trend = archiveRows.map(rowToBody);
+    const latest = trend[trend.length - 1] ?? null;
+    return { latest, trend };
+  } catch (err) {
+    console.warn("readBodyArchive error:", err);
     return null;
+  }
+}
+
+/**
+ * cron-only path: fetch the recent withings page live, upsert into
+ * supabase, and return the assembled body data. silently no-ops when
+ * withings env isn't configured.
+ */
+async function syncBodyLive(env: HealthEnv): Promise<BodyData | null> {
+  if (!env.WITHINGS_CLIENT_ID || !env.WITHINGS_CLIENT_SECRET) {
+    return readBodyArchive(env);
   }
   try {
     const accessToken = await exchangeWithingsRefreshToken(env);
@@ -235,28 +321,10 @@ async function fetchBodyData(env: HealthEnv): Promise<BodyData | null> {
       );
     }
 
-    // read the full archive — the client slices into 2w / 1m / 3m / all-time
-    // windows from a single payload.
-    const archiveRows = await readBodyMeasurementsSince(
-      env,
-      WITHINGS_SOURCE,
-      BODY_ARCHIVE_EPOCH,
-    );
-    const trend = archiveRows.map(rowToBody);
-
-    let latest: BodyMeasurementOut | null =
-      trend.length > 0 ? (trend[trend.length - 1] ?? null) : null;
-    if (!latest) {
-      // archive may be empty (no recent weigh-ins) — fall back to the all-time
-      // latest so the hero number still has something to show.
-      const latestRow = await readLatestBodyMeasurement(env, WITHINGS_SOURCE);
-      latest = latestRow ? rowToBody(latestRow) : null;
-    }
-
-    return { latest, trend };
+    return readBodyArchive(env);
   } catch (err) {
-    console.warn("withings fetchBodyData error:", err);
-    return null;
+    console.warn("withings syncBodyLive error:", err);
+    return readBodyArchive(env);
   }
 }
 
@@ -314,18 +382,13 @@ function listRecords(raw: unknown): Record<string, unknown>[] {
   return records as Record<string, unknown>[];
 }
 
-async function generateCopy(
-  env: HealthEnv,
-  shaped: {
-    cycle: Record<string, unknown> | null;
-    recovery: Record<string, unknown> | null;
-    sleep: Record<string, unknown> | null;
-    trend: TrendPoint[];
-  },
-): Promise<Record<string, unknown> | null> {
-  const model = env.OPENROUTER_MODEL || DEFAULT_MODEL;
-
-  const summary = {
+function buildCopySummary(shaped: {
+  cycle: Record<string, unknown> | null;
+  recovery: Record<string, unknown> | null;
+  sleep: Record<string, unknown> | null;
+  trend: TrendPoint[];
+}): Record<string, unknown> {
+  return {
     recovery_score:
       (shaped.recovery?.score as { recovery_score?: number } | undefined)
         ?.recovery_score ?? null,
@@ -357,6 +420,13 @@ async function generateCopy(
       .map((t) => t.recovery)
       .filter((v): v is number => v != null),
   };
+}
+
+async function generateCopy(
+  env: HealthEnv,
+  summary: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> {
+  const model = env.OPENROUTER_MODEL || DEFAULT_MODEL;
 
   const systemPrompt = [
     "You write warm, editorial-tone health copy for a compact personal dashboard.",
