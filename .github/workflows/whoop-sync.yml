@@ -1,8 +1,9 @@
-name: whoop archive sync
+name: health archive backfill
 
 on:
   schedule:
-    # every 6 hours on the hour
+    # every 6 hours on the hour. catches late-arriving records from
+    # whoop/withings that show up after the 15min cache refresh.
     - cron: "0 */6 * * *"
   workflow_dispatch: {}
 
@@ -24,10 +25,18 @@ jobs:
         id: since
         run: echo "value=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
-      - name: run sync
+      - name: sync whoop
         env:
           WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
           WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: bun run scripts/sync-whoop.ts --since=${{ steps.since.outputs.value }}
+
+      - name: sync withings
+        env:
+          WITHINGS_CLIENT_ID: ${{ secrets.WITHINGS_CLIENT_ID }}
+          WITHINGS_CLIENT_SECRET: ${{ secrets.WITHINGS_CLIENT_SECRET }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: bun run scripts/sync-withings.ts --since=${{ steps.since.outputs.value }}

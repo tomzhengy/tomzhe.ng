@@ -1,0 +1,41 @@
+name: health cache refresh
+
+on:
+  schedule:
+    # every 15 minutes. keeps the supabase health_payload_cache row
+    # fresh so /api/health serves instant responses without ever
+    # touching whoop/withings/openrouter from the request path.
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+# only one refresh in flight at a time. if a long run overlaps a
+# scheduled tick, skip the new one rather than stack writes.
+concurrency:
+  group: health-cache-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: install deps
+        run: bun install --frozen-lockfile
+
+      - name: refresh cache
+        env:
+          WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
+          WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
+          WITHINGS_CLIENT_ID: ${{ secrets.WITHINGS_CLIENT_ID }}
+          WITHINGS_CLIENT_SECRET: ${{ secrets.WITHINGS_CLIENT_SECRET }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: bun run scripts/refresh-health-cache.ts
