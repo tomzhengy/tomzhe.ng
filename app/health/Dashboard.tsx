@@ -26,7 +26,15 @@ export default function Dashboard() {
   const loadHealth = useCallback(async (opts: { manual: boolean }) => {
     if (opts.manual) setSyncing(true);
     try {
-      const r = await fetch("/api/health", { cache: "no-store" });
+      // page load reads the cached payload from supabase (fast, populated
+      // by the cron). manual sync POSTs to /sync which does the live
+      // whoop/withings fetch + writes the cache + returns fresh data.
+      const r = opts.manual
+        ? await fetch("/api/health/sync", {
+            method: "POST",
+            cache: "no-store",
+          })
+        : await fetch("/api/health", { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const json = (await r.json()) as HealthPayload;
       setPayload(json);

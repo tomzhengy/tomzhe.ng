@@ -1,18 +1,22 @@
 /**
  * framework-neutral handler for the health dashboard data source.
  *
- * called from two places:
- *   - functions/api/health.ts (cloudflare pages function, prod + wrangler dev)
- *   - app/api/health/route.ts (next.js dev, bun dev)
+ * two entry points:
+ *   - fetchHealthData: read-only path used by GET /api/health. reads the
+ *     precomputed payload from supabase. on cache miss (first deploy) it
+ *     bootstraps by computing fresh, so users are never blocked.
+ *   - computeAndCacheHealthPayload: live-fetch path used by the cron and
+ *     by POST /api/health/sync. exchanges tokens, hits whoop/withings,
+ *     archives raw records, generates copy, writes the cache row.
  *
- * flow per request:
+ * compute flow:
  *   1. exchange rotating refresh token (via app/lib/whoop.ts)
  *   2. fetch today's cycle / recovery / sleep / recent workouts live
- *   3. upsert those records into supabase archive (best-effort, fire-and-forget)
+ *   3. upsert those records into supabase archive (best-effort)
  *   4. read the trend window (last 30 days) from supabase instead of calling
- *      whoop three more times — lifts the 25-day api limit and gives us a
- *      device-agnostic historical view
+ *      whoop three more times
  *   5. generate varied editorial copy via openrouter
+ *   6. write the assembled payload to health_payload_cache
  */
 
 import { exchangeRefreshToken, whoopFetch, type WhoopEnv } from "./whoop";
@@ -28,6 +32,8 @@ import {
   upsertBodyMeasurements,
   readBodyMeasurementsSince,
   readLatestBodyMeasurement,
+  readHealthPayloadCache,
+  writeHealthPayloadCache,
   type BodyMeasurementRow,
   type TrendPoint,
 } from "./health-archive";
@@ -86,7 +92,38 @@ const BODY_ARCHIVE_EPOCH = "1970-01-01T00:00:00.000Z";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "google/gemini-2.5-flash-lite";
 
+/**
+ * read-only entry point for GET /api/health. returns the cached payload
+ * from supabase. on cache miss (first deploy, before cron has populated
+ * it) we bootstrap by computing fresh once.
+ */
 export async function fetchHealthData(env: HealthEnv): Promise<HealthPayload> {
+  const cached = await readHealthPayloadCache(env);
+  if (cached) return cached as unknown as HealthPayload;
+  return computeAndCacheHealthPayload(env);
+}
+
+/**
+ * live-fetch entry point used by the cron and POST /api/health/sync.
+ * always exchanges tokens, calls whoop + withings, generates copy, and
+ * writes the cache row. returns the same payload it cached.
+ */
+export async function computeAndCacheHealthPayload(
+  env: HealthEnv,
+): Promise<HealthPayload> {
+  const payload = await computeFreshHealthPayload(env);
+  if (payload.state === "ok") {
+    await writeHealthPayloadCache(
+      env,
+      payload as unknown as Record<string, unknown>,
+    );
+  }
+  return payload;
+}
+
+async function computeFreshHealthPayload(
+  env: HealthEnv,
+): Promise<HealthPayload> {
   try {
     ensureEnv(env);
     const accessToken = await exchangeRefreshToken(env);
