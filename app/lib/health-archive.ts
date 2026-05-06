@@ -303,6 +303,56 @@ export async function readLatestBodyMeasurement(
   return rows[0] ?? null;
 }
 
+export async function writeHealthPayloadCache(
+  env: ArchiveEnv,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  const cfg = supaConfig(env);
+  if (!cfg) return;
+  try {
+    const url = `${cfg.base}/rest/v1/health_payload_cache?on_conflict=id`;
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {
+        apikey: cfg.key,
+        authorization: `Bearer ${cfg.key}`,
+        "content-type": "application/json",
+        prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify([{ id: 1, payload, generated_at: nowIso() }]),
+    });
+    if (!r.ok && r.status !== 404) {
+      const body = await r.text();
+      console.warn(
+        `supabase write health_payload_cache failed: ${r.status} ${body}`,
+      );
+    }
+  } catch (err) {
+    console.warn("supabase write health_payload_cache error:", err);
+  }
+}
+
+export async function readHealthPayloadCache(
+  env: ArchiveEnv,
+): Promise<Record<string, unknown> | null> {
+  const cfg = supaConfig(env);
+  if (!cfg) return null;
+  try {
+    const url = `${cfg.base}/rest/v1/health_payload_cache?id=eq.1&select=payload,generated_at&limit=1`;
+    const r = await fetch(url, {
+      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+    });
+    if (!r.ok) return null;
+    const rows = (await r.json()) as Array<{
+      payload: Record<string, unknown>;
+      generated_at: string;
+    }>;
+    return rows[0]?.payload ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function upsertBatch(
   env: ArchiveEnv,
   source: string,
