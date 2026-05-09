@@ -7,366 +7,366 @@
  */
 
 export interface ArchiveEnv {
-  NEXT_PUBLIC_SUPABASE_URL?: string;
-  SUPABASE_SERVICE_ROLE_KEY?: string;
+	NEXT_PUBLIC_SUPABASE_URL?: string;
+	SUPABASE_SERVICE_ROLE_KEY?: string;
 }
 
 export interface TrendPoint {
-  date: string;
-  recovery: number | null;
-  strain: number | null;
-  sleep: number | null;
-  hrv: number | null;
-  rhr: number | null;
+	date: string;
+	recovery: number | null;
+	strain: number | null;
+	sleep: number | null;
+	hrv: number | null;
+	rhr: number | null;
 }
 
 interface UpsertRow {
-  source: string;
-  external_id: string;
-  // everything else varies per table
-  [key: string]: unknown;
+	source: string;
+	external_id: string;
+	// everything else varies per table
+	[key: string]: unknown;
 }
 
 function supaConfig(env: ArchiveEnv): { base: string; key: string } | null {
-  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-    return null;
-  }
-  return {
-    base: env.NEXT_PUBLIC_SUPABASE_URL,
-    key: env.SUPABASE_SERVICE_ROLE_KEY,
-  };
+	if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+		return null;
+	}
+	return {
+		base: env.NEXT_PUBLIC_SUPABASE_URL,
+		key: env.SUPABASE_SERVICE_ROLE_KEY,
+	};
 }
 
 async function upsert(
-  env: ArchiveEnv,
-  table: string,
-  rows: UpsertRow[],
-  onConflict?: string,
+	env: ArchiveEnv,
+	table: string,
+	rows: UpsertRow[],
+	onConflict?: string,
 ): Promise<void> {
-  if (rows.length === 0) return;
-  const cfg = supaConfig(env);
-  if (!cfg) return;
-  try {
-    // when the conflict target isn't the primary key, postgrest needs an
-    // explicit on_conflict query param or it defaults to the pk and the
-    // unique constraint fires as a hard 409.
-    const url =
-      `${cfg.base}/rest/v1/${table}` +
-      (onConflict ? `?on_conflict=${encodeURIComponent(onConflict)}` : "");
-    const r = await fetch(url, {
-      method: "POST",
-      headers: {
-        apikey: cfg.key,
-        authorization: `Bearer ${cfg.key}`,
-        "content-type": "application/json",
-        prefer: "resolution=merge-duplicates,return=minimal",
-      },
-      body: JSON.stringify(rows),
-    });
-    if (!r.ok) {
-      // 404 means the table isn't provisioned in this supabase project —
-      // a known "not configured" state, not a failure. silent so the dev
-      // log isn't flooded with warnings on every request.
-      if (r.status === 404) return;
-      const body = await r.text();
-      console.warn(`supabase upsert ${table} failed: ${r.status} ${body}`);
-    }
-  } catch (err) {
-    console.warn(`supabase upsert ${table} error:`, err);
-  }
+	if (rows.length === 0) return;
+	const cfg = supaConfig(env);
+	if (!cfg) return;
+	try {
+		// when the conflict target isn't the primary key, postgrest needs an
+		// explicit on_conflict query param or it defaults to the pk and the
+		// unique constraint fires as a hard 409.
+		const url =
+			`${cfg.base}/rest/v1/${table}` +
+			(onConflict ? `?on_conflict=${encodeURIComponent(onConflict)}` : "");
+		const r = await fetch(url, {
+			method: "POST",
+			headers: {
+				apikey: cfg.key,
+				authorization: `Bearer ${cfg.key}`,
+				"content-type": "application/json",
+				prefer: "resolution=merge-duplicates,return=minimal",
+			},
+			body: JSON.stringify(rows),
+		});
+		if (!r.ok) {
+			// 404 means the table isn't provisioned in this supabase project —
+			// a known "not configured" state, not a failure. silent so the dev
+			// log isn't flooded with warnings on every request.
+			if (r.status === 404) return;
+			const body = await r.text();
+			console.warn(`supabase upsert ${table} failed: ${r.status} ${body}`);
+		}
+	} catch (err) {
+		console.warn(`supabase upsert ${table} error:`, err);
+	}
 }
 
 function nowIso() {
-  return new Date().toISOString();
+	return new Date().toISOString();
 }
 
 function toCycleRow(
-  source: string,
-  r: Record<string, unknown>,
+	source: string,
+	r: Record<string, unknown>,
 ): UpsertRow | null {
-  const id = r.id;
-  const start = r.start as string | undefined;
-  if (id == null || !start) return null;
-  return {
-    source,
-    external_id: String(id),
-    start_at: start,
-    end_at: (r.end as string | null) ?? null,
-    score: r.score ?? null,
-    raw: r,
-    fetched_at: nowIso(),
-  };
+	const id = r.id;
+	const start = r.start as string | undefined;
+	if (id == null || !start) return null;
+	return {
+		source,
+		external_id: String(id),
+		start_at: start,
+		end_at: (r.end as string | null) ?? null,
+		score: r.score ?? null,
+		raw: r,
+		fetched_at: nowIso(),
+	};
 }
 
 function toRecoveryRow(
-  source: string,
-  r: Record<string, unknown>,
+	source: string,
+	r: Record<string, unknown>,
 ): UpsertRow | null {
-  const cid = r.cycle_id;
-  if (cid == null) return null;
-  return {
-    source,
-    external_id: String(cid),
-    score: r.score ?? null,
-    raw: r,
-    fetched_at: nowIso(),
-  };
+	const cid = r.cycle_id;
+	if (cid == null) return null;
+	return {
+		source,
+		external_id: String(cid),
+		score: r.score ?? null,
+		raw: r,
+		fetched_at: nowIso(),
+	};
 }
 
 function toSleepRow(
-  source: string,
-  r: Record<string, unknown>,
+	source: string,
+	r: Record<string, unknown>,
 ): UpsertRow | null {
-  const id = r.id;
-  const start = r.start as string | undefined;
-  const end = r.end as string | undefined;
-  if (id == null || !start || !end) return null;
-  return {
-    source,
-    external_id: String(id),
-    start_at: start,
-    end_at: end,
-    nap: Boolean(r.nap),
-    score: r.score ?? null,
-    raw: r,
-    fetched_at: nowIso(),
-  };
+	const id = r.id;
+	const start = r.start as string | undefined;
+	const end = r.end as string | undefined;
+	if (id == null || !start || !end) return null;
+	return {
+		source,
+		external_id: String(id),
+		start_at: start,
+		end_at: end,
+		nap: Boolean(r.nap),
+		score: r.score ?? null,
+		raw: r,
+		fetched_at: nowIso(),
+	};
 }
 
 function toWorkoutRow(
-  source: string,
-  r: Record<string, unknown>,
+	source: string,
+	r: Record<string, unknown>,
 ): UpsertRow | null {
-  const id = r.id;
-  const start = r.start as string | undefined;
-  if (id == null || !start) return null;
-  return {
-    source,
-    external_id: String(id),
-    start_at: start,
-    end_at: (r.end as string | null) ?? null,
-    sport_name: (r.sport_name as string | null) ?? null,
-    score: r.score ?? null,
-    raw: r,
-    fetched_at: nowIso(),
-  };
+	const id = r.id;
+	const start = r.start as string | undefined;
+	if (id == null || !start) return null;
+	return {
+		source,
+		external_id: String(id),
+		start_at: start,
+		end_at: (r.end as string | null) ?? null,
+		sport_name: (r.sport_name as string | null) ?? null,
+		score: r.score ?? null,
+		raw: r,
+		fetched_at: nowIso(),
+	};
 }
 
 // withings meastype -> column on health_body_measurements.
 // real_value = measure.value * 10^measure.unit (unit is signed).
 const WITHINGS_TYPE_TO_COLUMN: Record<number, string> = {
-  1: "weight_kg",
-  4: "height_m",
-  5: "fat_free_mass_kg",
-  6: "body_fat_pct",
-  8: "fat_mass_kg",
-  11: "heart_rate_bpm",
-  76: "muscle_mass_kg",
-  77: "hydration_kg",
-  88: "bone_mass_kg",
-  91: "pulse_wave_velocity_ms",
-  155: "vascular_age_years",
-  168: "extracellular_water_kg",
-  169: "intracellular_water_kg",
-  170: "visceral_fat",
-  226: "basal_metabolic_rate_kcal",
+	1: "weight_kg",
+	4: "height_m",
+	5: "fat_free_mass_kg",
+	6: "body_fat_pct",
+	8: "fat_mass_kg",
+	11: "heart_rate_bpm",
+	76: "muscle_mass_kg",
+	77: "hydration_kg",
+	88: "bone_mass_kg",
+	91: "pulse_wave_velocity_ms",
+	155: "vascular_age_years",
+	168: "extracellular_water_kg",
+	169: "intracellular_water_kg",
+	170: "visceral_fat",
+	226: "basal_metabolic_rate_kcal",
 };
 
 const BODY_FIELDS = [
-  "weight_kg",
-  "body_fat_pct",
-  "fat_mass_kg",
-  "fat_free_mass_kg",
-  "muscle_mass_kg",
-  "hydration_kg",
-  "bone_mass_kg",
-  "height_m",
-  "heart_rate_bpm",
-  "pulse_wave_velocity_ms",
-  "vascular_age_years",
-  "extracellular_water_kg",
-  "intracellular_water_kg",
-  "visceral_fat",
-  "basal_metabolic_rate_kcal",
+	"weight_kg",
+	"body_fat_pct",
+	"fat_mass_kg",
+	"fat_free_mass_kg",
+	"muscle_mass_kg",
+	"hydration_kg",
+	"bone_mass_kg",
+	"height_m",
+	"heart_rate_bpm",
+	"pulse_wave_velocity_ms",
+	"vascular_age_years",
+	"extracellular_water_kg",
+	"intracellular_water_kg",
+	"visceral_fat",
+	"basal_metabolic_rate_kcal",
 ] as const;
 
 function toBodyMeasurementRow(
-  source: string,
-  grp: Record<string, unknown>,
+	source: string,
+	grp: Record<string, unknown>,
 ): UpsertRow | null {
-  const grpid = grp.grpid;
-  const date = grp.date;
-  if (grpid == null || typeof date !== "number") return null;
+	const grpid = grp.grpid;
+	const date = grp.date;
+	if (grpid == null || typeof date !== "number") return null;
 
-  const measures = Array.isArray(grp.measures)
-    ? (grp.measures as Array<Record<string, unknown>>)
-    : [];
+	const measures = Array.isArray(grp.measures)
+		? (grp.measures as Array<Record<string, unknown>>)
+		: [];
 
-  const fields: Record<string, number | null> = {};
-  for (const f of BODY_FIELDS) fields[f] = null;
+	const fields: Record<string, number | null> = {};
+	for (const f of BODY_FIELDS) fields[f] = null;
 
-  for (const m of measures) {
-    const type = m.type;
-    const value = m.value;
-    const unit = m.unit;
-    if (
-      typeof type !== "number" ||
-      typeof value !== "number" ||
-      typeof unit !== "number"
-    ) {
-      continue;
-    }
-    const col = WITHINGS_TYPE_TO_COLUMN[type];
-    if (!col) continue;
-    fields[col] = value * Math.pow(10, unit);
-  }
+	for (const m of measures) {
+		const type = m.type;
+		const value = m.value;
+		const unit = m.unit;
+		if (
+			typeof type !== "number" ||
+			typeof value !== "number" ||
+			typeof unit !== "number"
+		) {
+			continue;
+		}
+		const col = WITHINGS_TYPE_TO_COLUMN[type];
+		if (!col) continue;
+		fields[col] = value * Math.pow(10, unit);
+	}
 
-  // skip groups that contain none of the columns we care about (e.g. a
-  // weigh-in that only recorded heart rate or temperature).
-  if (BODY_FIELDS.every((f) => fields[f] == null)) return null;
+	// skip groups that contain none of the columns we care about (e.g. a
+	// weigh-in that only recorded heart rate or temperature).
+	if (BODY_FIELDS.every((f) => fields[f] == null)) return null;
 
-  return {
-    source,
-    external_id: String(grpid),
-    measured_at: new Date(date * 1000).toISOString(),
-    ...fields,
-    raw: grp,
-    fetched_at: nowIso(),
-  };
+	return {
+		source,
+		external_id: String(grpid),
+		measured_at: new Date(date * 1000).toISOString(),
+		...fields,
+		raw: grp,
+		fetched_at: nowIso(),
+	};
 }
 
 export async function upsertBodyMeasurements(
-  env: ArchiveEnv,
-  source: string,
-  grps: Record<string, unknown>[],
+	env: ArchiveEnv,
+	source: string,
+	grps: Record<string, unknown>[],
 ): Promise<void> {
-  const rows = grps
-    .map((g) => toBodyMeasurementRow(source, g))
-    .filter((v): v is UpsertRow => v != null);
-  await upsert(env, "health_body_measurements", rows, "source,external_id");
+	const rows = grps
+		.map((g) => toBodyMeasurementRow(source, g))
+		.filter((v): v is UpsertRow => v != null);
+	await upsert(env, "health_body_measurements", rows, "source,external_id");
 }
 
 export interface BodyMeasurementRow {
-  external_id: string;
-  measured_at: string;
-  weight_kg: number | null;
-  body_fat_pct: number | null;
-  fat_mass_kg: number | null;
-  fat_free_mass_kg: number | null;
-  muscle_mass_kg: number | null;
-  hydration_kg: number | null;
-  bone_mass_kg: number | null;
-  height_m: number | null;
-  heart_rate_bpm: number | null;
-  pulse_wave_velocity_ms: number | null;
-  vascular_age_years: number | null;
-  extracellular_water_kg: number | null;
-  intracellular_water_kg: number | null;
-  visceral_fat: number | null;
-  basal_metabolic_rate_kcal: number | null;
+	external_id: string;
+	measured_at: string;
+	weight_kg: number | null;
+	body_fat_pct: number | null;
+	fat_mass_kg: number | null;
+	fat_free_mass_kg: number | null;
+	muscle_mass_kg: number | null;
+	hydration_kg: number | null;
+	bone_mass_kg: number | null;
+	height_m: number | null;
+	heart_rate_bpm: number | null;
+	pulse_wave_velocity_ms: number | null;
+	vascular_age_years: number | null;
+	extracellular_water_kg: number | null;
+	intracellular_water_kg: number | null;
+	visceral_fat: number | null;
+	basal_metabolic_rate_kcal: number | null;
 }
 
 const BODY_SELECT =
-  "external_id,measured_at,weight_kg,body_fat_pct,fat_mass_kg,fat_free_mass_kg,muscle_mass_kg,hydration_kg,bone_mass_kg,height_m,heart_rate_bpm,pulse_wave_velocity_ms,vascular_age_years,extracellular_water_kg,intracellular_water_kg,visceral_fat,basal_metabolic_rate_kcal";
+	"external_id,measured_at,weight_kg,body_fat_pct,fat_mass_kg,fat_free_mass_kg,muscle_mass_kg,hydration_kg,bone_mass_kg,height_m,heart_rate_bpm,pulse_wave_velocity_ms,vascular_age_years,extracellular_water_kg,intracellular_water_kg,visceral_fat,basal_metabolic_rate_kcal";
 
 export async function readBodyMeasurementsSince(
-  env: ArchiveEnv,
-  source: string,
-  sinceIso: string,
+	env: ArchiveEnv,
+	source: string,
+	sinceIso: string,
 ): Promise<BodyMeasurementRow[]> {
-  return selectRange<BodyMeasurementRow>(
-    env,
-    "health_body_measurements",
-    source,
-    sinceIso,
-    BODY_SELECT,
-    "measured_at",
-  );
+	return selectRange<BodyMeasurementRow>(
+		env,
+		"health_body_measurements",
+		source,
+		sinceIso,
+		BODY_SELECT,
+		"measured_at",
+	);
 }
 
 export async function readLatestBodyMeasurement(
-  env: ArchiveEnv,
-  source: string,
+	env: ArchiveEnv,
+	source: string,
 ): Promise<BodyMeasurementRow | null> {
-  const cfg = supaConfig(env);
-  if (!cfg) return null;
-  const url =
-    `${cfg.base}/rest/v1/health_body_measurements` +
-    `?source=eq.${encodeURIComponent(source)}` +
-    `&select=${encodeURIComponent(BODY_SELECT)}` +
-    `&order=measured_at.desc&limit=1`;
-  const r = await fetch(url, {
-    headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
-  });
-  if (!r.ok) return null;
-  const rows = (await r.json()) as BodyMeasurementRow[];
-  return rows[0] ?? null;
+	const cfg = supaConfig(env);
+	if (!cfg) return null;
+	const url =
+		`${cfg.base}/rest/v1/health_body_measurements` +
+		`?source=eq.${encodeURIComponent(source)}` +
+		`&select=${encodeURIComponent(BODY_SELECT)}` +
+		`&order=measured_at.desc&limit=1`;
+	const r = await fetch(url, {
+		headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+	});
+	if (!r.ok) return null;
+	const rows = (await r.json()) as BodyMeasurementRow[];
+	return rows[0] ?? null;
 }
 
 export interface CopyCacheRow {
-  inputHash: string;
-  copy: Record<string, unknown>;
-  syncedAt: string;
+	inputHash: string;
+	copy: Record<string, unknown>;
+	syncedAt: string;
 }
 
 export async function writeHealthCopyCache(
-  env: ArchiveEnv,
-  inputHash: string,
-  copy: Record<string, unknown>,
+	env: ArchiveEnv,
+	inputHash: string,
+	copy: Record<string, unknown>,
 ): Promise<void> {
-  const cfg = supaConfig(env);
-  if (!cfg) return;
-  try {
-    const url = `${cfg.base}/rest/v1/health_copy_cache?on_conflict=id`;
-    const r = await fetch(url, {
-      method: "POST",
-      headers: {
-        apikey: cfg.key,
-        authorization: `Bearer ${cfg.key}`,
-        "content-type": "application/json",
-        prefer: "resolution=merge-duplicates,return=minimal",
-      },
-      body: JSON.stringify([
-        { id: 1, input_hash: inputHash, copy, synced_at: nowIso() },
-      ]),
-    });
-    if (!r.ok && r.status !== 404) {
-      const body = await r.text();
-      console.warn(
-        `supabase write health_copy_cache failed: ${r.status} ${body}`,
-      );
-    }
-  } catch (err) {
-    console.warn("supabase write health_copy_cache error:", err);
-  }
+	const cfg = supaConfig(env);
+	if (!cfg) return;
+	try {
+		const url = `${cfg.base}/rest/v1/health_copy_cache?on_conflict=id`;
+		const r = await fetch(url, {
+			method: "POST",
+			headers: {
+				apikey: cfg.key,
+				authorization: `Bearer ${cfg.key}`,
+				"content-type": "application/json",
+				prefer: "resolution=merge-duplicates,return=minimal",
+			},
+			body: JSON.stringify([
+				{ id: 1, input_hash: inputHash, copy, synced_at: nowIso() },
+			]),
+		});
+		if (!r.ok && r.status !== 404) {
+			const body = await r.text();
+			console.warn(
+				`supabase write health_copy_cache failed: ${r.status} ${body}`,
+			);
+		}
+	} catch (err) {
+		console.warn("supabase write health_copy_cache error:", err);
+	}
 }
 
 export async function readHealthCopyCache(
-  env: ArchiveEnv,
+	env: ArchiveEnv,
 ): Promise<CopyCacheRow | null> {
-  const cfg = supaConfig(env);
-  if (!cfg) return null;
-  try {
-    const url = `${cfg.base}/rest/v1/health_copy_cache?id=eq.1&select=input_hash,copy,synced_at&limit=1`;
-    const r = await fetch(url, {
-      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
-    });
-    if (!r.ok) return null;
-    const rows = (await r.json()) as Array<{
-      input_hash: string;
-      copy: Record<string, unknown>;
-      synced_at: string;
-    }>;
-    const row = rows[0];
-    if (!row) return null;
-    return {
-      inputHash: row.input_hash,
-      copy: row.copy,
-      syncedAt: row.synced_at,
-    };
-  } catch {
-    return null;
-  }
+	const cfg = supaConfig(env);
+	if (!cfg) return null;
+	try {
+		const url = `${cfg.base}/rest/v1/health_copy_cache?id=eq.1&select=input_hash,copy,synced_at&limit=1`;
+		const r = await fetch(url, {
+			headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+		});
+		if (!r.ok) return null;
+		const rows = (await r.json()) as Array<{
+			input_hash: string;
+			copy: Record<string, unknown>;
+			synced_at: string;
+		}>;
+		const row = rows[0];
+		if (!row) return null;
+		return {
+			inputHash: row.input_hash,
+			copy: row.copy,
+			syncedAt: row.synced_at,
+		};
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -375,55 +375,55 @@ export async function readHealthCopyCache(
  * assemble the dashboard payload without hitting whoop live.
  */
 export async function readLatestRaw(
-  env: ArchiveEnv,
-  table: string,
-  source: string,
-  orderCol: string,
+	env: ArchiveEnv,
+	table: string,
+	source: string,
+	orderCol: string,
 ): Promise<Record<string, unknown> | null> {
-  const cfg = supaConfig(env);
-  if (!cfg) return null;
-  try {
-    const url =
-      `${cfg.base}/rest/v1/${table}` +
-      `?source=eq.${encodeURIComponent(source)}` +
-      `&select=raw&order=${orderCol}.desc&limit=1`;
-    const r = await fetch(url, {
-      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
-    });
-    if (!r.ok) return null;
-    const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
-    return rows[0]?.raw ?? null;
-  } catch {
-    return null;
-  }
+	const cfg = supaConfig(env);
+	if (!cfg) return null;
+	try {
+		const url =
+			`${cfg.base}/rest/v1/${table}` +
+			`?source=eq.${encodeURIComponent(source)}` +
+			`&select=raw&order=${orderCol}.desc&limit=1`;
+		const r = await fetch(url, {
+			headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+		});
+		if (!r.ok) return null;
+		const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
+		return rows[0]?.raw ?? null;
+	} catch {
+		return null;
+	}
 }
 
 /**
  * read the N most recent records, returning the raw whoop records.
  */
 export async function readRecentRaw(
-  env: ArchiveEnv,
-  table: string,
-  source: string,
-  orderCol: string,
-  limit: number,
+	env: ArchiveEnv,
+	table: string,
+	source: string,
+	orderCol: string,
+	limit: number,
 ): Promise<Record<string, unknown>[]> {
-  const cfg = supaConfig(env);
-  if (!cfg) return [];
-  try {
-    const url =
-      `${cfg.base}/rest/v1/${table}` +
-      `?source=eq.${encodeURIComponent(source)}` +
-      `&select=raw&order=${orderCol}.desc&limit=${limit}`;
-    const r = await fetch(url, {
-      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
-    });
-    if (!r.ok) return [];
-    const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
-    return rows.map((r) => r.raw);
-  } catch {
-    return [];
-  }
+	const cfg = supaConfig(env);
+	if (!cfg) return [];
+	try {
+		const url =
+			`${cfg.base}/rest/v1/${table}` +
+			`?source=eq.${encodeURIComponent(source)}` +
+			`&select=raw&order=${orderCol}.desc&limit=${limit}`;
+		const r = await fetch(url, {
+			headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+		});
+		if (!r.ok) return [];
+		const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
+		return rows.map((r) => r.raw);
+	} catch {
+		return [];
+	}
 }
 
 /**
@@ -432,124 +432,124 @@ export async function readRecentRaw(
  * passes the cycle id from a prior query.
  */
 export async function readRecoveryByCycleId(
-  env: ArchiveEnv,
-  source: string,
-  cycleExternalId: string,
+	env: ArchiveEnv,
+	source: string,
+	cycleExternalId: string,
 ): Promise<Record<string, unknown> | null> {
-  const cfg = supaConfig(env);
-  if (!cfg) return null;
-  try {
-    const url =
-      `${cfg.base}/rest/v1/health_recoveries` +
-      `?source=eq.${encodeURIComponent(source)}` +
-      `&external_id=eq.${encodeURIComponent(cycleExternalId)}` +
-      `&select=raw&limit=1`;
-    const r = await fetch(url, {
-      headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
-    });
-    if (!r.ok) return null;
-    const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
-    return rows[0]?.raw ?? null;
-  } catch {
-    return null;
-  }
+	const cfg = supaConfig(env);
+	if (!cfg) return null;
+	try {
+		const url =
+			`${cfg.base}/rest/v1/health_recoveries` +
+			`?source=eq.${encodeURIComponent(source)}` +
+			`&external_id=eq.${encodeURIComponent(cycleExternalId)}` +
+			`&select=raw&limit=1`;
+		const r = await fetch(url, {
+			headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+		});
+		if (!r.ok) return null;
+		const rows = (await r.json()) as Array<{ raw: Record<string, unknown> }>;
+		return rows[0]?.raw ?? null;
+	} catch {
+		return null;
+	}
 }
 
 export async function upsertBatch(
-  env: ArchiveEnv,
-  source: string,
-  batch: {
-    cycles?: Record<string, unknown>[];
-    recoveries?: Record<string, unknown>[];
-    sleeps?: Record<string, unknown>[];
-    workouts?: Record<string, unknown>[];
-  },
+	env: ArchiveEnv,
+	source: string,
+	batch: {
+		cycles?: Record<string, unknown>[];
+		recoveries?: Record<string, unknown>[];
+		sleeps?: Record<string, unknown>[];
+		workouts?: Record<string, unknown>[];
+	},
 ): Promise<void> {
-  const cycles = (batch.cycles ?? [])
-    .map((r) => toCycleRow(source, r))
-    .filter((v): v is UpsertRow => v != null);
-  const recoveries = (batch.recoveries ?? [])
-    .map((r) => toRecoveryRow(source, r))
-    .filter((v): v is UpsertRow => v != null);
-  const sleeps = (batch.sleeps ?? [])
-    .map((r) => toSleepRow(source, r))
-    .filter((v): v is UpsertRow => v != null);
-  const workouts = (batch.workouts ?? [])
-    .map((r) => toWorkoutRow(source, r))
-    .filter((v): v is UpsertRow => v != null);
+	const cycles = (batch.cycles ?? [])
+		.map((r) => toCycleRow(source, r))
+		.filter((v): v is UpsertRow => v != null);
+	const recoveries = (batch.recoveries ?? [])
+		.map((r) => toRecoveryRow(source, r))
+		.filter((v): v is UpsertRow => v != null);
+	const sleeps = (batch.sleeps ?? [])
+		.map((r) => toSleepRow(source, r))
+		.filter((v): v is UpsertRow => v != null);
+	const workouts = (batch.workouts ?? [])
+		.map((r) => toWorkoutRow(source, r))
+		.filter((v): v is UpsertRow => v != null);
 
-  await Promise.all([
-    upsert(env, "health_cycles", cycles),
-    upsert(env, "health_recoveries", recoveries),
-    upsert(env, "health_sleeps", sleeps),
-    upsert(env, "health_workouts", workouts),
-  ]);
+	await Promise.all([
+		upsert(env, "health_cycles", cycles),
+		upsert(env, "health_recoveries", recoveries),
+		upsert(env, "health_sleeps", sleeps),
+		upsert(env, "health_workouts", workouts),
+	]);
 }
 
 async function selectRange<T = Record<string, unknown>>(
-  env: ArchiveEnv,
-  table: string,
-  source: string,
-  sinceIso: string,
-  select: string,
-  orderCol: string = "start_at",
+	env: ArchiveEnv,
+	table: string,
+	source: string,
+	sinceIso: string,
+	select: string,
+	orderCol: string = "start_at",
 ): Promise<T[]> {
-  const cfg = supaConfig(env);
-  if (!cfg) return [];
-  const url =
-    `${cfg.base}/rest/v1/${table}` +
-    `?source=eq.${encodeURIComponent(source)}` +
-    `&${orderCol}=gte.${encodeURIComponent(sinceIso)}` +
-    `&select=${encodeURIComponent(select)}` +
-    `&order=${orderCol}.asc&limit=1000`;
-  const r = await fetch(url, {
-    headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
-  });
-  if (!r.ok) return [];
-  return (await r.json()) as T[];
+	const cfg = supaConfig(env);
+	if (!cfg) return [];
+	const url =
+		`${cfg.base}/rest/v1/${table}` +
+		`?source=eq.${encodeURIComponent(source)}` +
+		`&${orderCol}=gte.${encodeURIComponent(sinceIso)}` +
+		`&select=${encodeURIComponent(select)}` +
+		`&order=${orderCol}.asc&limit=1000`;
+	const r = await fetch(url, {
+		headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+	});
+	if (!r.ok) return [];
+	return (await r.json()) as T[];
 }
 
 async function selectByIds<T = Record<string, unknown>>(
-  env: ArchiveEnv,
-  table: string,
-  source: string,
-  ids: string[],
-  select: string,
+	env: ArchiveEnv,
+	table: string,
+	source: string,
+	ids: string[],
+	select: string,
 ): Promise<T[]> {
-  if (ids.length === 0) return [];
-  const cfg = supaConfig(env);
-  if (!cfg) return [];
-  const idList = ids.map((v) => `"${v}"`).join(",");
-  const url =
-    `${cfg.base}/rest/v1/${table}` +
-    `?source=eq.${encodeURIComponent(source)}` +
-    `&external_id=in.(${encodeURIComponent(idList)})` +
-    `&select=${encodeURIComponent(select)}&limit=1000`;
-  const r = await fetch(url, {
-    headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
-  });
-  if (!r.ok) return [];
-  return (await r.json()) as T[];
+	if (ids.length === 0) return [];
+	const cfg = supaConfig(env);
+	if (!cfg) return [];
+	const idList = ids.map((v) => `"${v}"`).join(",");
+	const url =
+		`${cfg.base}/rest/v1/${table}` +
+		`?source=eq.${encodeURIComponent(source)}` +
+		`&external_id=in.(${encodeURIComponent(idList)})` +
+		`&select=${encodeURIComponent(select)}&limit=1000`;
+	const r = await fetch(url, {
+		headers: { apikey: cfg.key, authorization: `Bearer ${cfg.key}` },
+	});
+	if (!r.ok) return [];
+	return (await r.json()) as T[];
 }
 
 function numOrNull(v: unknown): number | null {
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
+	return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
 export interface TrendInputCycle {
-  external_id: string;
-  start_at: string;
-  score: Record<string, unknown> | null;
+	external_id: string;
+	start_at: string;
+	score: Record<string, unknown> | null;
 }
 
 export interface TrendInputRecovery {
-  external_id: string; // whoop cycle_id
-  score: Record<string, unknown> | null;
+	external_id: string; // whoop cycle_id
+	score: Record<string, unknown> | null;
 }
 
 export interface TrendInputSleep {
-  start_at: string;
-  score: Record<string, unknown> | null;
+	start_at: string;
+	score: Record<string, unknown> | null;
 }
 
 /**
@@ -557,51 +557,51 @@ export interface TrendInputSleep {
  * external id. reused by the archive read path and the live fallback path.
  */
 export function buildTrendFromRecords(
-  cycles: TrendInputCycle[],
-  recoveries: TrendInputRecovery[],
-  sleeps: TrendInputSleep[],
+	cycles: TrendInputCycle[],
+	recoveries: TrendInputRecovery[],
+	sleeps: TrendInputSleep[],
 ): TrendPoint[] {
-  const recByCycle = new Map<string, Record<string, unknown> | null>();
-  for (const r of recoveries) recByCycle.set(r.external_id, r.score);
+	const recByCycle = new Map<string, Record<string, unknown> | null>();
+	for (const r of recoveries) recByCycle.set(r.external_id, r.score);
 
-  const sleepByDate = new Map<string, Record<string, unknown> | null>();
-  for (const s of sleeps) sleepByDate.set(s.start_at.slice(0, 10), s.score);
+	const sleepByDate = new Map<string, Record<string, unknown> | null>();
+	for (const s of sleeps) sleepByDate.set(s.start_at.slice(0, 10), s.score);
 
-  const points: TrendPoint[] = [];
-  for (const c of cycles) {
-    const date = c.start_at.slice(0, 10);
-    const cScore = c.score;
-    const rScore = recByCycle.get(c.external_id) ?? null;
-    const sScore = sleepByDate.get(date) ?? null;
-    const stageSummary = (sScore?.stage_summary ?? null) as Record<
-      string,
-      number
-    > | null;
-    const asleepHrs = stageSummary
-      ? Math.max(
-          0,
-          (stageSummary.total_in_bed_time_milli -
-            (stageSummary.total_awake_time_milli ?? 0)) /
-            3_600_000,
-        )
-      : null;
+	const points: TrendPoint[] = [];
+	for (const c of cycles) {
+		const date = c.start_at.slice(0, 10);
+		const cScore = c.score;
+		const rScore = recByCycle.get(c.external_id) ?? null;
+		const sScore = sleepByDate.get(date) ?? null;
+		const stageSummary = (sScore?.stage_summary ?? null) as Record<
+			string,
+			number
+		> | null;
+		const asleepHrs = stageSummary
+			? Math.max(
+					0,
+					(stageSummary.total_in_bed_time_milli -
+						(stageSummary.total_awake_time_milli ?? 0)) /
+						3_600_000,
+				)
+			: null;
 
-    points.push({
-      date,
-      recovery: numOrNull(
-        (rScore as { recovery_score?: number } | null)?.recovery_score,
-      ),
-      strain: numOrNull((cScore as { strain?: number } | null)?.strain),
-      sleep: asleepHrs,
-      hrv: numOrNull(
-        (rScore as { hrv_rmssd_milli?: number } | null)?.hrv_rmssd_milli,
-      ),
-      rhr: numOrNull(
-        (rScore as { resting_heart_rate?: number } | null)?.resting_heart_rate,
-      ),
-    });
-  }
-  return points;
+		points.push({
+			date,
+			recovery: numOrNull(
+				(rScore as { recovery_score?: number } | null)?.recovery_score,
+			),
+			strain: numOrNull((cScore as { strain?: number } | null)?.strain),
+			sleep: asleepHrs,
+			hrv: numOrNull(
+				(rScore as { hrv_rmssd_milli?: number } | null)?.hrv_rmssd_milli,
+			),
+			rhr: numOrNull(
+				(rScore as { resting_heart_rate?: number } | null)?.resting_heart_rate,
+			),
+		});
+	}
+	return points;
 }
 
 /**
@@ -609,33 +609,33 @@ export function buildTrendFromRecords(
  * sleeps by date. returns [] if the archive is empty or misconfigured.
  */
 export async function readTrendSince(
-  env: ArchiveEnv,
-  source: string,
-  sinceIso: string,
+	env: ArchiveEnv,
+	source: string,
+	sinceIso: string,
 ): Promise<TrendPoint[]> {
-  const [cycles, sleeps] = await Promise.all([
-    selectRange<TrendInputCycle>(
-      env,
-      "health_cycles",
-      source,
-      sinceIso,
-      "external_id,start_at,score",
-    ),
-    selectRange<TrendInputSleep>(
-      env,
-      "health_sleeps",
-      source,
-      sinceIso,
-      "start_at,score",
-    ),
-  ]);
-  const cycleIds = cycles.map((c) => c.external_id);
-  const recoveries = await selectByIds<TrendInputRecovery>(
-    env,
-    "health_recoveries",
-    source,
-    cycleIds,
-    "external_id,score",
-  );
-  return buildTrendFromRecords(cycles, recoveries, sleeps);
+	const [cycles, sleeps] = await Promise.all([
+		selectRange<TrendInputCycle>(
+			env,
+			"health_cycles",
+			source,
+			sinceIso,
+			"external_id,start_at,score",
+		),
+		selectRange<TrendInputSleep>(
+			env,
+			"health_sleeps",
+			source,
+			sinceIso,
+			"start_at,score",
+		),
+	]);
+	const cycleIds = cycles.map((c) => c.external_id);
+	const recoveries = await selectByIds<TrendInputRecovery>(
+		env,
+		"health_recoveries",
+		source,
+		cycleIds,
+		"external_id,score",
+	);
+	return buildTrendFromRecords(cycles, recoveries, sleeps);
 }

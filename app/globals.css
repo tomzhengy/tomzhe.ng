@@ -2,408 +2,408 @@
 
 /* Default styles (dark mode) */
 :root {
-  /* Dark mode colors (default) */
-  --background: #1f1e1d;
-  --foreground: #f0eee6;
-  --link-color: #d97757;
-  --link-selection-color: #2688a8;
+	/* Dark mode colors (default) */
+	--background: #1f1e1d;
+	--foreground: #f0eee6;
+	--link-color: #d97757;
+	--link-selection-color: #2688a8;
 
-  /* Font families */
-  --font-body: var(--font-redaction), serif;
+	/* Font families */
+	--font-body: var(--font-redaction), serif;
 
-  /* Animation durations - organized by purpose */
+	/* Animation durations - organized by purpose */
 
-  /* Theme switching */
-  --transition-duration: 0.3s;
-  --transition-timing: ease;
+	/* Theme switching */
+	--transition-duration: 0.3s;
+	--transition-timing: ease;
 
-  /* Header animations */
-  --animation-theme-toggle: 0.35s;
+	/* Header animations */
+	--animation-theme-toggle: 0.35s;
 
-  /* General animation timings */
-  --animation-short: 0.3s;
+	/* General animation timings */
+	--animation-short: 0.3s;
 }
 
 /* Light mode overrides when .light class is present */
 .light {
-  /* Light mode colors */
-  --background: #f0eee6;
-  --foreground: #1f1e1d;
+	/* Light mode colors */
+	--background: #f0eee6;
+	--foreground: #1f1e1d;
 }
 
 /* Base styles with transitions */
 html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body);
-  transition:
-    background-color var(--transition-duration) var(--transition-timing),
-    color var(--transition-duration) var(--transition-timing);
+	background: var(--background);
+	color: var(--foreground);
+	font-family: var(--font-body);
+	transition:
+		background-color var(--transition-duration) var(--transition-timing),
+		color var(--transition-duration) var(--transition-timing);
 }
 
 /* swap selection colors to match the current theme */
 ::selection {
-  background: var(--foreground);
-  color: var(--background);
-  text-shadow: none;
+	background: var(--foreground);
+	color: var(--background);
+	text-shadow: none;
 }
 
 a::selection {
-  color: var(--link-selection-color);
+	color: var(--link-selection-color);
 }
 
 .header-nav a::selection,
 .social-links a::selection {
-  color: var(--background);
+	color: var(--background);
 }
 
 /* Add transitions to interactive elements and standalone SVGs */
 a,
 .underline,
 .nav-link {
-  color: var(--link-color);
-  transition:
-    color var(--animation-theme-toggle) var(--transition-timing),
-    opacity var(--animation-theme-toggle) var(--transition-timing),
-    text-decoration-color var(--animation-theme-toggle) var(--transition-timing),
-    background-color var(--animation-theme-toggle) var(--transition-timing);
+	color: var(--link-color);
+	transition:
+		color var(--animation-theme-toggle) var(--transition-timing),
+		opacity var(--animation-theme-toggle) var(--transition-timing),
+		text-decoration-color var(--animation-theme-toggle) var(--transition-timing),
+		background-color var(--animation-theme-toggle) var(--transition-timing);
 }
 
 .header-nav a {
-  color: var(--foreground);
+	color: var(--foreground);
 }
 
 .social-links a {
-  color: var(--foreground);
+	color: var(--foreground);
 }
 
 .body-link,
 .prose a {
-  transition:
-    color var(--animation-theme-toggle) var(--transition-timing),
-    opacity var(--animation-theme-toggle) var(--transition-timing);
-  text-decoration: none;
+	transition:
+		color var(--animation-theme-toggle) var(--transition-timing),
+		opacity var(--animation-theme-toggle) var(--transition-timing);
+	text-decoration: none;
 }
 
 .body-link:hover,
 .body-link:focus-visible,
 .prose a:hover,
 .prose a:focus-visible {
-  opacity: 0.8;
+	opacity: 0.8;
 }
 
 /* Prevent double transitions on nested SVGs by removing their transitions */
 a svg,
 button svg {
-  transition: none;
+	transition: none;
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 
 @keyframes blink {
-  0%,
-  35% {
-    opacity: 1;
-  }
-  50%,
-  85% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+	0%,
+	35% {
+		opacity: 1;
+	}
+	50%,
+	85% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
 }
 
 /* Blog prose styles */
 .prose {
-  line-height: 1.7;
+	line-height: 1.7;
 }
 
 .prose p {
-  margin-bottom: 1.25em;
+	margin-bottom: 1.25em;
 }
 
 .prose > *:last-child {
-  margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 .prose h1,
 .prose h2,
 .prose h3,
 .prose h4 {
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  font-weight: normal;
+	margin-top: 1.5em;
+	margin-bottom: 0.5em;
+	font-weight: normal;
 }
 
 .prose h1 {
-  font-size: 1.5rem;
+	font-size: 1.5rem;
 }
 
 .prose h2 {
-  font-size: 1.25rem;
+	font-size: 1.25rem;
 }
 
 .prose h3 {
-  font-size: 1.1rem;
+	font-size: 1.1rem;
 }
 
 .prose ul,
 .prose ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
+	margin: 1em 0;
+	padding-left: 1.5em;
 }
 
 .prose li {
-  margin: 0.25em 0;
+	margin: 0.25em 0;
 }
 
 .prose blockquote {
-  border-left: 2px solid var(--foreground);
-  padding-left: 1em;
-  margin: 1em 0;
-  opacity: 0.8;
-  font-style: italic;
+	border-left: 2px solid var(--foreground);
+	padding-left: 1em;
+	margin: 1em 0;
+	opacity: 0.8;
+	font-style: italic;
 }
 
 .prose hr {
-  border: none;
-  border-top: 1px solid var(--foreground);
-  opacity: 0.2;
-  margin: 2em 0;
+	border: none;
+	border-top: 1px solid var(--foreground);
+	opacity: 0.2;
+	margin: 2em 0;
 }
 
 .prose img {
-  max-width: 100%;
-  border-radius: 4px;
-  margin: 1em 0;
+	max-width: 100%;
+	border-radius: 4px;
+	margin: 1em 0;
 }
 
 /* inline code */
 .prose code {
-  background: var(--foreground);
-  color: var(--background);
-  padding: 0.15em 0.4em;
-  border-radius: 3px;
-  font-size: 0.9em;
-  font-family: ui-monospace, monospace;
+	background: var(--foreground);
+	color: var(--background);
+	padding: 0.15em 0.4em;
+	border-radius: 3px;
+	font-size: 0.9em;
+	font-family: ui-monospace, monospace;
 }
 
 /* carbon code embed */
 .carbon-embed {
-  margin: 1.5em 0;
-  width: 100%;
+	margin: 1.5em 0;
+	width: 100%;
 }
 
 .carbon-embed iframe {
-  width: 100%;
-  border: none;
-  border-radius: 6px;
-  display: block;
+	width: 100%;
+	border: none;
+	border-radius: 6px;
+	display: block;
 }
 
 /* ---------- health dashboard tokens ---------- */
 .health-page {
-  --fg: var(--foreground);
-  --bg: var(--background);
+	--fg: var(--foreground);
+	--bg: var(--background);
 
-  --accent: var(--link-color);
-  --select: var(--link-selection-color);
-  --warn: #c9a24a;
-  --danger: #c8573d;
-  --ok: #6f9a6a;
+	--accent: var(--link-color);
+	--select: var(--link-selection-color);
+	--warn: #c9a24a;
+	--danger: #c8573d;
+	--ok: #6f9a6a;
 
-  --f-serif: var(--font-instrument-serif), "Times New Roman", serif;
-  --f-sans: var(--font-inter), system-ui, sans-serif;
-  --f-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+	--f-serif: var(--font-instrument-serif), "Times New Roman", serif;
+	--f-sans: var(--font-inter), system-ui, sans-serif;
+	--f-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
-  /* dark-theme-derived surfaces (default) */
-  --fg-soft: #f0eee6cc;
-  --fg-mute: #f0eee680;
-  --fg-faint: #f0eee640;
-  --rule: #f0eee61f;
-  --rule-strong: #f0eee633;
-  --card: #26241f;
-  --card-elev: #2b2925;
-  --overlay: #15141380;
+	/* dark-theme-derived surfaces (default) */
+	--fg-soft: #f0eee6cc;
+	--fg-mute: #f0eee680;
+	--fg-faint: #f0eee640;
+	--rule: #f0eee61f;
+	--rule-strong: #f0eee633;
+	--card: #26241f;
+	--card-elev: #2b2925;
+	--overlay: #15141380;
 }
 
 .light .health-page {
-  --fg-soft: #1f1e1dcc;
-  --fg-mute: #1f1e1d80;
-  --fg-faint: #1f1e1d30;
-  --rule: #1f1e1d1a;
-  --rule-strong: #1f1e1d33;
-  --card: #e8e5da;
-  --card-elev: #ded9cb;
-  --overlay: #ffffff99;
+	--fg-soft: #1f1e1dcc;
+	--fg-mute: #1f1e1d80;
+	--fg-faint: #1f1e1d30;
+	--rule: #1f1e1d1a;
+	--rule-strong: #1f1e1d33;
+	--card: #e8e5da;
+	--card-elev: #ded9cb;
+	--overlay: #ffffff99;
 }
 
 .health-page ::selection {
-  background: var(--foreground);
-  color: var(--background);
+	background: var(--foreground);
+	color: var(--background);
 }
 
 /* skeleton shimmer — active only while the dashboard is loading.
    target any element with .skel; descendants also get hidden so the
    animated block shows clean. */
 .health-page[data-state="loading"] .skel {
-  color: transparent !important;
-  position: relative;
-  overflow: hidden;
-  background: var(--rule);
-  display: inline-block;
-  border-radius: 2px;
-  min-height: 0.6em;
-  vertical-align: baseline;
+	color: transparent !important;
+	position: relative;
+	overflow: hidden;
+	background: var(--rule);
+	display: inline-block;
+	border-radius: 2px;
+	min-height: 0.6em;
+	vertical-align: baseline;
 }
 .health-page[data-state="loading"] .skel > * {
-  color: transparent !important;
-  background: transparent !important;
+	color: transparent !important;
+	background: transparent !important;
 }
 .health-page[data-state="loading"] .skel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--rule-strong) 50%,
-    transparent 100%
-  );
-  animation: health-shimmer 1.6s linear infinite;
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		var(--rule-strong) 50%,
+		transparent 100%
+	);
+	animation: health-shimmer 1.6s linear infinite;
 }
 /* full-width block variant — for chart / bar placeholders that need to fill
    the row instead of sitting inline with text. */
 .health-page[data-state="loading"] .hp-skel-block {
-  display: block;
-  min-width: 0;
+	display: block;
+	min-width: 0;
 }
 @keyframes health-shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
 }
 @keyframes hp-spin {
-  to {
-    transform: rotate(360deg);
-  }
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 /* ---------- health dashboard responsive ---------- */
 @media (max-width: 900px) {
-  .hp-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-  .hp-grid > article {
-    grid-column: auto !important;
-  }
-  .hp-workout-row {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-  .hp-workout-row > :last-child {
-    text-align: left !important;
-  }
+	.hp-grid {
+		grid-template-columns: 1fr !important;
+		gap: 16px !important;
+	}
+	.hp-grid > article {
+		grid-column: auto !important;
+	}
+	.hp-workout-row {
+		grid-template-columns: 1fr !important;
+		gap: 16px !important;
+	}
+	.hp-workout-row > :last-child {
+		text-align: left !important;
+	}
 }
 
 @media (max-width: 680px) {
-  .hp-masthead {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-  .hp-masthead > :last-child {
-    justify-self: start;
-  }
-  .hp-dateline {
-    grid-template-columns: 1fr !important;
-    align-items: start !important;
-    gap: 18px !important;
-  }
-  .hp-dateline > :last-child {
-    text-align: left !important;
-  }
-  .hp-dateline h2 {
-    font-size: 44px !important;
-  }
-  .hp-sleep-top {
-    grid-template-columns: 1fr !important;
-  }
-  .hp-journal {
-    grid-template-columns: 1fr !important;
-    gap: 22px !important;
-  }
-  .hp-stage-totals {
-    grid-template-columns: 1fr 1fr !important;
-    row-gap: 14px !important;
-  }
+	.hp-masthead {
+		grid-template-columns: 1fr !important;
+		gap: 12px !important;
+	}
+	.hp-masthead > :last-child {
+		justify-self: start;
+	}
+	.hp-dateline {
+		grid-template-columns: 1fr !important;
+		align-items: start !important;
+		gap: 18px !important;
+	}
+	.hp-dateline > :last-child {
+		text-align: left !important;
+	}
+	.hp-dateline h2 {
+		font-size: 44px !important;
+	}
+	.hp-sleep-top {
+		grid-template-columns: 1fr !important;
+	}
+	.hp-journal {
+		grid-template-columns: 1fr !important;
+		gap: 22px !important;
+	}
+	.hp-stage-totals {
+		grid-template-columns: 1fr 1fr !important;
+		row-gap: 14px !important;
+	}
 }
 
 @media (max-width: 900px) {
-  .hp-hero-score {
-    font-size: 120px !important;
-  }
+	.hp-hero-score {
+		font-size: 120px !important;
+	}
 }
 
 @media (max-width: 900px) {
-  .hp-body-top {
-    grid-template-columns: 1fr !important;
-    gap: 28px !important;
-  }
-  .hp-body-tiles {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .hp-body-tile {
-    padding: 14px 18px !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--rule) !important;
-  }
-  .hp-body-tile:nth-child(odd) {
-    padding-left: 0 !important;
-  }
-  .hp-body-tile:nth-child(even) {
-    padding-right: 0 !important;
-  }
+	.hp-body-top {
+		grid-template-columns: 1fr !important;
+		gap: 28px !important;
+	}
+	.hp-body-tiles {
+		grid-template-columns: repeat(2, 1fr) !important;
+	}
+	.hp-body-tile {
+		padding: 14px 18px !important;
+		border-right: none !important;
+		border-bottom: 1px solid var(--rule) !important;
+	}
+	.hp-body-tile:nth-child(odd) {
+		padding-left: 0 !important;
+	}
+	.hp-body-tile:nth-child(even) {
+		padding-right: 0 !important;
+	}
 }
 
 @media (max-width: 680px) {
-  .hp-body-weight {
-    font-size: 88px !important;
-  }
-  .hp-body-cardio {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 18px !important;
-  }
+	.hp-body-weight {
+		font-size: 88px !important;
+	}
+	.hp-body-cardio {
+		grid-template-columns: 1fr 1fr !important;
+		gap: 18px !important;
+	}
 }
 
 @media (max-width: 480px) {
-  .hp-hero-score {
-    font-size: 96px !important;
-  }
-  .hp-strain-energy {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-  }
-  .hp-sleep-stats {
-    gap: 12px 20px !important;
-  }
-  .hp-body-metrics {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-  }
-  .hp-body-weight {
-    font-size: 76px !important;
-  }
+	.hp-hero-score {
+		font-size: 96px !important;
+	}
+	.hp-strain-energy {
+		grid-template-columns: 1fr !important;
+		gap: 14px !important;
+	}
+	.hp-sleep-stats {
+		gap: 12px 20px !important;
+	}
+	.hp-body-metrics {
+		grid-template-columns: 1fr !important;
+		gap: 14px !important;
+	}
+	.hp-body-weight {
+		font-size: 76px !important;
+	}
 }

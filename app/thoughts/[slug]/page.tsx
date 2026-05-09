@@ -10,53 +10,53 @@ import { getAllPosts, getPostBySlug } from "../../lib/blog";
 import { compileMdx } from "../../lib/mdx";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+	params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  const posts = getAllPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+	const posts = getAllPosts();
+	return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const post = getPostBySlug(slug);
+	const { slug } = await params;
+	const post = getPostBySlug(slug);
 
-  if (!post) {
-    return { title: "Post Not Found" };
-  }
+	if (!post) {
+		return { title: "Post Not Found" };
+	}
 
-  return {
-    title: `${post.title} - Tom Zheng`,
-    description: post.description,
-  };
+	return {
+		title: `${post.title} - Tom Zheng`,
+		description: post.description,
+	};
 }
 
 export default async function PostPage({ params }: Props) {
-  const { slug } = await params;
-  const post = getPostBySlug(slug);
+	const { slug } = await params;
+	const post = getPostBySlug(slug);
 
-  if (!post || !post.published) {
-    notFound();
-  }
+	if (!post || !post.published) {
+		notFound();
+	}
 
-  const { content } = await compileMdx(post.content);
+	const { content } = await compileMdx(post.content);
 
-  return (
-    <main className="flex min-h-screen justify-center">
-      <div className="text-left max-w-[730px] w-full px-4 pt-[8vh] pb-16">
-        <Header ThemeToggleComponent={ThemeToggle} currentPage="thoughts" />
+	return (
+		<main className="flex min-h-screen justify-center">
+			<div className="text-left max-w-[730px] w-full px-4 pt-[8vh] pb-16">
+				<Header ThemeToggleComponent={ThemeToggle} currentPage="thoughts" />
 
-        <section className="mt-6">
-          <PostContent meta={post}>{content}</PostContent>
-          <Upvote slug={slug} />
-        </section>
+				<section className="mt-6">
+					<PostContent meta={post}>{content}</PostContent>
+					<Upvote slug={slug} />
+				</section>
 
-        <div className="mt-8">
-          <SocialLinks />
-          <LastVisitor />
-        </div>
-      </div>
-    </main>
-  );
+				<div className="mt-8">
+					<SocialLinks />
+					<LastVisitor />
+				</div>
+			</div>
+		</main>
+	);
 }

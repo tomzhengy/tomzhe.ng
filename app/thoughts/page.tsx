@@ -7,27 +7,27 @@ import PostList from "../components/blog/PostList";
 import { getAllPosts } from "../lib/blog";
 
 export const metadata: Metadata = {
-  title: "Thoughts - Tom Zheng",
-  description: "Thoughts on startups, engineering, and life.",
+	title: "Thoughts - Tom Zheng",
+	description: "Thoughts on startups, engineering, and life.",
 };
 
 export default function BlogPage() {
-  const posts = getAllPosts();
+	const posts = getAllPosts();
 
-  return (
-    <main className="flex min-h-screen justify-center">
-      <div className="text-left max-w-[540px] w-full px-4 pt-[8vh] pb-16">
-        <Header ThemeToggleComponent={ThemeToggle} currentPage="thoughts" />
+	return (
+		<main className="flex min-h-screen justify-center">
+			<div className="text-left max-w-[540px] w-full px-4 pt-[8vh] pb-16">
+				<Header ThemeToggleComponent={ThemeToggle} currentPage="thoughts" />
 
-        <section className="mt-6">
-          <PostList posts={posts} />
-        </section>
+				<section className="mt-6">
+					<PostList posts={posts} />
+				</section>
 
-        <div className="mt-8">
-          <SocialLinks />
-          <LastVisitor />
-        </div>
-      </div>
-    </main>
-  );
+				<div className="mt-8">
+					<SocialLinks />
+					<LastVisitor />
+				</div>
+			</div>
+		</main>
+	);
 }

@@ -10,22 +10,22 @@
  */
 
 import {
-  computeAndCacheHealthPayload,
-  type HealthEnv,
+	computeAndCacheHealthPayload,
+	type HealthEnv,
 } from "../../../app/lib/health-source";
 
 interface EventContext {
-  request: Request;
-  env: HealthEnv;
+	request: Request;
+	env: HealthEnv;
 }
 
 export const onRequestPost = async (ctx: EventContext) => {
-  const payload = await computeAndCacheHealthPayload(ctx.env);
-  return new Response(JSON.stringify(payload), {
-    status: 200,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-    },
-  });
+	const payload = await computeAndCacheHealthPayload(ctx.env);
+	return new Response(JSON.stringify(payload), {
+		status: 200,
+		headers: {
+			"content-type": "application/json; charset=utf-8",
+			"cache-control": "no-store",
+		},
+	});
 };
