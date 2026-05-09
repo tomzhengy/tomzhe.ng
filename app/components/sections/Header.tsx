@@ -38,15 +38,7 @@ export default function Header({
 
       {/* Theme toggle */}
       <div className="min-w-[24px] min-h-[24px] flex justify-end opacity-85 hover:opacity-100 transition-all">
-        <div
-          className="transform hover:rotate-12 transition-transform"
-          style={{
-            transitionDuration: "var(--animation-short)",
-            transitionTimingFunction: "var(--transition-timing)",
-          }}
-        >
-          <ThemeToggleComponent />
-        </div>
+        <ThemeToggleComponent />
       </div>
     </div>
   );
