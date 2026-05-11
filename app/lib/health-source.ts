@@ -382,44 +382,86 @@ function listRecords(raw: unknown): Record<string, unknown>[] {
 	return records as Record<string, unknown>[];
 }
 
+function fmtFixed(n: number | null, digits: number): string | null {
+	if (n == null || !Number.isFinite(n)) return null;
+	return n.toFixed(digits);
+}
+
 function buildCopySummary(shaped: {
 	cycle: Record<string, unknown> | null;
 	recovery: Record<string, unknown> | null;
 	sleep: Record<string, unknown> | null;
 	trend: TrendPoint[];
 }): Record<string, unknown> {
+	const recoveryScore =
+		(shaped.recovery?.score as { recovery_score?: number } | undefined)
+			?.recovery_score ?? null;
+	const strain =
+		(shaped.cycle?.score as { strain?: number } | undefined)?.strain ?? null;
+	const hrv =
+		(shaped.recovery?.score as { hrv_rmssd_milli?: number } | undefined)
+			?.hrv_rmssd_milli ?? null;
+	const rhr =
+		(shaped.recovery?.score as { resting_heart_rate?: number } | undefined)
+			?.resting_heart_rate ?? null;
+	const skinTemp =
+		(shaped.recovery?.score as { skin_temp_celsius?: number } | undefined)
+			?.skin_temp_celsius ?? null;
+	const sleepPerf =
+		(
+			shaped.sleep?.score as
+				| { sleep_performance_percentage?: number }
+				| undefined
+		)?.sleep_performance_percentage ?? null;
+	const sleepEff =
+		(
+			shaped.sleep?.score as
+				| { sleep_efficiency_percentage?: number }
+				| undefined
+		)?.sleep_efficiency_percentage ?? null;
+
 	return {
-		recovery_score:
-			(shaped.recovery?.score as { recovery_score?: number } | undefined)
-				?.recovery_score ?? null,
-		strain:
-			(shaped.cycle?.score as { strain?: number } | undefined)?.strain ?? null,
-		hrv:
-			(shaped.recovery?.score as { hrv_rmssd_milli?: number } | undefined)
-				?.hrv_rmssd_milli ?? null,
-		rhr:
-			(shaped.recovery?.score as { resting_heart_rate?: number } | undefined)
-				?.resting_heart_rate ?? null,
-		skin_temp:
-			(shaped.recovery?.score as { skin_temp_celsius?: number } | undefined)
-				?.skin_temp_celsius ?? null,
-		sleep_performance:
-			(
-				shaped.sleep?.score as
-					| { sleep_performance_percentage?: number }
-					| undefined
-			)?.sleep_performance_percentage ?? null,
-		sleep_efficiency:
-			(
-				shaped.sleep?.score as
-					| { sleep_efficiency_percentage?: number }
-					| undefined
-			)?.sleep_efficiency_percentage ?? null,
+		recovery_score: recoveryScore,
+		recovery_display: fmtFixed(recoveryScore, 0),
+		strain,
+		strain_display: fmtFixed(strain, 1),
+		hrv,
+		hrv_display: fmtFixed(hrv, 0),
+		rhr,
+		rhr_display: fmtFixed(rhr, 0),
+		skin_temp: skinTemp,
+		sleep_performance: sleepPerf,
+		sleep_performance_display: fmtFixed(sleepPerf, 0),
+		sleep_efficiency: sleepEff,
+		sleep_efficiency_display: fmtFixed(sleepEff, 0),
 		trend_recent_recoveries: shaped.trend
 			.slice(-7)
 			.map((t) => t.recovery)
 			.filter((v): v is number => v != null),
 	};
+}
+
+// the model emits {key} placeholders for numbers (e.g. <b>{strain_display}</b>);
+// we substitute the actual values server-side so it can never hallucinate a
+// number. unknown keys and keys with null values are replaced with an em dash.
+const PLACEHOLDER_KEYS = new Set([
+	"strain_display",
+	"recovery_display",
+	"hrv_display",
+	"rhr_display",
+	"sleep_performance_display",
+	"sleep_efficiency_display",
+]);
+
+function substitutePlaceholders(
+	text: string,
+	summary: Record<string, unknown>,
+): string {
+	return text.replace(/\{(\w+)\}/g, (_, key: string) => {
+		if (!PLACEHOLDER_KEYS.has(key)) return "—";
+		const v = summary[key];
+		return typeof v === "string" ? v : "—";
+	});
 }
 
 async function generateCopy(
@@ -435,7 +477,10 @@ async function generateCopy(
 		"Output STRICT JSON only. No prose outside the JSON.",
 		"Wrap exactly one key word in <em>...</em> for headline, strainCopy, sleepCopy.",
 		"Wrap one number in <b>...</b> inside sub, strainCopy, and sleepCopy when it helps anchor the sentence.",
-		"Use plain text (no <em>/<b>) inside the journal fields.",
+		"NEVER write numeric values directly. Use these placeholder tokens instead, and the server will substitute the real value: {strain_display}, {recovery_display}, {hrv_display}, {rhr_display}, {sleep_performance_display}, {sleep_efficiency_display}.",
+		"Example: 'You logged a strain of <b>{strain_display}</b> today.' not 'You logged a strain of <b>13.2</b> today.'",
+		"strainCopy: use {strain_display} for any cited strain number. sleepCopy: use {sleep_performance_display} for sleep performance. sub: pick one of the recovery/hrv/rhr/strain placeholders.",
+		"Use plain text (no <em>/<b>) inside the journal fields. Placeholders are still allowed inside journal text.",
 		"Hard limit: every field is at most 2 sentences. Headline is one short phrase.",
 	].join(" ");
 
@@ -467,7 +512,24 @@ async function generateCopy(
 		if (!content) return null;
 		const parsed = JSON.parse(content);
 		if (typeof parsed !== "object" || parsed === null) return null;
-		return parsed;
+
+		const obj = parsed as Record<string, unknown>;
+		const subFields = ["headline", "sub", "strainCopy", "sleepCopy"] as const;
+		for (const k of subFields) {
+			if (typeof obj[k] === "string") {
+				obj[k] = substitutePlaceholders(obj[k] as string, summary);
+			}
+		}
+		if (typeof obj.journal === "object" && obj.journal !== null) {
+			const j = obj.journal as Record<string, unknown>;
+			for (const k of Object.keys(j)) {
+				if (typeof j[k] === "string") {
+					j[k] = substitutePlaceholders(j[k] as string, summary);
+				}
+			}
+		}
+
+		return obj;
 	} catch {
 		return null;
 	}
