@@ -42,7 +42,7 @@ export default function DevUploadModal({
 
 				const isImage = !file.type.startsWith("video/");
 				let thumb: File | null = null;
-				if (isImage && info.width > 0) {
+				if (info.width > 0) {
 					try {
 						thumb = await createThumbnail(file);
 					} catch {

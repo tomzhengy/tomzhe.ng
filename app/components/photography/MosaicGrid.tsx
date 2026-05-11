@@ -131,6 +131,7 @@ function PhotoCell({
 				) : (
 					<video
 						src={getImageUrl(item)!}
+						poster={getThumbUrl(item) || undefined}
 						muted
 						loop
 						playsInline

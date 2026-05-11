@@ -92,23 +92,42 @@ export function analyzeImage(file: File): Promise<ImageInfo> {
 
 const THUMB_MAX = 1200;
 
+function fitToThumb(w: number, h: number): { w: number; h: number } {
+	if (w <= THUMB_MAX && h <= THUMB_MAX) return { w, h };
+	if (w > h) {
+		return { w: THUMB_MAX, h: Math.round(h * (THUMB_MAX / w)) };
+	}
+	return { w: Math.round(w * (THUMB_MAX / h)), h: THUMB_MAX };
+}
+
+function canvasToWebpFile(canvas: HTMLCanvasElement): Promise<File> {
+	return new Promise((resolve, reject) => {
+		canvas.toBlob(
+			(blob) => {
+				if (!blob) {
+					reject(new Error("thumbnail blob failed"));
+					return;
+				}
+				resolve(new File([blob], "thumb.webp", { type: "image/webp" }));
+			},
+			"image/webp",
+			0.85,
+		);
+	});
+}
+
 export function createThumbnail(file: File): Promise<File> {
+	if (file.type.startsWith("video/")) return createVideoThumbnail(file);
+	return createImageThumbnail(file);
+}
+
+function createImageThumbnail(file: File): Promise<File> {
 	return new Promise((resolve, reject) => {
 		const url = URL.createObjectURL(file);
 		const img = new Image();
 		img.src = url;
-		img.onload = () => {
-			let w = img.naturalWidth;
-			let h = img.naturalHeight;
-			if (w > THUMB_MAX || h > THUMB_MAX) {
-				if (w > h) {
-					h = Math.round(h * (THUMB_MAX / w));
-					w = THUMB_MAX;
-				} else {
-					w = Math.round(w * (THUMB_MAX / h));
-					h = THUMB_MAX;
-				}
-			}
+		img.onload = async () => {
+			const { w, h } = fitToThumb(img.naturalWidth, img.naturalHeight);
 			const canvas = document.createElement("canvas");
 			canvas.width = w;
 			canvas.height = h;
@@ -119,25 +138,61 @@ export function createThumbnail(file: File): Promise<File> {
 				return;
 			}
 			ctx.drawImage(img, 0, 0, w, h);
-			canvas.toBlob(
-				(blob) => {
-					URL.revokeObjectURL(url);
-					if (!blob) {
-						reject(new Error("thumbnail blob failed"));
-						return;
-					}
-					const thumbFile = new File([blob], "thumb.webp", {
-						type: "image/webp",
-					});
-					resolve(thumbFile);
-				},
-				"image/webp",
-				0.85,
-			);
+			try {
+				const thumbFile = await canvasToWebpFile(canvas);
+				URL.revokeObjectURL(url);
+				resolve(thumbFile);
+			} catch (err) {
+				URL.revokeObjectURL(url);
+				reject(err);
+			}
 		};
 		img.onerror = () => {
 			URL.revokeObjectURL(url);
 			reject(new Error("failed to load image for thumbnail"));
+		};
+	});
+}
+
+function createVideoThumbnail(file: File): Promise<File> {
+	return new Promise((resolve, reject) => {
+		const url = URL.createObjectURL(file);
+		const video = document.createElement("video");
+		video.muted = true;
+		video.playsInline = true;
+		video.preload = "auto";
+		video.src = url;
+
+		let settled = false;
+		const finish = (fn: () => void) => {
+			if (settled) return;
+			settled = true;
+			URL.revokeObjectURL(url);
+			fn();
+		};
+
+		// loadeddata fires when the first frame is decoded and ready to paint
+		video.onloadeddata = async () => {
+			try {
+				const { w, h } = fitToThumb(video.videoWidth, video.videoHeight);
+				const canvas = document.createElement("canvas");
+				canvas.width = w;
+				canvas.height = h;
+				const ctx = canvas.getContext("2d");
+				if (!ctx) {
+					finish(() => reject(new Error("canvas context failed")));
+					return;
+				}
+				ctx.drawImage(video, 0, 0, w, h);
+				const thumbFile = await canvasToWebpFile(canvas);
+				finish(() => resolve(thumbFile));
+			} catch (err) {
+				finish(() => reject(err));
+			}
+		};
+
+		video.onerror = () => {
+			finish(() => reject(new Error("failed to load video for thumbnail")));
 		};
 	});
 }
