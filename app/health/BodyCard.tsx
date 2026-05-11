@@ -166,7 +166,6 @@ export default function BodyCard({ body }: BodyCardProps) {
 		>
 			<CardHead
 				title="Body"
-				subtitleAccent="the long arc."
 				rightSlot={<MeasuredAt iso={latest?.measuredAt ?? null} />}
 			/>
 
