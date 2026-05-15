@@ -21,10 +21,8 @@ export interface WithingsEnv {
 	SUPABASE_SERVICE_ROLE_KEY?: string;
 }
 
-export const WITHINGS_AUTH_URL =
-	"https://account.withings.com/oauth2_user/authorize2";
-export const WITHINGS_TOKEN_URL = "https://wbsapi.withings.net/v2/oauth2";
-export const WITHINGS_MEASURE_URL = "https://wbsapi.withings.net/measure";
+const WITHINGS_TOKEN_URL = "https://wbsapi.withings.net/v2/oauth2";
+const WITHINGS_MEASURE_URL = "https://wbsapi.withings.net/measure";
 
 interface WithingsEnvelope<T> {
 	status: number;
@@ -109,7 +107,7 @@ export async function exchangeWithingsRefreshToken(
 	return tokenBody.access_token;
 }
 
-export interface WithingsMeasure {
+interface WithingsMeasure {
 	value: number;
 	type: number;
 	unit: number;

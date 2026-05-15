@@ -1,0 +1,16 @@
+{
+	"ignore": {
+		"overrides": [
+			{
+				"files": [
+					"functions/**",
+					"scripts/whoop-auth.ts",
+					"scripts/withings-auth.ts",
+					"scripts/withings-probe.ts",
+					"scripts/withings-steps-today.ts"
+				],
+				"rules": ["files"]
+			}
+		]
+	}
+}

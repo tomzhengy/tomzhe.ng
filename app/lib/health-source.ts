@@ -37,14 +37,12 @@ import {
 	type TrendPoint,
 } from "./health-archive";
 
-export type { TrendPoint };
-
 export interface HealthEnv extends WhoopEnv, WithingsEnv {
 	OPENROUTER_API_KEY?: string;
 	OPENROUTER_MODEL?: string;
 }
 
-export interface BodyMeasurementOut {
+interface BodyMeasurementOut {
 	measuredAt: string;
 	weightKg: number | null;
 	bodyFatPct: number | null;
@@ -63,7 +61,7 @@ export interface BodyMeasurementOut {
 	basalMetabolicRateKcal: number | null;
 }
 
-export interface BodyData {
+interface BodyData {
 	latest: BodyMeasurementOut | null;
 	trend: BodyMeasurementOut[];
 }

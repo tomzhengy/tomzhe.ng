@@ -14,8 +14,8 @@ export interface WhoopEnv {
 	SUPABASE_SERVICE_ROLE_KEY?: string;
 }
 
-export const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
-export const WHOOP_API = "https://api.prod.whoop.com/developer/v2";
+const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
+const WHOOP_API = "https://api.prod.whoop.com/developer/v2";
 
 export async function exchangeRefreshToken(env: WhoopEnv): Promise<string> {
 	if (!env.WHOOP_CLIENT_ID || !env.WHOOP_CLIENT_SECRET) {

@@ -6,7 +6,7 @@ import { Post, PostMeta } from "../types/blog";
 
 const postsDirectory = path.join(process.cwd(), "content/blog");
 
-export function getPostSlugs(): string[] {
+function getPostSlugs(): string[] {
 	if (!fs.existsSync(postsDirectory)) {
 		return [];
 	}

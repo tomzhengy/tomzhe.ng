@@ -33,22 +33,6 @@ export function recoveryHue(score: number | null | undefined) {
 	return "var(--danger)";
 }
 
-export function recoveryBand(score: number | null | undefined) {
-	if (score == null) return "unknown";
-	if (score >= 67) return "high";
-	if (score >= 34) return "mid";
-	return "low";
-}
-
-export function formatDate(iso: string) {
-	const d = new Date(iso);
-	return d.toLocaleDateString(undefined, {
-		weekday: "long",
-		day: "numeric",
-		month: "long",
-	});
-}
-
 export function formatDateShort(iso: string) {
 	const d = new Date(iso);
 	return d
@@ -61,14 +45,6 @@ export function formatClockTime(iso: string) {
 	return d.toLocaleTimeString(undefined, {
 		hour: "numeric",
 		minute: "2-digit",
-	});
-}
-
-export function formatNumber(n: number | null | undefined, digits = 0) {
-	if (n == null || !Number.isFinite(n)) return "—";
-	return n.toLocaleString(undefined, {
-		minimumFractionDigits: digits,
-		maximumFractionDigits: digits,
 	});
 }
 

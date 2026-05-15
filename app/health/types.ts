@@ -1,6 +1,6 @@
-export type DataState = "ok" | "loading" | "empty" | "error";
+type DataState = "ok" | "loading" | "empty" | "error";
 
-export interface CycleScore {
+interface CycleScore {
 	strain: number;
 	kilojoule: number;
 	average_heart_rate: number;
@@ -14,7 +14,7 @@ export interface Cycle {
 	score: CycleScore | null;
 }
 
-export interface RecoveryScore {
+interface RecoveryScore {
 	recovery_score: number;
 	resting_heart_rate: number;
 	hrv_rmssd_milli: number;
@@ -29,7 +29,7 @@ export interface Recovery {
 	score: RecoveryScore | null;
 }
 
-export interface SleepStageSummary {
+interface SleepStageSummary {
 	total_in_bed_time_milli: number;
 	total_awake_time_milli: number;
 	total_no_data_time_milli: number;
@@ -40,7 +40,7 @@ export interface SleepStageSummary {
 	disturbance_count: number;
 }
 
-export interface SleepScore {
+interface SleepScore {
 	stage_summary: SleepStageSummary;
 	sleep_performance_percentage: number;
 	sleep_efficiency_percentage: number;
@@ -55,7 +55,7 @@ export interface Sleep {
 	score: SleepScore | null;
 }
 
-export interface ZoneDurations {
+interface ZoneDurations {
 	zone_zero_milli: number;
 	zone_one_milli: number;
 	zone_two_milli: number;
@@ -64,7 +64,7 @@ export interface ZoneDurations {
 	zone_five_milli: number;
 }
 
-export interface WorkoutScore {
+interface WorkoutScore {
 	strain: number;
 	average_heart_rate: number;
 	max_heart_rate: number;
@@ -114,7 +114,7 @@ export interface BodyData {
 	trend: BodyMeasurement[];
 }
 
-export interface Copy {
+interface Copy {
 	headline: string;
 	sub: string;
 	strainCopy: string;
