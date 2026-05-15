@@ -343,25 +343,44 @@ async function fetchTrendLive(accessToken: string): Promise<TrendPoint[]> {
 		whoopFetch(accessToken, "/activity/sleep?limit=25"),
 	]);
 
-	const cycles = listRecords(cyclesRaw)
-		.filter((c) => c.id != null && typeof c.start === "string")
-		.map((c) => ({
-			external_id: String(c.id),
-			start_at: c.start as string,
-			score: (c.score ?? null) as Record<string, unknown> | null,
-		}));
-	const recoveries = listRecords(recoveriesRaw)
-		.filter((r) => r.cycle_id != null)
-		.map((r) => ({
-			external_id: String(r.cycle_id),
-			score: (r.score ?? null) as Record<string, unknown> | null,
-		}));
-	const sleeps = listRecords(sleepsRaw)
-		.filter((s) => typeof s.start === "string")
-		.map((s) => ({
-			start_at: s.start as string,
-			score: (s.score ?? null) as Record<string, unknown> | null,
-		}));
+	const cycles: Array<{
+		external_id: string;
+		start_at: string;
+		score: Record<string, unknown> | null;
+	}> = [];
+	for (const c of listRecords(cyclesRaw)) {
+		if (c.id != null && typeof c.start === "string") {
+			cycles.push({
+				external_id: String(c.id),
+				start_at: c.start,
+				score: (c.score ?? null) as Record<string, unknown> | null,
+			});
+		}
+	}
+	const recoveries: Array<{
+		external_id: string;
+		score: Record<string, unknown> | null;
+	}> = [];
+	for (const r of listRecords(recoveriesRaw)) {
+		if (r.cycle_id != null) {
+			recoveries.push({
+				external_id: String(r.cycle_id),
+				score: (r.score ?? null) as Record<string, unknown> | null,
+			});
+		}
+	}
+	const sleeps: Array<{
+		start_at: string;
+		score: Record<string, unknown> | null;
+	}> = [];
+	for (const s of listRecords(sleepsRaw)) {
+		if (typeof s.start === "string") {
+			sleeps.push({
+				start_at: s.start,
+				score: (s.score ?? null) as Record<string, unknown> | null,
+			});
+		}
+	}
 
 	return buildTrendFromRecords(cycles, recoveries, sleeps);
 }
@@ -434,8 +453,10 @@ function buildCopySummary(shaped: {
 		sleep_efficiency_display: fmtFixed(sleepEff, 0),
 		trend_recent_recoveries: shaped.trend
 			.slice(-7)
-			.map((t) => t.recovery)
-			.filter((v): v is number => v != null),
+			.reduce<number[]>((acc, t) => {
+				if (t.recovery != null) acc.push(t.recovery);
+				return acc;
+			}, []),
 	};
 }
 

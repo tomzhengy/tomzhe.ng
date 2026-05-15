@@ -15,12 +15,25 @@
 				"files": ["app/components/photography/MosaicGrid.tsx"],
 				"rules": [
 					"react-doctor/prefer-useReducer",
-					"react-doctor/rendering-hydration-mismatch-time"
+					"react-doctor/rendering-hydration-mismatch-time",
+					"react-doctor/js-batch-dom-css"
 				]
 			},
 			{
 				"files": ["app/components/sections/LastVisitorProvider.tsx"],
 				"rules": ["react-doctor/no-fetch-in-effect"]
+			},
+			{
+				"files": ["scripts/**"],
+				"rules": ["react-doctor/js-set-map-lookups"]
+			},
+			{
+				"files": [
+					"app/lib/whoop.ts",
+					"app/lib/withings.ts",
+					"app/components/photography/DevUploadModal.tsx"
+				],
+				"rules": ["react-doctor/async-await-in-loop"]
 			}
 		]
 	}

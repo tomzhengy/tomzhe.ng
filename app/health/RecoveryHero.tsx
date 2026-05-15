@@ -24,7 +24,7 @@ export default function RecoveryHero({
 	const hrv = recovery?.score?.hrv_rmssd_milli ?? null;
 	const rhr = recovery?.score?.resting_heart_rate ?? null;
 
-	const hrvSeries = trend.map((t) => t.hrv ?? 0).filter((_, _i, a) => a.length);
+	const hrvSeries = trend.map((t) => t.hrv ?? 0);
 	const rhrSeries = trend.map((t) => t.rhr ?? 0);
 
 	const avgHrv =

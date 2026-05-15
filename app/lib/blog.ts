@@ -10,10 +10,11 @@ function getPostSlugs(): string[] {
 	if (!fs.existsSync(postsDirectory)) {
 		return [];
 	}
-	return fs
-		.readdirSync(postsDirectory)
-		.filter((file) => file.endsWith(".mdx"))
-		.map((file) => file.replace(/\.mdx$/, ""));
+	const slugs: string[] = [];
+	for (const file of fs.readdirSync(postsDirectory)) {
+		if (file.endsWith(".mdx")) slugs.push(file.replace(/\.mdx$/, ""));
+	}
+	return slugs;
 }
 
 export function getPostBySlug(slug: string): Post | null {
@@ -41,12 +42,16 @@ export function getPostBySlug(slug: string): Post | null {
 
 export function getAllPosts(): PostMeta[] {
 	const slugs = getPostSlugs();
-	const posts = slugs
-		.map((slug) => getPostBySlug(slug))
-		.filter((post): post is Post => post !== null && post.published)
-		.map(({ content, ...meta }) => meta)
-		.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
+	const posts: PostMeta[] = [];
+	for (const slug of slugs) {
+		const post = getPostBySlug(slug);
+		if (post !== null && post.published) {
+			const { content: _content, ...meta } = post;
+			void _content;
+			posts.push(meta);
+		}
+	}
+	posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 	return posts;
 }
 

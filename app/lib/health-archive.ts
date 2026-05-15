@@ -240,9 +240,11 @@ export async function upsertBodyMeasurements(
 	source: string,
 	grps: Record<string, unknown>[],
 ): Promise<void> {
-	const rows = grps
-		.map((g) => toBodyMeasurementRow(source, g))
-		.filter((v): v is UpsertRow => v != null);
+	const rows: UpsertRow[] = [];
+	for (const g of grps) {
+		const row = toBodyMeasurementRow(source, g);
+		if (row != null) rows.push(row);
+	}
 	await upsert(env, "health_body_measurements", rows, "source,external_id");
 }
 
@@ -465,18 +467,22 @@ export async function upsertBatch(
 		workouts?: Record<string, unknown>[];
 	},
 ): Promise<void> {
-	const cycles = (batch.cycles ?? [])
-		.map((r) => toCycleRow(source, r))
-		.filter((v): v is UpsertRow => v != null);
-	const recoveries = (batch.recoveries ?? [])
-		.map((r) => toRecoveryRow(source, r))
-		.filter((v): v is UpsertRow => v != null);
-	const sleeps = (batch.sleeps ?? [])
-		.map((r) => toSleepRow(source, r))
-		.filter((v): v is UpsertRow => v != null);
-	const workouts = (batch.workouts ?? [])
-		.map((r) => toWorkoutRow(source, r))
-		.filter((v): v is UpsertRow => v != null);
+	function compact<T>(
+		input: Record<string, unknown>[] | undefined,
+		fn: (r: Record<string, unknown>) => T | null,
+	): T[] {
+		const out: T[] = [];
+		if (!input) return out;
+		for (const r of input) {
+			const v = fn(r);
+			if (v != null) out.push(v);
+		}
+		return out;
+	}
+	const cycles = compact(batch.cycles, (r) => toCycleRow(source, r));
+	const recoveries = compact(batch.recoveries, (r) => toRecoveryRow(source, r));
+	const sleeps = compact(batch.sleeps, (r) => toSleepRow(source, r));
+	const workouts = compact(batch.workouts, (r) => toWorkoutRow(source, r));
 
 	await Promise.all([
 		upsert(env, "health_cycles", cycles),

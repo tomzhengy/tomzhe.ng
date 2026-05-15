@@ -61,14 +61,17 @@ export default function BodyCard({ body }: BodyCardProps) {
 
 		const collect = (
 			pick: (m: BodyMeasurement) => number | null,
-		): Array<{ date: Date; value: number }> =>
-			trend
-				.filter((p) => inRange(p.measuredAt) && pick(p) != null)
-				.map((p) => ({
-					date: new Date(p.measuredAt),
-					value: pick(p) as number,
-				}))
-				.sort((a, b) => a.date.getTime() - b.date.getTime());
+		): Array<{ date: Date; value: number }> => {
+			const out: Array<{ date: Date; value: number }> = [];
+			for (const p of trend) {
+				if (!inRange(p.measuredAt)) continue;
+				const v = pick(p);
+				if (v == null) continue;
+				out.push({ date: new Date(p.measuredAt), value: v });
+			}
+			out.sort((a, b) => a.date.getTime() - b.date.getTime());
+			return out;
+		};
 
 		return {
 			weight: collect((m) => m.weightKg),
@@ -114,7 +117,7 @@ export default function BodyCard({ body }: BodyCardProps) {
 	// body fat delta vs prior measurement that has a body-fat reading
 	const bfDelta = useMemo(() => {
 		if (!latest || latest.bodyFatPct == null) return null;
-		const sorted = [...trend].sort(
+		const sorted = trend.toSorted(
 			(a, b) =>
 				new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime(),
 		);
@@ -130,7 +133,7 @@ export default function BodyCard({ body }: BodyCardProps) {
 	// ~30 days ago measurement, used for "vs last month" deltas
 	const monthAgo = useMemo<BodyMeasurement | null>(() => {
 		const cutoff = Date.now() - 30 * 86_400_000;
-		const sorted = [...trend].sort(
+		const sorted = trend.toSorted(
 			(a, b) =>
 				new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime(),
 		);
@@ -575,9 +578,11 @@ function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
 	// weight is the anchor: it sets the time domain and is always present.
 	// y-axis spans every visible series so the toggled overlays share scale.
 	const anchor = chartSeries[0];
-	const visibleValues = chartSeries
-		.filter((s) => s.visible)
-		.flatMap((s) => s.points.map((p) => p.value));
+	const visibleValues: number[] = [];
+	for (const s of chartSeries) {
+		if (!s.visible) continue;
+		for (const p of s.points) visibleValues.push(p.value);
+	}
 	const allTimes = anchor?.points.map((p) => p.date.getTime()) ?? [];
 
 	const targetMin =
@@ -659,6 +664,31 @@ function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
 		return ticks.filter((_, i) => i % step === 0);
 	}, [anchor]);
 
+	// for each visible series, pick the point closest in time to hoverTime.
+	const hoveredPoints = useMemo<
+		Array<{ series: ChartSeries; point: { date: Date; value: number } }>
+	>(() => {
+		const out: Array<{
+			series: ChartSeries;
+			point: { date: Date; value: number };
+		}> = [];
+		if (hoverTime == null) return out;
+		for (const s of chartSeries) {
+			if (!s.visible || s.points.length === 0) continue;
+			let nearest = s.points[0];
+			let nearestDist = Math.abs(nearest.date.getTime() - hoverTime);
+			for (let i = 1; i < s.points.length; i++) {
+				const d = Math.abs(s.points[i].date.getTime() - hoverTime);
+				if (d < nearestDist) {
+					nearestDist = d;
+					nearest = s.points[i];
+				}
+			}
+			out.push({ series: s, point: nearest });
+		}
+		return out;
+	}, [chartSeries, hoverTime]);
+
 	if (!anchor || anchor.points.length < 2) {
 		return (
 			<div
@@ -671,25 +701,6 @@ function TrendChart({ chartSeries }: { chartSeries: ChartSeries[] }) {
 			/>
 		);
 	}
-
-	// for each visible series, pick the point closest in time to hoverTime.
-	const hoveredPoints =
-		hoverTime != null
-			? chartSeries
-					.filter((s) => s.visible && s.points.length > 0)
-					.map((s) => {
-						let nearest = s.points[0];
-						let nearestDist = Math.abs(nearest.date.getTime() - hoverTime);
-						for (let i = 1; i < s.points.length; i++) {
-							const d = Math.abs(s.points[i].date.getTime() - hoverTime);
-							if (d < nearestDist) {
-								nearestDist = d;
-								nearest = s.points[i];
-							}
-						}
-						return { series: s, point: nearest };
-					})
-			: [];
 
 	const hoverAnchor = hoveredPoints.find((h) => h.series.key === "weight");
 	const hoverX = hoverAnchor ? xForTime(hoverAnchor.point.date.getTime()) : 0;
@@ -1141,7 +1152,7 @@ function mergeLatest(
 	fallback: BodyMeasurement | null,
 ): BodyMeasurement | null {
 	if (trend.length === 0) return fallback;
-	const sorted = [...trend].sort(
+	const sorted = trend.toSorted(
 		(a, b) =>
 			new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime(),
 	);

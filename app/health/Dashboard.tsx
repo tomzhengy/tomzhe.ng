@@ -89,7 +89,7 @@ export default function Dashboard() {
 	const nowIso = new Date().toISOString();
 	const trend = useMemo<TrendPoint[]>(
 		() =>
-			[...(data.payload?.trend ?? [])].sort((a, b) =>
+			(data.payload?.trend ?? []).toSorted((a, b) =>
 				a.date.localeCompare(b.date),
 			),
 		[data.payload],

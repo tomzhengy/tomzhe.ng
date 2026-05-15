@@ -157,6 +157,10 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 				month: "short",
 			})
 		: "";
+	const visibleMetrics: Metric[] = [];
+	for (const m of METRICS) {
+		if (visible[m.key]) visibleMetrics.push(m);
+	}
 	const HOVER_EASE = "linear";
 	const HOVER_DUR = "140ms";
 	const slideTransition = `left ${HOVER_DUR} ${HOVER_EASE}, top ${HOVER_DUR} ${HOVER_EASE}`;
@@ -326,7 +330,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 						>
 							{activeDateLabel}
 						</div>
-						{METRICS.filter((m) => visible[m.key]).map((m) => {
+						{visibleMetrics.map((m) => {
 							const raw = (
 								active as unknown as Record<string, number | string | null>
 							)[m.key];

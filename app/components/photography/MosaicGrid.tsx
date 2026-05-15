@@ -193,7 +193,7 @@ export default function MosaicGrid({
 	};
 
 	const [photos, setPhotos] = useState<MosaicItem[]>(() =>
-		[...items].sort(
+		items.toSorted(
 			(a, b) =>
 				parseDescriptionDate(b.description) -
 				parseDescriptionDate(a.description),

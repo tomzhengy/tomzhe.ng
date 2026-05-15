@@ -110,6 +110,7 @@ export async function PUT(request: NextRequest) {
 
 		const photos = getPhotos();
 		const photoMap = new Map(photos.map((p) => [p.id, p]));
+		const orderedIdSet = new Set(orderedIds);
 		const reordered: MosaicItem[] = [];
 
 		for (const id of orderedIds) {
@@ -119,7 +120,7 @@ export async function PUT(request: NextRequest) {
 
 		// append any photos not in orderedIds (safety net)
 		for (const photo of photos) {
-			if (!orderedIds.includes(photo.id)) {
+			if (!orderedIdSet.has(photo.id)) {
 				reordered.push(photo);
 			}
 		}
