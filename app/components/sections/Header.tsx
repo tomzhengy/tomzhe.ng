@@ -5,41 +5,41 @@ import Link from "next/link";
 import Tooltip from "../ui/Tooltip";
 
 interface HeaderProps {
-  ThemeToggleComponent: ComponentType;
-  currentPage?: "home" | "investing" | "thoughts" | "photography" | "health";
+	ThemeToggleComponent: ComponentType;
+	currentPage?: "home" | "investing" | "thoughts" | "photography" | "health";
 }
 
 export default function Header({
-  ThemeToggleComponent,
-  currentPage,
+	ThemeToggleComponent,
+	currentPage,
 }: HeaderProps) {
-  return (
-    <div className="flex items-center justify-between mb-8 h-8 w-full">
-      {/* Navigation links */}
-      <div className="header-nav flex gap-6 text-lg">
-        <Link
-          href="/"
-          className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "home" ? "underline" : "hover:underline"}`}
-        >
-          Tom Zheng
-        </Link>
-        <Link
-          href="/investing"
-          className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "investing" ? "underline" : "hover:underline"}`}
-        >
-          Investing
-        </Link>
-        <Tooltip text="coming soon!">
-          <span className="opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-pointer">
-            Thoughts
-          </span>
-        </Tooltip>
-      </div>
+	return (
+		<div className="flex items-center justify-between mb-8 h-8 w-full">
+			{/* Navigation links */}
+			<div className="header-nav flex gap-6 text-lg">
+				<Link
+					href="/"
+					className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "home" ? "underline" : "hover:underline"}`}
+				>
+					Tom Zheng
+				</Link>
+				<Link
+					href="/investing"
+					className={`opacity-85 hover:opacity-100 transition-opacity ${currentPage === "investing" ? "underline" : "hover:underline"}`}
+				>
+					Investing
+				</Link>
+				<Tooltip text="coming soon!">
+					<span className="opacity-85 hover:opacity-100 transition-opacity hover:underline cursor-pointer">
+						Thoughts
+					</span>
+				</Tooltip>
+			</div>
 
-      {/* Theme toggle */}
-      <div className="min-w-[24px] min-h-[24px] flex justify-end opacity-85 hover:opacity-100 transition-all">
-        <ThemeToggleComponent />
-      </div>
-    </div>
-  );
+			{/* Theme toggle */}
+			<div className="min-w-[24px] min-h-[24px] flex justify-end opacity-85 hover:opacity-100 transition-all">
+				<ThemeToggleComponent />
+			</div>
+		</div>
+	);
 }
