@@ -178,9 +178,9 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 					preserveAspectRatio="none"
 					style={{ width: "100%", height: VIEW_H, display: "block" }}
 				>
-					{gridYs.map((y, i) => (
+					{gridYs.map((y) => (
 						<line
-							key={`g-${i}`}
+							key={`g-${y}`}
 							x1={PAD.l}
 							x2={VIEW_W - PAD.r}
 							y1={y}
@@ -292,8 +292,8 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 						marginTop: 6,
 					}}
 				>
-					{axisTicks.map((t, i) => (
-						<span key={i}>{t}</span>
+					{axisTicks.map((t) => (
+						<span key={t}>{t}</span>
 					))}
 				</div>
 

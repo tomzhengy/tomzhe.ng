@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Header from "../components/sections/Header";
 import SocialLinks from "../components/sections/SocialLinks";
 import LastVisitor from "../components/sections/LastVisitor";
 import ThemeToggle from "../components/ui/theme/ThemeToggle";
 import Tooltip from "../components/ui/Tooltip";
+
+export const metadata: Metadata = {
+	title: "Investing — Tom Zheng",
+	description: "Angel investing in pre-seed and seed-stage founders.",
+};
 
 export default function InvestingPage() {
 	return (

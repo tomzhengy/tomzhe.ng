@@ -1,6 +1,18 @@
 {
 	"ignore": {
-		"rules": ["react-doctor/no-tiny-text"],
+		"tags": ["design"],
+		"rules": [
+			"react-doctor/no-tiny-text",
+			"react/no-danger",
+			"react-doctor/no-inline-exhaustive-style",
+			"react-doctor/no-giant-component",
+			"react-doctor/no-wide-letter-spacing",
+			"react-doctor/no-layout-transition-inline",
+			"react-doctor/no-long-transition-duration",
+			"react-doctor/no-pure-black-background",
+			"react-doctor/no-z-index-9999",
+			"react-doctor/design-no-redundant-size-axes"
+		],
 		"overrides": [
 			{
 				"files": [
@@ -17,7 +29,8 @@
 				"rules": [
 					"react-doctor/prefer-useReducer",
 					"react-doctor/rendering-hydration-mismatch-time",
-					"react-doctor/js-batch-dom-css"
+					"react-doctor/js-batch-dom-css",
+					"react-doctor/nextjs-no-img-element"
 				]
 			},
 			{

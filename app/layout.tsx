@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "./components/ui/theme/ThemeProvider";
 import { LastVisitorProvider } from "./components/sections/LastVisitorProvider";
@@ -86,30 +87,10 @@ export default function RootLayout({
 					fetchPriority="high"
 				/>
 				{/* Inline Theme Script - Will run immediately, before page renders */}
-				<script
-					dangerouslySetInnerHTML={{
-						__html: `
-              (function() {
-                // Theme detection and application script
-                try {
-                  // Check localStorage first
-                  const savedTheme = localStorage.getItem('theme');
-                  if (savedTheme === 'light' || savedTheme === 'dark') {
-                    document.documentElement.classList.add(savedTheme);
-                    return;
-                  }
-                  
-                  // Then check system preference
-                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
-                } catch (e) {
-                  // Fallback to default theme if detection fails
-                  document.documentElement.classList.add('dark');
-                }
-              })();
-            `,
-					}}
-				/>
+				<Script
+					id="theme-init"
+					strategy="beforeInteractive"
+				>{`(function(){try{var s=localStorage.getItem('theme');if(s==='light'||s==='dark'){document.documentElement.classList.add(s);return;}var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.add(d?'dark':'light');}catch(e){document.documentElement.classList.add('dark');}})();`}</Script>
 			</head>
 			<body>
 				<NoiseTexture />

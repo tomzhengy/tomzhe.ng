@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useReducer, useRef } from "react";
 import { MosaicItem } from "../../types/photography";
 import DevToolbar from "./DevToolbar";
 import DevPhotoOverlay from "./DevPhotoOverlay";
-import { renderDescription } from "./parseDescription";
+import { Description } from "./parseDescription";
 
 const R2_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
 const DEFAULT_GEAR = "Sony A6700\nSIGMA 18-50mm f/2.8";
@@ -442,7 +442,7 @@ export default function MosaicGrid({
 								/>
 							) : (
 								<p className="text-sm opacity-80 mt-3 whitespace-pre-line">
-									{renderDescription(displayedItem.description)}
+									<Description text={displayedItem.description} />
 								</p>
 							)}
 						</div>
@@ -725,7 +725,7 @@ export default function MosaicGrid({
 									)}
 									{currentSelected.description && (
 										<p className="text-sm text-white/80 mt-2 whitespace-pre-line">
-											{renderDescription(currentSelected.description)}
+											<Description text={currentSelected.description} />
 										</p>
 									)}
 									<p className="text-sm text-white/40 mt-2 text-right whitespace-pre-line">
@@ -929,7 +929,7 @@ export default function MosaicGrid({
 												)}
 												{currentSelected.description && (
 													<p className="text-sm text-white/80 mt-3 whitespace-pre-line">
-														{renderDescription(currentSelected.description)}
+														<Description text={currentSelected.description} />
 													</p>
 												)}
 											</div>

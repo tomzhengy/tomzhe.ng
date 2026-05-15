@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 
@@ -8,6 +7,10 @@ import Header from "./components/sections/Header";
 import LastVisitor from "./components/sections/LastVisitor";
 
 import ThemeToggle from "./components/ui/theme/ThemeToggle";
+
+export const metadata: Metadata = {
+	title: "Tom Zheng",
+};
 
 export default function Home() {
 	return (

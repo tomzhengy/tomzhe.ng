@@ -138,8 +138,11 @@ export default function DevUploadModal({
 
 				{files.length > 0 && (
 					<div className="mb-4 max-h-[200px] overflow-y-auto">
-						{files.map((f, i) => (
-							<div key={i} className="text-sm opacity-80 truncate">
+						{files.map((f) => (
+							<div
+								key={`${f.name}-${f.size}-${f.lastModified}`}
+								className="text-sm opacity-80 truncate"
+							>
 								{f.name} ({(f.size / 1024 / 1024).toFixed(1)} MB)
 							</div>
 						))}

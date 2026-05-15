@@ -1214,11 +1214,16 @@ function hydrationCaption(m: BodyMeasurement | null): React.ReactNode {
 			</span>,
 		);
 	}
-	return parts.reduce<React.ReactNode[]>((acc, node, i) => {
-		if (i > 0) acc.push(<span key={`sep-${i}`}> · </span>);
-		acc.push(node);
-		return acc;
-	}, []);
+	const result: React.ReactNode[] = [];
+	let sepCount = 0;
+	for (const part of parts) {
+		if (result.length > 0) {
+			sepCount++;
+			result.push(<span key={`hydration-sep-${sepCount}`}> · </span>);
+		}
+		result.push(part);
+	}
+	return result;
 }
 
 function formatTileNumber(value: number, digits: number): string {

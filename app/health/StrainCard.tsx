@@ -300,8 +300,8 @@ export function CardHead({
 							fontSize: 18,
 						}}
 					>
-						{" "}
-						— {subtitleAccent}
+						{" - "}
+						{subtitleAccent}
 					</span>
 				)}
 			</h3>
