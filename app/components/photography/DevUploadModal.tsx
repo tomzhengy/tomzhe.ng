@@ -85,17 +85,31 @@ export default function DevUploadModal({
 
 	return (
 		<div
+			role="button"
+			tabIndex={0}
+			aria-label="Close dialog"
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
 			onClick={onClose}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					onClose();
+				}
+			}}
 		>
 			<div
+				role="dialog"
+				aria-modal="true"
+				aria-label="Upload photos"
 				className="bg-[var(--background)] border border-[var(--foreground)]/20 p-6 w-[480px] max-w-[90vw]"
 				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
 			>
 				<h2 className="text-lg mb-4">upload photos</h2>
 
-				<div
-					className="border-2 border-dashed border-[var(--foreground)]/30 p-8 text-center cursor-pointer mb-4"
+				<button
+					type="button"
+					className="border-2 border-dashed border-[var(--foreground)]/30 p-8 text-center cursor-pointer mb-4 bg-transparent w-full"
 					onClick={() => inputRef.current?.click()}
 					onDragOver={(e) => e.preventDefault()}
 					onDrop={(e) => {
@@ -120,7 +134,7 @@ export default function DevUploadModal({
 							drop files here or click to select
 						</p>
 					)}
-				</div>
+				</button>
 
 				{files.length > 0 && (
 					<div className="mb-4 max-h-[200px] overflow-y-auto">

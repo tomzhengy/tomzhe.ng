@@ -1,5 +1,6 @@
 {
 	"ignore": {
+		"rules": ["react-doctor/no-tiny-text"],
 		"overrides": [
 			{
 				"files": [

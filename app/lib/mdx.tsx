@@ -45,6 +45,7 @@ export async function compileMdx(source: string) {
 					return (
 						<div className="carbon-embed">
 							<iframe
+								title="code preview"
 								src={src}
 								style={{ height: `${height}px` }}
 								sandbox="allow-scripts allow-same-origin"

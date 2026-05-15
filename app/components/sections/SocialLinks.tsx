@@ -7,8 +7,7 @@ export default function SocialLinks() {
 	const email = "tomzheng1012@gmail.com";
 	const [emailCopied, setEmailCopied] = useState(false);
 
-	const handleEmailClick = async (e: React.MouseEvent) => {
-		e.preventDefault();
+	const handleEmailClick = async () => {
 		try {
 			await navigator.clipboard.writeText(email);
 			setEmailCopied(true);
@@ -89,7 +88,12 @@ export default function SocialLinks() {
 			</a>
 			<span className="opacity-50">/</span>
 			<Tooltip text={emailCopied ? "copied!" : "copy"}>
-				<a href="#" onClick={handleEmailClick} aria-label="Copy Email">
+				<button
+					type="button"
+					onClick={handleEmailClick}
+					aria-label="Copy Email"
+					className="bg-transparent border-0 p-0 cursor-pointer"
+				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="20"
@@ -105,7 +109,7 @@ export default function SocialLinks() {
 						<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
 						<polyline points="22,6 12,13 2,6"></polyline>
 					</svg>
-				</a>
+				</button>
 			</Tooltip>
 		</div>
 	);

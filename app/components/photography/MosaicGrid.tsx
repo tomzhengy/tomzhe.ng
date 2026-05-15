@@ -88,6 +88,9 @@ function PhotoCell({
 	const objectFit = contain ? "object-contain" : "object-cover";
 	return (
 		<div
+			role="button"
+			tabIndex={0}
+			aria-label={item.title}
 			className={`relative overflow-hidden transition-opacity duration-300 hover:opacity-80 cursor-pointer ${contain ? "" : "w-full"} ${className}`}
 			style={{ backgroundColor: item.color, ...style }}
 			onMouseEnter={() => {
@@ -108,6 +111,12 @@ function PhotoCell({
 			}}
 			onMouseLeave={() => setHoveredItem(null)}
 			onClick={() => !editMode && setSelectedItem(item)}
+			onKeyDown={(e) => {
+				if ((e.key === "Enter" || e.key === " ") && !editMode) {
+					e.preventDefault();
+					setSelectedItem(item);
+				}
+			}}
 		>
 			{getThumbUrl(item) &&
 				(item.type === "still" ? (
@@ -547,8 +556,17 @@ export default function MosaicGrid({
 				{showContactPrompt && (
 					<>
 						<div
+							role="button"
+							tabIndex={0}
+							aria-label="Close dialog"
 							className="fixed inset-0 z-50 bg-black/50"
 							onClick={() => setShowContactPrompt(false)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									setShowContactPrompt(false);
+								}
+							}}
 						/>
 						<div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--background)] border border-[var(--foreground)] p-6 w-[90vw] max-w-md">
 							<p className="text-sm">
@@ -670,13 +688,31 @@ export default function MosaicGrid({
 					<>
 						{/* backdrop */}
 						<div
+							role="button"
+							tabIndex={0}
+							aria-label="Close photo"
 							className={`fixed inset-0 z-50 bg-black/80 backdrop-blur-sm cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease]"}`}
 							onClick={closeSelected}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									closeSelected();
+								}
+							}}
 						/>
 						{/* content: mobile text + image (animated) */}
 						<div
+							role="button"
+							tabIndex={-1}
+							aria-label="Close photo"
 							className={`fixed inset-0 z-50 cursor-pointer transition-opacity duration-200 ${closing ? "opacity-0" : "animate-[fade-in_0.3s_ease_0.15s_backwards]"}`}
 							onClick={closeSelected}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									closeSelected();
+								}
+							}}
 						>
 							{/* mobile: text + image in a column */}
 							<div className="md:hidden flex flex-col h-full px-4 pt-6 pb-4">
@@ -778,10 +814,7 @@ export default function MosaicGrid({
 							className={`hidden md:flex fixed inset-0 z-50 justify-center pointer-events-none transition-opacity duration-200 ${closing ? "opacity-0" : ""}`}
 						>
 							<div className="w-full max-w-[1400px] px-4 flex gap-4">
-								<div
-									className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] pb-[calc(8vh+4rem)] break-words overflow-x-hidden pointer-events-auto"
-									onClick={(e) => e.stopPropagation()}
-								>
+								<div className="w-[200px] shrink-0 min-w-0 flex flex-col pt-[calc(8vh+4rem)] pb-[calc(8vh+4rem)] break-words overflow-x-hidden pointer-events-auto">
 									{isDevMode ? (
 										<>
 											<div className="flex-1 min-h-0 overflow-y-auto">

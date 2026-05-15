@@ -55,6 +55,9 @@ export default function DrillModal({ point, onClose }: DrillModalProps) {
 	return (
 		<>
 			<div
+				role="button"
+				tabIndex={0}
+				aria-label="Close"
 				style={{
 					position: "fixed",
 					inset: 0,
@@ -66,6 +69,12 @@ export default function DrillModal({ point, onClose }: DrillModalProps) {
 					transition: "opacity .25s",
 				}}
 				onClick={onClose}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						onClose();
+					}
+				}}
 			/>
 			<aside
 				role="dialog"
