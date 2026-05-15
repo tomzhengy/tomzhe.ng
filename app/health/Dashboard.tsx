@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import type { HealthPayload, TrendPoint } from "./types";
 import Masthead from "./Masthead";
 import Dateline from "./Dateline";
@@ -16,10 +16,34 @@ import { CardHead } from "./StrainCard";
 
 type UiState = "loading" | "ok" | "empty" | "error";
 
+interface DataState {
+	payload: HealthPayload | null;
+	ui: UiState;
+	errorMsg: string | null;
+}
+
+type DataAction =
+	| { type: "loaded"; payload: HealthPayload; ui: UiState }
+	| { type: "error-loaded"; payload: HealthPayload; message: string }
+	| { type: "error"; message: string };
+
+function dataReducer(state: DataState, action: DataAction): DataState {
+	switch (action.type) {
+		case "loaded":
+			return { payload: action.payload, ui: action.ui, errorMsg: null };
+		case "error-loaded":
+			return { payload: action.payload, ui: "error", errorMsg: action.message };
+		case "error":
+			return { ...state, ui: "error", errorMsg: action.message };
+	}
+}
+
 export default function Dashboard() {
-	const [payload, setPayload] = useState<HealthPayload | null>(null);
-	const [uiState, setUiState] = useState<UiState>("loading");
-	const [errorMsg, setErrorMsg] = useState<string | null>(null);
+	const [data, dispatch] = useReducer(dataReducer, {
+		payload: null,
+		ui: "loading",
+		errorMsg: null,
+	});
 	const [drillIdx, setDrillIdx] = useState<number | null>(null);
 	const [syncing, setSyncing] = useState(false);
 
@@ -37,18 +61,22 @@ export default function Dashboard() {
 				: await fetch("/api/health", { cache: "no-store" });
 			if (!r.ok) throw new Error(`HTTP ${r.status}`);
 			const json = (await r.json()) as HealthPayload;
-			setPayload(json);
 			if (json.state === "error") {
-				setUiState("error");
-				setErrorMsg(json.message ?? "Unknown error");
+				dispatch({
+					type: "error-loaded",
+					payload: json,
+					message: json.message ?? "Unknown error",
+				});
 			} else if (!json.cycle && !json.recovery && !json.sleep) {
-				setUiState("empty");
+				dispatch({ type: "loaded", payload: json, ui: "empty" });
 			} else {
-				setUiState("ok");
+				dispatch({ type: "loaded", payload: json, ui: "ok" });
 			}
 		} catch (err) {
-			setUiState("error");
-			setErrorMsg(err instanceof Error ? err.message : String(err));
+			dispatch({
+				type: "error",
+				message: err instanceof Error ? err.message : String(err),
+			});
 		} finally {
 			if (opts.manual) setSyncing(false);
 		}
@@ -61,14 +89,16 @@ export default function Dashboard() {
 	const nowIso = new Date().toISOString();
 	const trend = useMemo<TrendPoint[]>(
 		() =>
-			[...(payload?.trend ?? [])].sort((a, b) => a.date.localeCompare(b.date)),
-		[payload],
+			[...(data.payload?.trend ?? [])].sort((a, b) =>
+				a.date.localeCompare(b.date),
+			),
+		[data.payload],
 	);
 
 	return (
 		<div
 			className="health-page"
-			data-state={uiState}
+			data-state={data.ui}
 			style={{
 				fontFamily: "var(--f-sans)",
 				fontSize: 14,
@@ -76,21 +106,24 @@ export default function Dashboard() {
 			}}
 		>
 			<Masthead
-				syncedAt={payload?.syncedAt ?? null}
+				syncedAt={data.payload?.syncedAt ?? null}
 				syncing={syncing}
 				onSync={() => loadHealth({ manual: true })}
 			/>
 
-			<Dateline cycleStartIso={payload?.cycle?.start ?? null} nowIso={nowIso} />
+			<Dateline
+				cycleStartIso={data.payload?.cycle?.start ?? null}
+				nowIso={nowIso}
+			/>
 
-			{uiState === "loading" && (
+			{data.ui === "loading" && (
 				<Banner text="Loading your cycle · waiting on WHOOP · please hold" />
 			)}
-			{uiState === "empty" && (
+			{data.ui === "empty" && (
 				<Banner text="No cycles recorded for this range. Wear your strap and check back in the morning." />
 			)}
-			{uiState === "error" && (
-				<Banner text={`Couldn't reach WHOOP. ${errorMsg ?? ""}`} />
+			{data.ui === "error" && (
+				<Banner text={`Couldn't reach WHOOP. ${data.errorMsg ?? ""}`} />
 			)}
 
 			<section
@@ -103,22 +136,22 @@ export default function Dashboard() {
 				}}
 			>
 				<RecoveryHero
-					recovery={payload?.recovery ?? null}
+					recovery={data.payload?.recovery ?? null}
 					trend={trend}
-					subHtml={payload?.copy?.sub ?? null}
+					subHtml={data.payload?.copy?.sub ?? null}
 				/>
 				<StrainCard
-					cycle={payload?.cycle ?? null}
-					strainCopyHtml={payload?.copy?.strainCopy ?? null}
+					cycle={data.payload?.cycle ?? null}
+					strainCopyHtml={data.payload?.copy?.strainCopy ?? null}
 				/>
 				<SleepCard
-					sleep={payload?.sleep ?? null}
-					sleepCopyHtml={payload?.copy?.sleepCopy ?? null}
+					sleep={data.payload?.sleep ?? null}
+					sleepCopyHtml={data.payload?.copy?.sleepCopy ?? null}
 				/>
 
-				<BodyCard body={payload?.body ?? null} />
+				<BodyCard body={data.payload?.body ?? null} />
 
-				<WorkoutsCard workouts={payload?.workouts ?? []} />
+				<WorkoutsCard workouts={data.payload?.workouts ?? []} />
 
 				<article
 					className="health-card filled"
@@ -136,9 +169,9 @@ export default function Dashboard() {
 			</section>
 
 			<JournalFooter
-				weekly={payload?.copy?.journal.weekly ?? null}
-				watch={payload?.copy?.journal.watch ?? null}
-				checkIn={payload?.copy?.journal.checkIn ?? null}
+				weekly={data.payload?.copy?.journal.weekly ?? null}
+				watch={data.payload?.copy?.journal.watch ?? null}
+				checkIn={data.payload?.copy?.journal.checkIn ?? null}
 			/>
 
 			<DrillModal

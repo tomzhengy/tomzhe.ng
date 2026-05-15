@@ -130,7 +130,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 		);
 		return positions.map((i) => {
 			const d = new Date(data[i].date);
-			return d.toLocaleDateString(undefined, {
+			return d.toLocaleDateString("en-US", {
 				day: "numeric",
 				month: "short",
 			});
@@ -150,6 +150,13 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 	const active = hover ? data[hover.idx] : null;
 	const activePx = hover != null ? xFor(hover.idx) : 0;
 	const activeLeftPct = `${(activePx / VIEW_W) * 100}%`;
+	const activeDateLabel = active
+		? new Date(active.date).toLocaleDateString("en-US", {
+				weekday: "short",
+				day: "numeric",
+				month: "short",
+			})
+		: "";
 	const HOVER_EASE = "linear";
 	const HOVER_DUR = "140ms";
 	const slideTransition = `left ${HOVER_DUR} ${HOVER_EASE}, top ${HOVER_DUR} ${HOVER_EASE}`;
@@ -317,11 +324,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 								letterSpacing: 0,
 							}}
 						>
-							{new Date(active.date).toLocaleDateString(undefined, {
-								weekday: "short",
-								day: "numeric",
-								month: "short",
-							})}
+							{activeDateLabel}
 						</div>
 						{METRICS.filter((m) => visible[m.key]).map((m) => {
 							const raw = (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { TrendPoint } from "./types";
 
 interface DrillModalProps {
@@ -9,10 +9,13 @@ interface DrillModalProps {
 }
 
 export default function DrillModal({ point, onClose }: DrillModalProps) {
+	const onCloseRef = useRef(onClose);
+	onCloseRef.current = onClose;
+
 	useEffect(() => {
 		if (!point) return;
 		const handler = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
+			if (e.key === "Escape") onCloseRef.current();
 		};
 		document.addEventListener("keydown", handler);
 		const prev = document.body.style.overflow;
@@ -21,12 +24,12 @@ export default function DrillModal({ point, onClose }: DrillModalProps) {
 			document.removeEventListener("keydown", handler);
 			document.body.style.overflow = prev;
 		};
-	}, [point, onClose]);
+	}, [point]);
 
 	if (!point) return null;
 
 	const d = new Date(point.date);
-	const dateLabel = d.toLocaleDateString(undefined, {
+	const dateLabel = d.toLocaleDateString("en-US", {
 		weekday: "long",
 		day: "numeric",
 		month: "long",

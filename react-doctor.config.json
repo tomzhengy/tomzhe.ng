@@ -9,7 +9,18 @@
 					"scripts/withings-probe.ts",
 					"scripts/withings-steps-today.ts"
 				],
-				"rules": ["files"]
+				"rules": ["knip/files"]
+			},
+			{
+				"files": ["app/components/photography/MosaicGrid.tsx"],
+				"rules": [
+					"react-doctor/prefer-useReducer",
+					"react-doctor/rendering-hydration-mismatch-time"
+				]
+			},
+			{
+				"files": ["app/components/sections/LastVisitorProvider.tsx"],
+				"rules": ["react-doctor/no-fetch-in-effect"]
 			}
 		]
 	}

@@ -2,9 +2,9 @@
 
 import React, {
 	createContext,
-	useContext,
+	use,
 	useEffect,
-	useState,
+	useReducer,
 	useRef,
 } from "react";
 import { supabase } from "@/app/lib/supabase-client";
@@ -23,6 +23,47 @@ interface LastVisitorContextType {
 	visitorIp: string | null;
 }
 
+interface State {
+	lastVisitor: Visitor | null;
+	loading: boolean;
+	displayedLocation: string;
+	isTyping: boolean;
+	visitorIp: string | null;
+}
+
+type Action =
+	| { type: "init-done" }
+	| { type: "set-ip"; ip: string }
+	| { type: "set-visitor"; visitor: Visitor }
+	| { type: "start-typing" }
+	| { type: "type-char"; text: string }
+	| { type: "stop-typing" };
+
+function reducer(state: State, action: Action): State {
+	switch (action.type) {
+		case "init-done":
+			return { ...state, loading: false };
+		case "set-ip":
+			return { ...state, visitorIp: action.ip };
+		case "set-visitor":
+			return { ...state, lastVisitor: action.visitor, loading: false };
+		case "start-typing":
+			return { ...state, isTyping: true };
+		case "type-char":
+			return { ...state, displayedLocation: action.text };
+		case "stop-typing":
+			return { ...state, isTyping: false };
+	}
+}
+
+const initialState: State = {
+	lastVisitor: null,
+	loading: true,
+	displayedLocation: "",
+	isTyping: false,
+	visitorIp: null,
+};
+
 const LastVisitorContext = createContext<LastVisitorContextType | undefined>(
 	undefined,
 );
@@ -32,11 +73,7 @@ export function LastVisitorProvider({
 }: {
 	children: React.ReactNode;
 }) {
-	const [lastVisitor, setLastVisitor] = useState<Visitor | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [displayedLocation, setDisplayedLocation] = useState("");
-	const [isTyping, setIsTyping] = useState(false);
-	const [visitorIp, setVisitorIp] = useState<string | null>(null);
+	const [state, dispatch] = useReducer(reducer, initialState);
 	const hasFetched = useRef(false);
 	const hasStartedTyping = useRef(false);
 
@@ -48,9 +85,12 @@ export function LastVisitorProvider({
 		// skip if Supabase is not configured
 		if (!supabase) {
 			console.log("Supabase not configured - skipping visitor tracking");
-			setLoading(false);
+			dispatch({ type: "init-done" });
 			return;
 		}
+
+		let cancelled = false;
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
 		const getLocationAndTrack = async () => {
 			if (!supabase) return;
@@ -73,9 +113,8 @@ export function LastVisitorProvider({
 					return;
 				}
 
-				// store the IP for other components to use
-				if (locationData.ip) {
-					setVisitorIp(locationData.ip);
+				if (locationData.ip && !cancelled) {
+					dispatch({ type: "set-ip", ip: locationData.ip });
 				}
 
 				const { error: trackError } = await supabase.from("visitors").insert({
@@ -102,73 +141,85 @@ export function LastVisitorProvider({
 			}
 		};
 
-		const fetchVisitorByIndex = async (index: number) => {
-			if (!supabase) return;
-
+		const fetchInitialVisitor = async () => {
+			if (!supabase || cancelled) return;
 			try {
 				const { data, error } = await supabase
 					.from("visitors")
 					.select("city, country, visited_at")
 					.order("visited_at", { ascending: false })
-					.range(index, index)
+					.range(1, 1)
 					.single();
 
+				if (cancelled) return;
 				if (error && error.code !== "PGRST116") {
 					console.log("Could not fetch visitor");
+					dispatch({ type: "init-done" });
 				} else if (data) {
-					setLastVisitor(data);
+					dispatch({ type: "set-visitor", visitor: data });
+				} else {
+					dispatch({ type: "init-done" });
 				}
 			} catch {
-				// silently handle
+				if (!cancelled) dispatch({ type: "init-done" });
 			}
 		};
 
-		const fetchInitialVisitor = async () => {
-			await fetchVisitorByIndex(1);
-			setLoading(false);
-		};
-
 		getLocationAndTrack().then(() => {
-			setTimeout(() => {
+			if (cancelled) return;
+			timeoutId = setTimeout(() => {
 				fetchInitialVisitor();
 			}, 1000);
 		});
+
+		return () => {
+			cancelled = true;
+			if (timeoutId) clearTimeout(timeoutId);
+		};
 	}, []);
 
-	// Typewriter effect - runs in provider so it only happens once
+	// typewriter effect - runs in provider so it only happens once
 	useEffect(() => {
 		if (hasStartedTyping.current) return;
-		if (!lastVisitor || !lastVisitor.city || !lastVisitor.country) return;
+		if (
+			!state.lastVisitor ||
+			!state.lastVisitor.city ||
+			!state.lastVisitor.country
+		)
+			return;
 
 		hasStartedTyping.current = true;
-		const newLocation = `${lastVisitor.city}, ${lastVisitor.country}`;
+		const newLocation = `${state.lastVisitor.city}, ${state.lastVisitor.country}`;
 
-		setIsTyping(true);
+		dispatch({ type: "start-typing" });
 
 		let typeIndex = 0;
 		const typeInterval = setInterval(() => {
 			if (typeIndex < newLocation.length) {
-				setDisplayedLocation(newLocation.substring(0, typeIndex + 1));
+				dispatch({
+					type: "type-char",
+					text: newLocation.substring(0, typeIndex + 1),
+				});
 				typeIndex++;
 			} else {
 				clearInterval(typeInterval);
-				setIsTyping(false);
+				dispatch({ type: "stop-typing" });
 			}
 		}, 40);
 
 		return () => {
 			clearInterval(typeInterval);
 		};
-	}, [lastVisitor]);
+	}, [state.lastVisitor]);
 
 	return (
 		<LastVisitorContext.Provider
 			value={{
-				lastVisitor,
-				loading,
-				displayedLocation,
-				isTyping,
-				visitorIp,
+				lastVisitor: state.lastVisitor,
+				loading: state.loading,
+				displayedLocation: state.displayedLocation,
+				isTyping: state.isTyping,
+				visitorIp: state.visitorIp,
 			}}
 		>
 			{children}
@@ -177,7 +228,7 @@ export function LastVisitorProvider({
 }
 
 export function useLastVisitor() {
-	const context = useContext(LastVisitorContext);
+	const context = use(LastVisitorContext);
 	if (context === undefined) {
 		throw new Error("useLastVisitor must be used within a LastVisitorProvider");
 	}

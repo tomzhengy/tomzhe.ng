@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+	createContext,
+	use,
+	useEffect,
+	useReducer,
+	useRef,
+} from "react";
 
 type Theme = "light" | "dark";
 
@@ -34,82 +40,88 @@ function getSystemTheme(): Theme {
 	}
 }
 
+interface State {
+	theme: Theme;
+	mounted: boolean;
+}
+
+type Action =
+	| { type: "mount"; theme: Theme }
+	| { type: "set-theme"; theme: Theme };
+
+function reducer(state: State, action: Action): State {
+	switch (action.type) {
+		case "mount":
+			return { theme: action.theme, mounted: true };
+		case "set-theme":
+			return { ...state, theme: action.theme };
+	}
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-	// Default to system theme when possible
-	const [theme, setTheme] = useState<Theme>("dark");
-	// Add state to track if user has manually set theme
-	const [isManuallySet, setIsManuallySet] = useState<boolean>(false);
-	// Add state to track if we've mounted yet to avoid hydration issues
-	const [mounted, setMounted] = useState(false);
+	const [state, dispatch] = useReducer(reducer, {
+		theme: "dark",
+		mounted: false,
+	});
+	// manual-set lives in a ref because reads happen only inside handlers, not render
+	const isManuallySetRef = useRef(false);
 
-	// Effect to detect system theme preference - only runs client-side after hydration
+	// detect system theme preference and wire up listener — once on mount
 	useEffect(() => {
-		setMounted(true);
-
-		// Initialize theme
 		const savedTheme = getThemeFromStorage();
-
 		if (savedTheme) {
-			setTheme(savedTheme);
-			setIsManuallySet(true);
+			isManuallySetRef.current = true;
+			dispatch({ type: "mount", theme: savedTheme });
 		} else {
-			// Use system preference as default
-			setTheme(getSystemTheme());
-			setIsManuallySet(false);
+			isManuallySetRef.current = false;
+			dispatch({ type: "mount", theme: getSystemTheme() });
 		}
 
-		// Add listener for system preference changes
 		try {
 			const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 			const handleChange = (e: MediaQueryListEvent) => {
-				// Only follow system if user hasn't manually set a preference
-				if (!isManuallySet) {
-					setTheme(e.matches ? "dark" : "light");
+				if (!isManuallySetRef.current) {
+					dispatch({ type: "set-theme", theme: e.matches ? "dark" : "light" });
 				}
 			};
-
 			mediaQuery.addEventListener("change", handleChange);
-
 			return () => {
 				mediaQuery.removeEventListener("change", handleChange);
 			};
 		} catch (error) {
 			console.error("Error setting up theme listeners:", error);
 		}
-	}, [isManuallySet]);
+	}, []);
 
-	// Effect to apply theme to document element
+	// apply theme to document element
 	useEffect(() => {
-		if (!mounted) return;
-
+		if (!state.mounted) return;
 		try {
-			// Update classes for dark/light mode
 			const root = document.documentElement;
 			root.classList.remove("light", "dark");
-			root.classList.add(theme);
-
-			// Only save to localStorage if manually set by user
-			if (isManuallySet) {
-				localStorage.setItem("theme", theme);
+			root.classList.add(state.theme);
+			if (isManuallySetRef.current) {
+				localStorage.setItem("theme", state.theme);
 			}
 		} catch (error) {
 			console.error("Error updating theme:", error);
 		}
-	}, [theme, mounted, isManuallySet]);
+	}, [state.theme, state.mounted]);
 
-	// Function to toggle theme
 	const toggleTheme = () => {
-		setIsManuallySet(true); // Mark as manually set when user toggles
-		setTheme((prevTheme) => (prevTheme === "dark" ? "light" : "dark"));
+		isManuallySetRef.current = true;
+		dispatch({
+			type: "set-theme",
+			theme: state.theme === "dark" ? "light" : "dark",
+		});
 	};
 
 	const contextValue = {
-		theme,
+		theme: state.theme,
 		toggleTheme,
-		mounted,
+		mounted: state.mounted,
 	};
 
-	// Using suppressHydrationWarning to prevent errors when server/client render differently
 	return (
 		<ThemeContext.Provider value={contextValue}>
 			{children}
@@ -117,9 +129,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 	);
 }
 
-// Custom hook to use theme context
+// custom hook to use theme context
 export function useTheme() {
-	const context = useContext(ThemeContext);
+	const context = use(ThemeContext);
 	if (context === undefined) {
 		throw new Error("useTheme must be used within a ThemeProvider");
 	}

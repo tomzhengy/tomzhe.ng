@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useReducer, useRef } from "react";
 import { MosaicItem } from "../../types/photography";
 import DevToolbar from "./DevToolbar";
 import DevPhotoOverlay from "./DevPhotoOverlay";
@@ -256,15 +256,17 @@ export default function MosaicGrid({
 			setClosing(false);
 		}, 200);
 	}, []);
+	const closeSelectedRef = useRef(closeSelected);
+	closeSelectedRef.current = closeSelected;
 
 	useEffect(() => {
 		if (!selectedItem) return;
 		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") closeSelected();
+			if (e.key === "Escape") closeSelectedRef.current();
 		};
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [selectedItem, closeSelected]);
+	}, [selectedItem]);
 
 	const refreshPhotos = useCallback(async () => {
 		if (!isDevMode) return;
@@ -273,8 +275,27 @@ export default function MosaicGrid({
 		setPhotos(data.photos);
 	}, [isDevMode]);
 
-	const [sidebarItem, setSidebarItem] = useState<MosaicItem | null>(null);
-	const [sidebarFading, setSidebarFading] = useState(false);
+	const [sidebar, dispatchSidebar] = useReducer(
+		(
+			state: { item: MosaicItem | null; fading: boolean },
+			action:
+				| { type: "show"; item: MosaicItem }
+				| { type: "fade-start" }
+				| { type: "fade-done" },
+		) => {
+			switch (action.type) {
+				case "show":
+					return { item: action.item, fading: false };
+				case "fade-start":
+					return { ...state, fading: true };
+				case "fade-done":
+					return { item: null, fading: false };
+			}
+		},
+		{ item: null as MosaicItem | null, fading: false },
+	);
+	const sidebarItem = sidebar.item;
+	const sidebarFading = sidebar.fading;
 	const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -283,15 +304,13 @@ export default function MosaicGrid({
 			// hovering or selected: cancel any pending fade/clear and show immediately
 			if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
 			if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
-			setSidebarFading(false);
-			setSidebarItem(hoveredItem || selectedItem);
+			dispatchSidebar({ type: "show", item: (hoveredItem || selectedItem)! });
 		} else if (sidebarItem) {
-			// just stopped hovering: wait 3s, then fade out
+			// just stopped hovering: wait, then fade out
 			fadeTimerRef.current = setTimeout(() => {
-				setSidebarFading(true);
+				dispatchSidebar({ type: "fade-start" });
 				clearTimerRef.current = setTimeout(() => {
-					setSidebarItem(null);
-					setSidebarFading(false);
+					dispatchSidebar({ type: "fade-done" });
 				}, 200);
 			}, 750);
 		}
@@ -299,7 +318,7 @@ export default function MosaicGrid({
 			if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
 			if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
 		};
-	}, [hoveredItem, selectedItem]);
+	}, [hoveredItem, selectedItem, sidebarItem]);
 
 	// look up current version from photos array so edits aren't stale
 	const displayedItem = sidebarItem
