@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatRelativeTime } from "./format";
 
@@ -9,9 +10,28 @@ interface MastheadProps {
 	onSync?: () => void;
 }
 
+const actionButtonStyle = (hovered: boolean, disabled: boolean): React.CSSProperties => ({
+	display: "inline-flex",
+	alignItems: "center",
+	gap: 8,
+	padding: "8px 12px",
+	border: `1px solid ${hovered && !disabled ? "var(--fg-mute)" : "var(--rule-strong)"}`,
+	fontFamily: "var(--f-mono)",
+	fontSize: 11,
+	letterSpacing: "0.08em",
+	color: disabled ? "var(--fg-mute)" : "var(--fg-soft)",
+	background: "transparent",
+	cursor: disabled ? "default" : "pointer",
+	textTransform: "none",
+	transition: "border-color 160ms ease, color 160ms ease",
+	font: "inherit",
+	textDecoration: "none",
+});
+
 export default function Masthead({ syncedAt, syncing, onSync }: MastheadProps) {
 	const [now, setNow] = useState(() => Date.now());
 	const [hover, setHover] = useState(false);
+	const [linkHover, setLinkHover] = useState(false);
 
 	useEffect(() => {
 		const t = setInterval(() => setNow(Date.now()), 60_000);
@@ -54,55 +74,51 @@ export default function Masthead({ syncedAt, syncing, onSync }: MastheadProps) {
 				</h1>
 			</div>
 
-			<button
-				type="button"
-				onClick={() => {
-					if (!syncing && onSync) onSync();
-				}}
-				onMouseEnter={() => setHover(true)}
-				onMouseLeave={() => setHover(false)}
-				disabled={syncing || !onSync}
-				style={{
-					display: "inline-flex",
-					alignItems: "center",
-					gap: 8,
-					padding: "8px 12px",
-					border: `1px solid ${hover && !syncing ? "var(--fg-mute)" : "var(--rule-strong)"}`,
-					fontFamily: "var(--f-mono)",
-					fontSize: 11,
-					letterSpacing: "0.08em",
-					color: syncing ? "var(--fg-mute)" : "var(--fg-soft)",
-					background: "transparent",
-					cursor: syncing || !onSync ? "default" : "pointer",
-					textTransform: "none",
-					transition: "border-color 160ms ease, color 160ms ease",
-					font: "inherit",
-				}}
-			>
-				{syncing && (
-					<span
-						aria-hidden
-						style={{
-							display: "inline-block",
-							width: 8,
-							height: 8,
-							borderRadius: "50%",
-							border: "1.5px solid var(--fg-mute)",
-							borderTopColor: "var(--fg)",
-							animation: "hp-spin 0.9s linear infinite",
-						}}
-					/>
-				)}
-				<span
-					style={{
-						fontFamily: "var(--f-mono)",
-						fontSize: 11,
-						letterSpacing: "0.08em",
-					}}
+			<div style={{ display: "flex", gap: 8 }}>
+				<Link
+					href="/health/biomarkers"
+					onMouseEnter={() => setLinkHover(true)}
+					onMouseLeave={() => setLinkHover(false)}
+					style={actionButtonStyle(linkHover, false)}
 				>
-					{syncLabel}
-				</span>
-			</button>
+					Biomarkers ›
+				</Link>
+
+				<button
+					type="button"
+					onClick={() => {
+						if (!syncing && onSync) onSync();
+					}}
+					onMouseEnter={() => setHover(true)}
+					onMouseLeave={() => setHover(false)}
+					disabled={syncing || !onSync}
+					style={actionButtonStyle(hover, syncing || !onSync)}
+				>
+					{syncing && (
+						<span
+							aria-hidden
+							style={{
+								display: "inline-block",
+								width: 8,
+								height: 8,
+								borderRadius: "50%",
+								border: "1.5px solid var(--fg-mute)",
+								borderTopColor: "var(--fg)",
+								animation: "hp-spin 0.9s linear infinite",
+							}}
+						/>
+					)}
+					<span
+						style={{
+							fontFamily: "var(--f-mono)",
+							fontSize: 11,
+							letterSpacing: "0.08em",
+						}}
+					>
+						{syncLabel}
+					</span>
+				</button>
+			</div>
 		</header>
 	);
 }
