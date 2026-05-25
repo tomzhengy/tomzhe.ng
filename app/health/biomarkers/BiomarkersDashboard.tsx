@@ -7,10 +7,7 @@ import BiomarkerList from "./BiomarkerList";
 import BiomarkerChart from "./BiomarkerChart";
 import BiomarkerDetail from "./BiomarkerDetail";
 import UploadPanel from "./UploadPanel";
-import type {
-	BiomarkerListResponse,
-	BiomarkerSeriesResponse,
-} from "./types";
+import type { BiomarkerListResponse, BiomarkerSeriesResponse } from "./types";
 
 type AuthState = "checking" | "needed" | "authed";
 
@@ -25,7 +22,10 @@ export default function BiomarkersDashboard() {
 
 	const selected = useMemo(() => {
 		const raw = searchParams.get("b") ?? "";
-		const arr = raw.split(",").map((s) => s.trim()).filter(Boolean);
+		const arr = raw
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean);
 		return new Set(arr);
 	}, [searchParams]);
 
@@ -259,9 +259,7 @@ export default function BiomarkersDashboard() {
 					{selectedCount === 1 && visibleSeries[0] && (
 						<BiomarkerDetail series={visibleSeries[0]} />
 					)}
-					{selectedCount >= 2 && (
-						<BiomarkerChart series={visibleSeries} />
-					)}
+					{selectedCount >= 2 && <BiomarkerChart series={visibleSeries} />}
 				</div>
 			</section>
 		</div>
@@ -287,7 +285,14 @@ function EmptyState({
 	uploads,
 }: {
 	biomarkerCount: number;
-	uploads: { id: string; filename: string; uploadedAt: string; status: string; parsedCount: number; source: string }[];
+	uploads: {
+		id: string;
+		filename: string;
+		uploadedAt: string;
+		status: string;
+		parsedCount: number;
+		source: string;
+	}[];
 }) {
 	return (
 		<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

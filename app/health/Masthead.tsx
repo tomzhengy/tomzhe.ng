@@ -10,7 +10,10 @@ interface MastheadProps {
 	onSync?: () => void;
 }
 
-const actionButtonStyle = (hovered: boolean, disabled: boolean): React.CSSProperties => ({
+const actionButtonStyle = (
+	hovered: boolean,
+	disabled: boolean,
+): React.CSSProperties => ({
 	display: "inline-flex",
 	alignItems: "center",
 	gap: 8,

@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type {
-	BiomarkerCategoryEntry,
-	BiomarkerSummary,
-} from "./types";
+import type { BiomarkerCategoryEntry, BiomarkerSummary } from "./types";
 
 interface BiomarkerListProps {
 	items: BiomarkerSummary[];

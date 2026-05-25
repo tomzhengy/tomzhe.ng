@@ -242,7 +242,7 @@ export async function parseNucleusUpload(
 		const rows: NucleusVariantRow[] = raw.map((v) => ({
 			upload_id: upload.id,
 			gene: v.gene ?? null,
-			rsid: (v.rsid ?? v.rs_id) ?? null,
+			rsid: v.rsid ?? v.rs_id ?? null,
 			genotype: v.genotype ?? null,
 			zygosity: v.zygosity ?? null,
 			significance: v.significance ?? v.interpretation ?? null,

@@ -125,8 +125,7 @@ export async function readBiomarkerList(
 		const def = defFor(canonical);
 		const display = def?.display ?? prettyFromCanonical(canonical);
 		const category: BiomarkerCategory =
-			(def?.category ?? (last.category as BiomarkerCategory | null)) ??
-			"other";
+			def?.category ?? (last.category as BiomarkerCategory | null) ?? "other";
 		const unit = last.unit ?? def?.unit ?? null;
 		const sparkline = rows
 			.filter((r) => r.value != null)
@@ -212,10 +211,9 @@ export async function readBiomarkerSeries(
 		const rs = byCanonical.get(canonical) ?? [];
 		const def = defFor(canonical);
 		const display = def?.display ?? prettyFromCanonical(canonical);
-		const category: BiomarkerCategory =
-			(def?.category ??
-				(rs[0]?.category as BiomarkerCategory | null) ??
-				"other") as BiomarkerCategory;
+		const category: BiomarkerCategory = (def?.category ??
+			(rs[0]?.category as BiomarkerCategory | null) ??
+			"other") as BiomarkerCategory;
 		const unit = rs[rs.length - 1]?.unit ?? def?.unit ?? null;
 		const points: BiomarkerPoint[] = rs.map((r) => ({
 			measuredAt: r.measured_at,

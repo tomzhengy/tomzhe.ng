@@ -20,7 +20,8 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 	const innerH = VIEW_H - PAD.t - PAD.b;
 
 	const numericPoints = useMemo(
-		() => series.points.filter((p) => p.value != null && Number.isFinite(p.value)),
+		() =>
+			series.points.filter((p) => p.value != null && Number.isFinite(p.value)),
 		[series.points],
 	);
 
@@ -55,8 +56,7 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 	}, [numericPoints]);
 
 	const xFor = (iso: string) =>
-		PAD.l +
-		((new Date(iso).getTime() - tMin) / (tMax - tMin || 1)) * innerW;
+		PAD.l + ((new Date(iso).getTime() - tMin) / (tMax - tMin || 1)) * innerW;
 	const yFor = (v: number) =>
 		PAD.t + innerH - ((v - yMin) / (yMax - yMin || 1)) * innerH;
 
@@ -91,7 +91,8 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 		if (yMax === yMin) return [yMin];
 		const steps = 4;
 		const out: number[] = [];
-		for (let i = 0; i <= steps; i++) out.push(yMin + ((yMax - yMin) * i) / steps);
+		for (let i = 0; i <= steps; i++)
+			out.push(yMin + ((yMax - yMin) * i) / steps);
 		return out;
 	}, [yMin, yMax]);
 
@@ -101,7 +102,9 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 		const out: Array<{ x: number; label: string }> = [];
 		const indices = new Set<number>();
 		for (let i = 0; i < steps; i++) {
-			indices.add(Math.round((i * (numericPoints.length - 1)) / Math.max(1, steps - 1)));
+			indices.add(
+				Math.round((i * (numericPoints.length - 1)) / Math.max(1, steps - 1)),
+			);
 		}
 		for (const i of indices) {
 			const p = numericPoints[i];
@@ -360,7 +363,9 @@ function DrawsTable({ series }: { series: BiomarkerSeries }) {
 									year: "numeric",
 								})}
 							</Td>
-							<Td>{p.value != null ? formatTick(p.value) : (p.valueText ?? "—")}</Td>
+							<Td>
+								{p.value != null ? formatTick(p.value) : (p.valueText ?? "—")}
+							</Td>
 							<Td>{series.unit ?? "—"}</Td>
 							<Td>{formatRefRange(p.refLow, p.refHigh)}</Td>
 							<Td>{p.source}</Td>
@@ -418,10 +423,7 @@ function formatTick(v: number): string {
 	return v.toFixed(2);
 }
 
-function formatRefRange(
-	lo: number | null,
-	hi: number | null,
-): string {
+function formatRefRange(lo: number | null, hi: number | null): string {
 	if (lo == null && hi == null) return "—";
 	if (lo == null) return `< ${formatTick(hi as number)}`;
 	if (hi == null) return `> ${formatTick(lo)}`;

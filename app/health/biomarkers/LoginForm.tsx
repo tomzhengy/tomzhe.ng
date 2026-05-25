@@ -101,8 +101,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 						fontSize: 11,
 						letterSpacing: "0.12em",
 						textTransform: "uppercase",
-						cursor:
-							submitting || pw.length === 0 ? "not-allowed" : "pointer",
+						cursor: submitting || pw.length === 0 ? "not-allowed" : "pointer",
 						opacity: submitting || pw.length === 0 ? 0.5 : 1,
 					}}
 				>
