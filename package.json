@@ -16,6 +16,7 @@
 		"gray-matter": "^4.0.3",
 		"next": "15.2.2",
 		"next-mdx-remote": "^5.0.0",
+		"pdfjs-dist": "^5.7.284",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"reading-time": "^1.5.0"
