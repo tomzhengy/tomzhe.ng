@@ -162,7 +162,7 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 						letterSpacing: "0.08em",
 					}}
 				>
-					{series.unit ?? "—"} · {numericPoints.length} draws
+					{series.unit ?? "—"} · {series.points.length} draws
 				</span>
 			</header>
 
