@@ -99,7 +99,7 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 	const xTicks = useMemo(() => {
 		if (numericPoints.length === 0) return [];
 		const steps = Math.min(5, numericPoints.length);
-		const out: Array<{ x: number; label: string }> = [];
+		const out: Array<{ key: string; x: number; label: string }> = [];
 		const indices = new Set<number>();
 		for (let i = 0; i < steps; i++) {
 			indices.add(
@@ -109,6 +109,7 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 		for (const i of indices) {
 			const p = numericPoints[i];
 			out.push({
+				key: `tick-${i}`,
 				x: xFor(p.measuredAt),
 				label: new Date(p.measuredAt).toLocaleDateString("en-US", {
 					day: "numeric",
@@ -259,19 +260,27 @@ export default function BiomarkerDetail({ series }: BiomarkerDetailProps) {
 
 				<div
 					style={{
-						display: "flex",
-						justifyContent: "space-between",
+						position: "relative",
+						height: 14,
 						fontFamily: "var(--f-mono)",
 						fontSize: 10,
 						color: "var(--fg-mute)",
 						letterSpacing: "0.08em",
 						marginTop: 6,
-						paddingLeft: `${(PAD.l / VIEW_W) * 100}%`,
-						paddingRight: `${(PAD.r / VIEW_W) * 100}%`,
 					}}
 				>
 					{xTicks.map((t) => (
-						<span key={t.label}>{t.label}</span>
+						<span
+							key={t.key}
+							style={{
+								position: "absolute",
+								left: `${(t.x / VIEW_W) * 100}%`,
+								transform: "translateX(-50%)",
+								whiteSpace: "nowrap",
+							}}
+						>
+							{t.label}
+						</span>
 					))}
 				</div>
 
