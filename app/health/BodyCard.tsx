@@ -1244,13 +1244,6 @@ function hydrationCaption(m: BodyMeasurement | null): React.ReactNode {
 	return result;
 }
 
-function formatTileNumber(value: number, digits: number): string {
-	return value.toLocaleString(undefined, {
-		minimumFractionDigits: digits,
-		maximumFractionDigits: digits,
-	});
-}
-
 function formatSpan(days: number): string {
 	if (days < 14) return `${days} days`;
 	if (days < 60) {
