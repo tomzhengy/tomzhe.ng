@@ -149,7 +149,7 @@ export default function BiomarkersDashboard() {
 	const selectedSeries = visibleSeries.filter((s) => selected.has(s.canonical));
 	const selectedCount = selected.size;
 	const detailSeries = selectedSeries[0] ?? null;
-	const lastUpload = list?.uploads.find((u) => u.status === "parsed");
+	const lastDrawIso = latestMeasuredAt(list?.biomarkers ?? []);
 
 	return (
 		<div style={{ fontFamily: "var(--f-sans)", fontSize: 14, lineHeight: 1.5 }}>
@@ -174,7 +174,7 @@ export default function BiomarkersDashboard() {
 					>
 						Biomarkers
 					</h1>
-					{lastUpload && (
+					{lastDrawIso && (
 						<span
 							style={{
 								fontFamily: "var(--f-mono)",
@@ -184,7 +184,7 @@ export default function BiomarkersDashboard() {
 							}}
 						>
 							last draw ·{" "}
-							{new Date(lastUpload.uploadedAt).toLocaleDateString("en-US", {
+							{new Date(lastDrawIso).toLocaleDateString("en-US", {
 								day: "numeric",
 								month: "short",
 								year: "numeric",
@@ -284,6 +284,20 @@ function chipBtn(active: boolean): React.CSSProperties {
 		cursor: "pointer",
 		font: "inherit",
 	};
+}
+
+// the most recent actual measurement (blood draw) across all biomarkers.
+// upload timestamps can lag the draw date by weeks, so use measured-at.
+function latestMeasuredAt(
+	biomarkers: { lastMeasuredAt: string | null }[],
+): string | null {
+	let latest: string | null = null;
+	for (const b of biomarkers) {
+		if (b.lastMeasuredAt && (latest == null || b.lastMeasuredAt > latest)) {
+			latest = b.lastMeasuredAt;
+		}
+	}
+	return latest;
 }
 
 function EmptyState({
