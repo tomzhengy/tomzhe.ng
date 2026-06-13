@@ -144,7 +144,11 @@ export default function BiomarkersDashboard() {
 	}
 
 	const visibleSeries = series?.series ?? [];
+	// only keep series that are still selected — the series fetch lags the
+	// selection, so visibleSeries can briefly hold a just-deselected biomarker.
+	const selectedSeries = visibleSeries.filter((s) => selected.has(s.canonical));
 	const selectedCount = selected.size;
+	const detailSeries = selectedSeries[0] ?? null;
 	const lastUpload = list?.uploads.find((u) => u.status === "parsed");
 
 	return (
@@ -256,10 +260,12 @@ export default function BiomarkersDashboard() {
 							uploads={list?.uploads ?? []}
 						/>
 					)}
-					{selectedCount === 1 && visibleSeries[0] && (
-						<BiomarkerDetail series={visibleSeries[0]} />
+					{selectedCount === 1 && detailSeries && (
+						<BiomarkerDetail series={detailSeries} />
 					)}
-					{selectedCount >= 2 && <BiomarkerChart series={visibleSeries} />}
+					{selectedCount >= 2 && selectedSeries.length > 0 && (
+						<BiomarkerChart series={selectedSeries} />
+					)}
 				</div>
 			</section>
 		</div>
