@@ -13,7 +13,8 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 		month: "long",
 	});
 
-	let cycleLabel = "No active cycle";
+	const hasCycle = cycleStartIso != null;
+	let cycleDetail: string | null = null;
 	if (cycleStartIso) {
 		const start = new Date(cycleStartIso);
 		const elapsed = Math.max(0, now.getTime() - start.getTime());
@@ -24,7 +25,7 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 			minute: "2-digit",
 			hour12: false,
 		});
-		cycleLabel = `Started ${startLabel} · ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
+		cycleDetail = `Started ${startLabel} · ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
 	}
 
 	return (
@@ -62,19 +63,21 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 					textAlign: "right",
 				}}
 			>
-				Cycle in progress
-				<b
-					style={{
-						display: "block",
-						fontWeight: 400,
-						color: "var(--fg-soft)",
-						fontSize: 14,
-						letterSpacing: "0.08em",
-						marginTop: 2,
-					}}
-				>
-					{cycleLabel}
-				</b>
+				{hasCycle ? "Cycle in progress" : "No active cycle"}
+				{cycleDetail && (
+					<b
+						style={{
+							display: "block",
+							fontWeight: 400,
+							color: "var(--fg-soft)",
+							fontSize: 14,
+							letterSpacing: "0.08em",
+							marginTop: 2,
+						}}
+					>
+						{cycleDetail}
+					</b>
+				)}
 			</div>
 		</section>
 	);
