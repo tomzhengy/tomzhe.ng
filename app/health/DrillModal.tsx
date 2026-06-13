@@ -47,7 +47,9 @@ export default function DrillModal({ point, onClose }: DrillModalProps) {
 		point.recovery == null
 			? "No recovery score logged for this day."
 			: point.recovery > 75
-				? "A well-recovered day, powered by solid sleep."
+				? point.sleep != null && point.sleep >= 7
+					? "A well-recovered day, powered by solid sleep."
+					: "A well-recovered day."
 				: point.recovery > 50
 					? "A moderate day — HRV holding steady."
 					: "A low-recovery day. Take it easy.";
