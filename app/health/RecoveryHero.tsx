@@ -27,13 +27,23 @@ export default function RecoveryHero({
 	const hrvSeries = trend.map((t) => t.hrv ?? 0);
 	const rhrSeries = trend.map((t) => t.rhr ?? 0);
 
+	// average only over days that actually have a reading — coercing missing
+	// values to 0 (as the sparkline does) would drag the baseline down and
+	// flip the delta arrow.
+	const hrvValues = trend
+		.map((t) => t.hrv)
+		.filter((v): v is number => v != null && Number.isFinite(v));
+	const rhrValues = trend
+		.map((t) => t.rhr)
+		.filter((v): v is number => v != null && Number.isFinite(v));
+
 	const avgHrv =
-		hrvSeries.length > 0
-			? hrvSeries.reduce((s, v) => s + v, 0) / hrvSeries.length
+		hrvValues.length > 0
+			? hrvValues.reduce((s, v) => s + v, 0) / hrvValues.length
 			: 0;
 	const avgRhr =
-		rhrSeries.length > 0
-			? rhrSeries.reduce((s, v) => s + v, 0) / rhrSeries.length
+		rhrValues.length > 0
+			? rhrValues.reduce((s, v) => s + v, 0) / rhrValues.length
 			: 0;
 
 	const hrvDelta = hrv != null && avgHrv > 0 ? hrv - avgHrv : 0;
@@ -133,7 +143,9 @@ export default function RecoveryHero({
 					unit="ms"
 					delta={hrv != null ? hrvDelta : null}
 					caption={
-						avgHrv > 0 ? `7-day avg ${Math.round(avgHrv)}` : "Baseline pending"
+						hrvValues.length > 0
+							? `${hrvValues.length}-day avg ${Math.round(avgHrv)}`
+							: "Baseline pending"
 					}
 					series={hrvSeries}
 					seriesDigits={0}
@@ -147,7 +159,9 @@ export default function RecoveryHero({
 					delta={rhr != null ? rhrDelta : null}
 					invertDelta
 					caption={
-						avgRhr > 0 ? `7-day avg ${Math.round(avgRhr)}` : "Baseline pending"
+						rhrValues.length > 0
+							? `${rhrValues.length}-day avg ${Math.round(avgRhr)}`
+							: "Baseline pending"
 					}
 					series={rhrSeries}
 					seriesDigits={0}
