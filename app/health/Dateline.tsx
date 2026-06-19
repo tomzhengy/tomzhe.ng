@@ -2,10 +2,15 @@
 
 interface DatelineProps {
 	cycleStartIso: string | null;
+	cycleActive: boolean;
 	nowIso: string;
 }
 
-export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
+export default function Dateline({
+	cycleStartIso,
+	cycleActive,
+	nowIso,
+}: DatelineProps) {
 	const now = new Date(nowIso);
 	const weekday = now.toLocaleDateString(undefined, { weekday: "long" });
 	const datePart = now.toLocaleDateString(undefined, {
@@ -13,9 +18,12 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 		month: "long",
 	});
 
-	const hasCycle = cycleStartIso != null;
+	// only an open cycle (start present, no end) counts as "in progress". a
+	// closed latest cycle still has a start, so gating on the start alone would
+	// keep a live timer running for a finished cycle.
+	const hasCycle = cycleActive && cycleStartIso != null;
 	let cycleDetail: string | null = null;
-	if (cycleStartIso) {
+	if (hasCycle && cycleStartIso) {
 		const start = new Date(cycleStartIso);
 		const elapsed = Math.max(0, now.getTime() - start.getTime());
 		const h = Math.floor(elapsed / 3_600_000);
