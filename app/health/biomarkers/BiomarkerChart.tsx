@@ -119,10 +119,11 @@ export default function BiomarkerChart({ series }: BiomarkerChartProps) {
 
 	const xTicks = useMemo(() => {
 		const steps = 5;
-		const out: Array<{ x: number; label: string }> = [];
+		const out: Array<{ key: string; x: number; label: string }> = [];
 		for (let i = 0; i < steps; i++) {
 			const t = tMin + ((tMax - tMin) * i) / (steps - 1);
 			out.push({
+				key: `tick-${i}`,
 				x: PAD.l + (innerW * i) / (steps - 1),
 				label: new Date(t).toLocaleDateString("en-US", {
 					day: "numeric",
@@ -263,7 +264,7 @@ export default function BiomarkerChart({ series }: BiomarkerChartProps) {
 					}}
 				>
 					{xTicks.map((t) => (
-						<span key={t.label}>{t.label}</span>
+						<span key={t.key}>{t.label}</span>
 					))}
 				</div>
 
