@@ -261,7 +261,10 @@ export default function BiomarkersDashboard() {
 						/>
 					)}
 					{selectedCount === 1 && detailSeries && (
-						<BiomarkerDetail series={detailSeries} />
+						<BiomarkerDetail
+							key={detailSeries.canonical}
+							series={detailSeries}
+						/>
 					)}
 					{selectedCount >= 2 && selectedSeries.length > 0 && (
 						<BiomarkerChart series={selectedSeries} />
