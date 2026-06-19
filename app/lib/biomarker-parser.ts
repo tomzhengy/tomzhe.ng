@@ -1,9 +1,9 @@
 /**
  * server-side parsing pipeline for uploaded reports.
  *
- *  - pdfs: client extracts text via pdfjs-dist, server hands it to openrouter
- *    with a strict-json prompt to map free-form lab tables → typed rows
- *  - nucleus json: deterministic mapper, no llm — schemas are stable enough
+ *  - pdfs: client extracts text via pdfjs-dist, server hands it to anthropic
+ *    with a strict-json prompt to map free-form lab tables to typed rows
+ *  - nucleus json: deterministic mapper, no llm. schemas are stable enough
  *    to walk directly
  */
 
@@ -20,11 +20,11 @@ import {
 } from "./biomarkers";
 import type { BiomarkerSource } from "../health/biomarkers/types";
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 export interface ParserEnv extends BiomarkerEnv {
-	OPENROUTER_API_KEY?: string;
-	OPENROUTER_MODEL?: string;
+	ANTHROPIC_API_KEY?: string;
+	ANTHROPIC_BIOMARKER_MODEL?: string;
 }
 
 export interface ParsePdfInput {
@@ -69,8 +69,8 @@ async function extractWithLlm(
 	env: ParserEnv,
 	text: string,
 ): Promise<{ report_date: string | null; results: IncomingResult[] } | null> {
-	if (!env.OPENROUTER_API_KEY) return null;
-	const model = env.OPENROUTER_MODEL || "google/gemini-2.5-flash";
+	if (!env.ANTHROPIC_API_KEY) return null;
+	const model = env.ANTHROPIC_BIOMARKER_MODEL || "claude-sonnet-4-6";
 
 	// large reports run long. cap text to keep latency + cost sane; most lab
 	// pdfs are well under 60kb of text.
@@ -78,34 +78,36 @@ async function extractWithLlm(
 
 	const userPrompt = `Lab report text:\n\n${truncated}\n\nReturn JSON of shape:\n{ "report_date": "yyyy-mm-dd" | null, "results": [ { "raw_name": string, "canonical_name": string, "category": string, "value": number | null, "value_text": string | null, "unit": string | null, "ref_low": number | null, "ref_high": number | null, "ref_text": string | null, "measured_at": string } ] }`;
 
-	const r = await fetch(OPENROUTER_URL, {
+	// some claude models reject assistant prefill, so we just ask for json
+	// in the prompt and strip markdown fences below if the model wraps it.
+	const r = await fetch(ANTHROPIC_URL, {
 		method: "POST",
 		headers: {
-			authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+			"x-api-key": env.ANTHROPIC_API_KEY,
+			"anthropic-version": "2023-06-01",
 			"content-type": "application/json",
 		},
 		body: JSON.stringify({
 			model,
-			messages: [
-				{ role: "system", content: SYSTEM_PROMPT },
-				{ role: "user", content: userPrompt },
-			],
-			response_format: { type: "json_object" },
+			max_tokens: 8000,
 			temperature: 0.1,
-			max_tokens: 6000,
+			system: SYSTEM_PROMPT,
+			messages: [{ role: "user", content: userPrompt }],
 		}),
 	});
 	if (!r.ok) {
 		const body = await r.text();
-		throw new Error(`openrouter ${r.status}: ${body.slice(0, 300)}`);
+		throw new Error(`anthropic ${r.status}: ${body.slice(0, 800)}`);
 	}
 	const json = (await r.json()) as {
-		choices?: Array<{ message?: { content?: string } }>;
+		content?: Array<{ type: string; text?: string }>;
 	};
-	const content = json.choices?.[0]?.message?.content;
-	if (!content) return null;
+	const piece = json.content?.find((c) => c.type === "text")?.text;
+	if (!piece) return null;
+	const raw = extractJson(piece);
+	if (!raw) return null;
 	try {
-		const parsed = JSON.parse(content);
+		const parsed = JSON.parse(raw);
 		if (typeof parsed !== "object" || parsed === null) return null;
 		const obj = parsed as {
 			report_date?: string;
@@ -115,9 +117,22 @@ async function extractWithLlm(
 			report_date: obj.report_date ?? null,
 			results: Array.isArray(obj.results) ? obj.results : [],
 		};
-	} catch {
-		return null;
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`json parse failed: ${msg}. raw: ${raw.slice(0, 300)}`);
 	}
+}
+
+// pull a json object out of an llm response. handles plain json, json
+// wrapped in ```json ... ``` fences, and prose with a single json block.
+function extractJson(text: string): string | null {
+	const trimmed = text.trim();
+	const fence = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+	if (fence) return fence[1].trim();
+	const first = trimmed.indexOf("{");
+	const last = trimmed.lastIndexOf("}");
+	if (first >= 0 && last > first) return trimmed.slice(first, last + 1);
+	return null;
 }
 
 export async function parsePdfUpload(
@@ -163,6 +178,16 @@ export async function parsePdfUpload(
 
 		const normalized = normalizeResults(input.source, upload.id, stamped);
 		const written = await upsertResults(env, normalized);
+		// we parsed rows but the upsert stored none -> the db write failed.
+		// surface it instead of reporting a successful parse with 0 results.
+		if (normalized.length > 0 && written === 0) {
+			const error = "parsed rows but none were stored (db upsert failed)";
+			await finalizeUpload(env, upload.id, "failed", 0, error);
+			return {
+				upload: { id: upload.id, status: "failed", parsedCount: 0, error },
+				results: [],
+			};
+		}
 		await finalizeUpload(env, upload.id, "parsed", written);
 
 		return {
@@ -250,6 +275,14 @@ export async function parseNucleusUpload(
 			raw: v as Record<string, unknown>,
 		}));
 		const written = await upsertVariants(env, rows);
+		if (rows.length > 0 && written === 0) {
+			const error = "parsed variants but none were stored (db upsert failed)";
+			await finalizeUpload(env, upload.id, "failed", 0, error);
+			return {
+				upload: { id: upload.id, status: "failed", parsedCount: 0, error },
+				results: [],
+			};
+		}
 		await finalizeUpload(env, upload.id, "parsed", written);
 		return {
 			upload: {

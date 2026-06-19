@@ -24,8 +24,8 @@ export async function POST(request: Request) {
 		COOKIE_SECRET: process.env.COOKIE_SECRET,
 		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
 		SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-		OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-		OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
+		ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+		ANTHROPIC_BIOMARKER_MODEL: process.env.ANTHROPIC_BIOMARKER_MODEL,
 	};
 
 	const authed = await verifySessionCookie(request, env);

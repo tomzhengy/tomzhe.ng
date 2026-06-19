@@ -76,8 +76,21 @@ export default function UploadPanel({ onUploaded }: UploadPanelProps) {
 				return;
 			}
 			const json = (await r.json()) as {
-				upload: { parsedCount: number } | null;
+				upload: {
+					status: "parsed" | "failed";
+					parsedCount: number;
+					error: string | null;
+				} | null;
 			};
+			if (json.upload?.status === "failed") {
+				setStage({
+					kind: "error",
+					filename: file.name,
+					message: json.upload.error ?? "parse failed (no detail)",
+				});
+				await onUploaded();
+				return;
+			}
 			setStage({
 				kind: "done",
 				filename: file.name,

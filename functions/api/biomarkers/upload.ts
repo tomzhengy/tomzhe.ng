@@ -4,7 +4,7 @@
  * body: { source, filename, extractedText? | jsonPayload? }
  *
  * pdf path: client already extracted text via pdfjs-dist; we hand it to
- * openrouter to map → structured rows → biomarker_results upsert.
+ * anthropic to map → structured rows → biomarker_results upsert.
  * nucleus path: deterministic mapper → biomarker_variants.
  *
  * session-gated.
