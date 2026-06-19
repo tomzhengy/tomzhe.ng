@@ -63,7 +63,10 @@ create table if not exists biomarker_variants (
   category      text,
   raw           jsonb,
   created_at    timestamptz not null default now(),
-  unique (rsid, genotype)
+  -- nulls not distinct so rsid-less / genotype-less variants still collide and
+  -- dedup on re-upload (postgres 15+; supabase runs 15+). without it, null keys
+  -- are treated as distinct and re-uploads accumulate duplicate rows.
+  unique nulls not distinct (rsid, genotype)
 );
 create index if not exists biomarker_variants_gene_idx on biomarker_variants (gene);
 create index if not exists biomarker_variants_category_idx on biomarker_variants (category);

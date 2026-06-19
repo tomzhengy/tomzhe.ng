@@ -373,6 +373,15 @@ export async function upsertResults(
 	if (rows.length === 0) return 0;
 	const cfg = supaConfig(env);
 	if (!cfg) return 0;
+	// postgres on conflict do update cannot touch the same conflict row twice in
+	// one statement, so collapse in-batch dups (e.g. "ldl" and "ldl-c" both
+	// normalize to ldl_c on the same draw date) before posting. keep the last
+	// occurrence to match merge-duplicates intent.
+	const deduped = new Map<string, NormalizedResult>();
+	for (const row of rows) {
+		deduped.set(`${row.source}|${row.canonical_name}|${row.measured_at}`, row);
+	}
+	const payload = [...deduped.values()];
 	const url =
 		`${cfg.base}/rest/v1/biomarker_results` +
 		`?on_conflict=${encodeURIComponent("source,canonical_name,measured_at")}`;
@@ -384,14 +393,14 @@ export async function upsertResults(
 			"content-type": "application/json",
 			prefer: "resolution=merge-duplicates,return=minimal",
 		},
-		body: JSON.stringify(rows),
+		body: JSON.stringify(payload),
 	});
 	if (!r.ok) {
 		const body = await r.text();
 		console.warn(`upsert biomarker_results failed: ${r.status} ${body}`);
 		return 0;
 	}
-	return rows.length;
+	return payload.length;
 }
 
 export interface NucleusVariantRow {
@@ -412,6 +421,15 @@ export async function upsertVariants(
 	if (rows.length === 0) return 0;
 	const cfg = supaConfig(env);
 	if (!cfg) return 0;
+	// same in-batch conflict rule as upsertResults: two rows with the same
+	// (rsid, genotype) would make the on-conflict upsert fail, so collapse them
+	// first. null rsid/genotype share one sentinel so they dedup too, matching
+	// the "nulls not distinct" constraint.
+	const deduped = new Map<string, NucleusVariantRow>();
+	for (const row of rows) {
+		deduped.set(`${row.rsid ?? "∅"}|${row.genotype ?? "∅"}`, row);
+	}
+	const payload = [...deduped.values()];
 	const url =
 		`${cfg.base}/rest/v1/biomarker_variants` +
 		`?on_conflict=${encodeURIComponent("rsid,genotype")}`;
@@ -423,10 +441,10 @@ export async function upsertVariants(
 			"content-type": "application/json",
 			prefer: "resolution=merge-duplicates,return=minimal",
 		},
-		body: JSON.stringify(rows),
+		body: JSON.stringify(payload),
 	});
 	if (!r.ok) return 0;
-	return rows.length;
+	return payload.length;
 }
 
 // re-export for callers
