@@ -128,13 +128,13 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 		const positions = [0, 0.25, 0.5, 0.75, 1].map((p) =>
 			Math.min(n - 1, Math.max(0, Math.round(p * (n - 1)))),
 		);
-		return positions.map((i) => {
-			const d = new Date(data[i].date);
-			return d.toLocaleDateString("en-US", {
+		return positions.map((i, k) => ({
+			key: `tick-${k}`,
+			label: new Date(data[i].date).toLocaleDateString("en-US", {
 				day: "numeric",
 				month: "short",
-			});
-		});
+			}),
+		}));
 	}, [data, n]);
 
 	const handleMove = (e: React.MouseEvent<SVGRectElement>) => {
@@ -293,7 +293,7 @@ export default function TrendChart({ data, onPointClick }: TrendChartProps) {
 					}}
 				>
 					{axisTicks.map((t) => (
-						<span key={t}>{t}</span>
+						<span key={t.key}>{t.label}</span>
 					))}
 				</div>
 

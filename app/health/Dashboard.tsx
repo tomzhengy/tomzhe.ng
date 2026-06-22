@@ -113,6 +113,9 @@ export default function Dashboard() {
 
 			<Dateline
 				cycleStartIso={data.payload?.cycle?.start ?? null}
+				cycleActive={
+					data.payload?.cycle != null && data.payload.cycle.end == null
+				}
 				nowIso={nowIso}
 			/>
 

@@ -2,10 +2,15 @@
 
 interface DatelineProps {
 	cycleStartIso: string | null;
+	cycleActive: boolean;
 	nowIso: string;
 }
 
-export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
+export default function Dateline({
+	cycleStartIso,
+	cycleActive,
+	nowIso,
+}: DatelineProps) {
 	const now = new Date(nowIso);
 	const weekday = now.toLocaleDateString(undefined, { weekday: "long" });
 	const datePart = now.toLocaleDateString(undefined, {
@@ -13,8 +18,12 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 		month: "long",
 	});
 
-	let cycleLabel = "No active cycle";
-	if (cycleStartIso) {
+	// only an open cycle (start present, no end) counts as "in progress". a
+	// closed latest cycle still has a start, so gating on the start alone would
+	// keep a live timer running for a finished cycle.
+	const hasCycle = cycleActive && cycleStartIso != null;
+	let cycleDetail: string | null = null;
+	if (hasCycle && cycleStartIso) {
 		const start = new Date(cycleStartIso);
 		const elapsed = Math.max(0, now.getTime() - start.getTime());
 		const h = Math.floor(elapsed / 3_600_000);
@@ -24,7 +33,7 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 			minute: "2-digit",
 			hour12: false,
 		});
-		cycleLabel = `Started ${startLabel} · ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
+		cycleDetail = `Started ${startLabel} · ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
 	}
 
 	return (
@@ -62,19 +71,21 @@ export default function Dateline({ cycleStartIso, nowIso }: DatelineProps) {
 					textAlign: "right",
 				}}
 			>
-				Cycle in progress
-				<b
-					style={{
-						display: "block",
-						fontWeight: 400,
-						color: "var(--fg-soft)",
-						fontSize: 14,
-						letterSpacing: "0.08em",
-						marginTop: 2,
-					}}
-				>
-					{cycleLabel}
-				</b>
+				{hasCycle ? "Cycle in progress" : "No active cycle"}
+				{cycleDetail && (
+					<b
+						style={{
+							display: "block",
+							fontWeight: 400,
+							color: "var(--fg-soft)",
+							fontSize: 14,
+							letterSpacing: "0.08em",
+							marginTop: 2,
+						}}
+					>
+						{cycleDetail}
+					</b>
+				)}
 			</div>
 		</section>
 	);

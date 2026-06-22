@@ -906,6 +906,7 @@ function Tiles({
 		monthAgo?.basalMetabolicRateKcal,
 	);
 	const hydrationCap = hydrationCaption(latest);
+	const visceralCap = visceralCaption(latest?.visceralFat ?? null);
 
 	return (
 		<div
@@ -953,11 +954,7 @@ function Tiles({
 				value={latest?.visceralFat ?? null}
 				digits={1}
 				intDigits={1}
-				cap={
-					<>
-						In the <em style={{ color: "var(--fg)" }}>healthy</em> 1–9 range.
-					</>
-				}
+				cap={visceralCap}
 			/>
 			<Tile
 				label="BMR"
@@ -1189,6 +1186,27 @@ function mergeLatest(
 	return out;
 }
 
+function visceralCaption(value: number | null): React.ReactNode {
+	if (value == null) return "Visceral fat rating.";
+	if (value <= 9)
+		return (
+			<>
+				In the <em style={{ color: "var(--fg)" }}>healthy</em> 1–9 range.
+			</>
+		);
+	if (value <= 14)
+		return (
+			<>
+				<em style={{ color: "var(--fg)" }}>Elevated</em> — above the 1–9 range.
+			</>
+		);
+	return (
+		<>
+			<em style={{ color: "var(--fg)" }}>High</em> — well above the 1–9 range.
+		</>
+	);
+}
+
 function hydrationCaption(m: BodyMeasurement | null): React.ReactNode {
 	const icw = m?.intracellularWaterKg ?? null;
 	const ecw = m?.extracellularWaterKg ?? null;
@@ -1224,13 +1242,6 @@ function hydrationCaption(m: BodyMeasurement | null): React.ReactNode {
 		result.push(part);
 	}
 	return result;
-}
-
-function formatTileNumber(value: number, digits: number): string {
-	return value.toLocaleString(undefined, {
-		minimumFractionDigits: digits,
-		maximumFractionDigits: digits,
-	});
 }
 
 function formatSpan(days: number): string {

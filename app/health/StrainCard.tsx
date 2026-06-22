@@ -106,8 +106,8 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
 			</div>
 			<div
 				style={{
-					display: "flex",
-					justifyContent: "space-between",
+					position: "relative",
+					height: 12,
 					fontFamily: "var(--f-mono)",
 					fontSize: 10,
 					color: "var(--fg-mute)",
@@ -115,11 +115,23 @@ export default function StrainCard({ cycle, strainCopyHtml }: StrainCardProps) {
 					marginTop: 8,
 				}}
 			>
-				<span>0</span>
-				<span>7</span>
-				<span>14</span>
-				<span>18</span>
-				<span>21</span>
+				{[0, 7, 14, 18, 21].map((tick) => (
+					<span
+						key={tick}
+						style={{
+							position: "absolute",
+							left: `${(tick / 21) * 100}%`,
+							transform:
+								tick === 0
+									? "none"
+									: tick === 21
+										? "translateX(-100%)"
+										: "translateX(-50%)",
+						}}
+					>
+						{tick}
+					</span>
+				))}
 			</div>
 
 			<div
