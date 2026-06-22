@@ -44,6 +44,22 @@ export async function writePhotos(photos: MosaicItem[]): Promise<void> {
 
 // fetch from R2 to local cache (used by prebuild script)
 export async function fetchPhotosFromR2(): Promise<void> {
+	// r2 creds are only set on production builds. on cloudflare preview
+	// deployments (and any env without r2 access) skip the prefetch and fall
+	// back to an empty cache so the build still succeeds. getPhotos() tolerates
+	// a missing/empty cache, so the photography page just renders no photos.
+	if (
+		!process.env.R2_ACCOUNT_ID ||
+		!process.env.R2_ACCESS_KEY_ID ||
+		!process.env.R2_SECRET_ACCESS_KEY ||
+		!process.env.R2_BUCKET_NAME
+	) {
+		console.log("r2 not configured, skipping photo prefetch");
+		fs.mkdirSync(path.dirname(localPath), { recursive: true });
+		fs.writeFileSync(localPath, '{ "photos": [] }\n', "utf-8");
+		return;
+	}
+
 	const r2 = getR2Client();
 	try {
 		const res = await r2.send(
