@@ -92,7 +92,7 @@ export default function Home() {
 						</p>
 						*/}
 						<p className="text-lg">
-							I spend my time building{" "}
+							I currently spend my time building frontier people search at{" "}
 							<a
 								href="https://clado.ai"
 								target="_blank"
@@ -101,7 +101,7 @@ export default function Home() {
 							>
 								Clado
 							</a>
-							, where we build frontier people search.
+							.
 						</p>
 						<p className="text-lg">
 							I grew up in Toronto 🇨🇦 and spent a semester building{" "}
