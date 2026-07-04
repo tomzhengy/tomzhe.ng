@@ -25,10 +25,16 @@ export default function Home() {
 						name: "Tom Zheng",
 						url: "https://tomzhe.ng",
 						jobTitle: "Founder",
+						// Freesolo — commented out for now
+						// worksFor: {
+						// 	"@type": "Organization",
+						// 	name: "Freesolo",
+						// 	url: "https://freesolo.co",
+						// },
 						worksFor: {
 							"@type": "Organization",
-							name: "Freesolo",
-							url: "https://freesolo.co",
+							name: "Clado",
+							url: "https://clado.ai",
 						},
 						knowsAbout: [
 							"Programming",
@@ -39,12 +45,12 @@ export default function Home() {
 							"SDX",
 							"UCSD",
 							"San Francisco",
-							"Freesolo",
+							// "Freesolo",
 							"Clado",
 						],
 						sameAs: [
 							"https://www.sdx.community/chapters/ucsd",
-							"https://freesolo.co",
+							// "https://freesolo.co",
 							"https://clado.ai",
 							"https://tyzheng.com",
 							"https://tomzhe.ng",
@@ -61,6 +67,7 @@ export default function Home() {
 					<Header ThemeToggleComponent={ThemeToggle} currentPage="home" />
 
 					<section aria-labelledby="introduction" className="space-y-8">
+						{/* Freesolo copy — commented out for now
 						<p className="text-lg">
 							I spend my time building{" "}
 							<a
@@ -82,6 +89,19 @@ export default function Home() {
 								Clado
 							</a>{" "}
 							and built frontier people search.
+						</p>
+						*/}
+						<p className="text-lg">
+							I spend my time building{" "}
+							<a
+								href="https://clado.ai"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="body-link"
+							>
+								Clado
+							</a>
+							, where we build frontier people search.
 						</p>
 						<p className="text-lg">
 							I grew up in Toronto 🇨🇦 and spent a semester building{" "}
