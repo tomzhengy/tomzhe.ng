@@ -14,11 +14,11 @@ import {
 export const metadata: Metadata = {
 	title: "Tom Zheng",
 	description:
-		"Tom Zheng is a founder and engineer based in San Francisco. Currently building Clado (YC X25), a people search platform. UCSD alum.",
+		"Tom Zheng is a founder and engineer based in San Francisco. Currently building Freesolo. Previously cofounded Clado (YC X25), a people search platform. UCSD alum.",
 	metadataBase: new URL("https://tomzhe.ng"),
 	keywords: [
 		"Tom Zheng",
-		// "Freesolo",
+		"Freesolo",
 		"Clado",
 		"San Francisco",
 		"founder",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 		url: "https://tomzhe.ng",
 		title: "Tom Zheng",
 		description:
-			"Tom Zheng is a founder and engineer based in San Francisco. Currently building Clado (YC X25), a people search platform. UCSD alum, grew up in Toronto.",
+			"Tom Zheng is a founder and engineer based in San Francisco. Currently building Freesolo. Previously cofounded Clado (YC X25), a people search platform. UCSD alum, grew up in Toronto.",
 		siteName: "Tom Zheng",
 		images: ["/notion-face-transparent.webp"],
 	},
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 		card: "summary",
 		title: "Tom Zheng",
 		description:
-			"Tom Zheng is a founder and engineer based in San Francisco. Currently building Clado (YC X25), a people search platform. UCSD alum, grew up in Toronto.",
+			"Tom Zheng is a founder and engineer based in San Francisco. Currently building Freesolo. Previously cofounded Clado (YC X25), a people search platform. UCSD alum, grew up in Toronto.",
 		images: ["/notion-face-transparent.webp"],
 	},
 	icons: {
